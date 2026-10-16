@@ -31,18 +31,19 @@
     #betrayal-battlefield{max-width:600px;margin:0 auto;color:#eee5c8;font:14px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif}
     #betrayal-battlefield *{box-sizing:border-box}
     #betrayal-battlefield .screen{position:relative;background:#101010;border:3px solid #262626;overflow:hidden}
-    #betrayal-battlefield canvas{display:block;width:100%;height:auto;aspect-ratio:8/5;image-rendering:auto;touch-action:none;background:#36c8d2}
+    #betrayal-battlefield canvas{display:block;width:100%;height:auto;aspect-ratio:4/3;image-rendering:auto;touch-action:none;background:#36c8d2}
     #betrayal-battlefield .vitals{position:absolute;left:8px;right:8px;top:7px;display:flex;justify-content:space-between;pointer-events:none}
-    #betrayal-battlefield .vital{width:30%;color:#fff;font-size:10px;text-shadow:1px 1px #111}
+    #betrayal-battlefield .vital{width:34%;color:#fff;font-size:10px;text-shadow:1px 1px #111;letter-spacing:.3px}
     #betrayal-battlefield .vital:last-child{text-align:right}
     #betrayal-battlefield .meter{height:5px;background:#222;margin-top:2px;box-shadow:0 0 0 1px #ded0a0}
-    #betrayal-battlefield .fill{height:100%;background:#e1d54d;transition:width .15s}
+    #betrayal-battlefield .fill{height:100%;background:#e1d54d;transition:width .25s}
     #betrayal-battlefield .vital:last-child .fill{margin-left:auto;background:#e57b51}
     #betrayal-battlefield .caption{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 2px;color:#bdb79e;font-size:12px}
     #betrayal-battlefield .caption strong{color:#e7dab8;letter-spacing:.6px}
     #betrayal-battlefield .controls{display:grid;grid-template-columns:repeat(5,minmax(44px,1fr));gap:7px;max-width:390px;margin:8px auto 0}
-    #betrayal-battlefield .controls button{height:48px;border:1px solid #6a6047;border-radius:7px;background:#27261f;color:#f2e8c9;font:700 18px system-ui;touch-action:none;user-select:none;cursor:pointer}
+    #betrayal-battlefield .controls button{height:52px;border:1px solid #6a6047;border-radius:7px;background:#27261f;color:#f2e8c9;font:700 18px system-ui;touch-action:none;user-select:none;cursor:pointer}
     #betrayal-battlefield .controls button.attack{background:#a13d34;color:white;font-size:13px;letter-spacing:.4px}
+    #betrayal-battlefield .controls button.cooling{background:#5a2d29;color:#c9a8a2}
     #betrayal-battlefield .replay{display:block;width:min(100%,390px);height:46px;margin:8px auto 0;border:1px solid #c6a45c;border-radius:7px;background:#c6a45c;color:#10130f;font:800 13px system-ui;letter-spacing:.7px;cursor:pointer}
     #betrayal-battlefield .replay[hidden]{display:none}
     #betrayal-battlefield .controls button:active{transform:translateY(1px);background:#776033}
@@ -51,13 +52,13 @@
     @media(max-width:360px){#betrayal-battlefield .controls{gap:4px}#betrayal-battlefield .controls button{height:46px}}
   </style>
   <div class="screen">
-    <canvas id="bb-canvas" width="640" height="400" role="img" aria-label="Pixel-art duel between two trolls on a green battlefield"></canvas>
+    <canvas id="bb-canvas" width="640" height="480" role="img" aria-label="Pixel-art battle in two rows: your front-row fighter against a rival, with a second duel behind"></canvas>
     <div class="vitals" aria-hidden="true">
-      <div class="vital">YOUR FIGHTER<div class="meter"><div class="fill" id="bb-player-hp" style="width:100%"></div></div></div>
-      <div class="vital">RIVAL<div class="meter"><div class="fill" id="bb-enemy-hp" style="width:100%"></div></div></div>
+      <div class="vital">YOUR ARMY<div class="meter"><div class="fill" id="bb-player-hp" style="width:100%"></div></div></div>
+      <div class="vital">RIVAL ARMY<div class="meter"><div class="fill" id="bb-enemy-hp" style="width:100%"></div></div></div>
     </div>
   </div>
-  <div class="caption"><strong id="bb-status" aria-live="polite">REAL-TIME FIGHT</strong><span id="bb-health">10 · 10</span></div>
+  <div class="caption"><strong id="bb-status" aria-live="polite">REAL-TIME FIGHT</strong><span id="bb-health">20 · 20</span></div>
   <div class="controls" aria-label="Battle controls">
     <button type="button" data-action="left" aria-label="Move left">◀</button>
     <button type="button" data-action="up" aria-label="Jump">▲</button>
@@ -66,21 +67,37 @@
     <button type="button" data-action="right" aria-label="Move right">▶</button>
   </div>
   <button type="button" class="replay" id="bb-replay" hidden>PLAY AGAIN</button>
-  <p class="hint">Hold a direction to move · tap ATTACK · defeated fighters dissolve as the next reserve enters</p>
+  <p class="hint">You lead the front row · the back row fights on its own · both rows draw from the same 20 fighters · every swing needs a moment to recover</p>
   <script>
     (()=>{
       const root=document.getElementById('betrayal-battlefield');
       const canvas=root.querySelector('#bb-canvas');
-      const mainCtx=canvas.getContext('2d');mainCtx.scale(2,2);mainCtx.imageSmoothingEnabled=true;mainCtx.imageSmoothingQuality='high';let ctx=mainCtx;
+      const mainCtx=canvas.getContext('2d');mainCtx.imageSmoothingEnabled=true;mainCtx.imageSmoothingQuality='high';let ctx=mainCtx;
       const replay=root.querySelector('#bb-replay');
-      const W=320,H=200;
-      const playerQueue=['troll','axe','sword','morningstar'],enemyQueue=['troll','axe','sword','morningstar'];
-      const game={px:56,ex:194,py:42,ey:42,php:10,ehp:10,ptype:'troll',etype:'troll',pIndex:0,eIndex:0,pjump:0,ejump:0,flash:0,done:false,phase:'battle',deadSide:'',phaseAt:0,deathX:0,deathY:42,entrySide:'',entryFrom:0,entryTo:0,corpses:[],status:'REAL-TIME FIGHT',playerSwing:0,enemySwing:0,playerHitDone:false,enemyHitDone:false,playerReady:0,enemyReady:0,playerStun:0,enemyStun:0,playerKnock:0,enemyKnock:0,playerKnockAt:0,enemyKnockAt:0,lastFrame:0};
+      const atkBtn=root.querySelector('[data-action=attack]');
+      const DPR=2;                 // canvas pixels per logical pixel
+      const SW=320,SH=240;         // screen, in logical pixels
+      const W=320,H=200;           // one row's own drawing space (fighters stand on y=42, feet at ~171)
+
+      // ---- Rules ----
+      const ARMY_SIZE=20;
+      const TYPES=['troll','axe','sword','morningstar'];
+      const SWING_MS=900;          // full swing animation
+      const IMPACT_MS=600;         // when the blow lands
+      const RECOVER_MS=500;        // extra recovery after every swing before the next one (both sides)
+      const PLAYER_SPEED=80, AI_WALK=34, AI_RUSH=96, AI_BACK=46;
+      const LANES={back:{s:.68,ox:160*(1-.68),oy:12},front:{s:1,ox:0,oy:36}};
+
+      // ---- Sprite sheets ----
       const trollSheet=new Image();trollSheet.src='img/troll.png';
       const humanSheet=new Image();humanSheet.src='img/humans.png';
-      // Embedded six-frame human attacks (axe/sword/morningstar) and seven-frame deaths (human/troll).
+      // Six-frame human attacks (axe/sword/morningstar).
       const humanAttackSheet=new Image();humanAttackSheet.src='img/human-attacks.png';
+      // Seven-frame deaths, re-packed so every frame sits whole in its own cell, feet on the cell's bottom edge.
       const deathSheet=new Image();deathSheet.src='img/deaths.png';
+      const DEATH={human:{y:0,cw:292,ch:276,h0:272,stand:59},troll:{y:276,cw:313,ch:305,h0:301,stand:82}};
+      const FEET=171-42;           // feet line below a fighter's y
+
       const held=new Set();
       // Contact is judged on the drawn pixels: each fighter is rendered off-screen in its current pose and a strike lands only when the two silhouettes touch.
       const maskCtx=[0,1].map(()=>{const c=document.createElement('canvas');c.width=W;c.height=H;return c.getContext('2d',{willReadFrequently:true})});
@@ -96,35 +113,34 @@
       }
       const rect=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))};
       const poly=(pts,c)=>{ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();ctx.fill()};
+      const rand=(a,b)=>a+Math.random()*(b-a);
+
       function scenery(){
-        rect(0,0,320,200,'#40ccd2');
+        rect(0,0,SW,SH,'#40ccd2');
         // Layered, blocky mountain skyline and distant ridge.
         poly([[0,9],[10,12],[20,3],[30,17],[41,1],[52,22],[63,7],[76,26],[87,11],[98,21],[109,8],[121,27],[135,15],[150,30],[166,13],[181,27],[194,7],[208,23],[223,0],[238,18],[251,4],[268,25],[281,11],[294,28],[307,8],[320,15],[320,54],[0,54]],'#3348a3');
         poly([[0,32],[14,24],[28,31],[43,19],[55,39],[68,16],[83,32],[98,24],[115,41],[130,26],[148,36],[164,20],[180,38],[198,23],[211,36],[230,18],[248,37],[262,20],[279,40],[296,22],[310,34],[320,27],[320,58],[0,58]],'#5964ce');
         poly([[0,47],[25,41],[42,50],[64,39],[82,49],[100,43],[120,54],[142,41],[160,51],[183,42],[206,54],[228,39],[251,51],[274,42],[296,52],[320,43],[320,67],[0,67]],'#6655b0');
-        rect(0,58,320,10,'#a9dd9a');rect(0,66,320,109,'#13c61d');
+        rect(0,58,SW,10,'#a9dd9a');rect(0,66,SW,150,'#13c61d');
+        // A slightly worn strip where each row fights.
+        rect(0,124,SW,8,'#11b51b');rect(0,200,SW,10,'#11b51b');
         // Field flecks, tufts and stones.
-        const flecks=[[4,85,5,2,'#29862b'],[24,112,7,2,'#f6d850'],[47,77,4,2,'#b7e747'],[70,136,8,2,'#744d29'],[88,93,3,2,'#fff05b'],[117,120,8,2,'#267f37'],[141,78,5,2,'#f5d94c'],[171,143,7,2,'#89623d'],[197,89,5,2,'#eee260'],[222,122,9,2,'#435ca2'],[247,80,7,2,'#e7d247'],[277,140,9,2,'#8e6d40'],[302,96,6,2,'#ffec54'],[12,151,10,3,'#60523a'],[53,163,11,2,'#e6d447'],[106,153,7,3,'#65706b'],[186,164,9,2,'#eee25a'],[238,154,7,3,'#5c6466'],[292,165,10,2,'#dbd052']];
+        const flecks=[[4,85,5,2,'#29862b'],[24,112,7,2,'#f6d850'],[47,77,4,2,'#b7e747'],[70,146,8,2,'#744d29'],[88,93,3,2,'#fff05b'],[117,120,8,2,'#267f37'],[141,78,5,2,'#f5d94c'],[171,153,7,2,'#89623d'],[197,89,5,2,'#eee260'],[222,142,9,2,'#435ca2'],[247,80,7,2,'#e7d247'],[277,160,9,2,'#8e6d40'],[302,96,6,2,'#ffec54'],[12,171,10,3,'#60523a'],[53,183,11,2,'#e6d447'],[106,173,7,3,'#65706b'],[186,184,9,2,'#eee25a'],[238,174,7,3,'#5c6466'],[292,185,10,2,'#dbd052']];
         for(const [x,y,w,h,c] of flecks)rect(x,y,w,h,c);
-        for(const [x,y] of [[20,128],[35,89],[77,159],[128,104],[154,156],[212,107],[264,130],[313,118]]){rect(x,y,2,7,'#80dc37');rect(x-3,y+2,3,2,'#a4ed51');rect(x+2,y+1,3,2,'#9de544')}
-        // Distant soldiers.
-        drawSoldier(28,42,.62);drawSoldier(257,43,.62,true);
-        rect(0,173,320,27,'#171b1a');
+        for(const [x,y] of [[20,138],[35,89],[77,179],[128,104],[154,166],[212,107],[264,150],[313,118]]){rect(x,y,2,7,'#80dc37');rect(x-3,y+2,3,2,'#a4ed51');rect(x+2,y+1,3,2,'#9de544')}
+        rect(0,212,SW,28,'#171b1a');
       }
-      function drawSoldier(x,y,s=1,flip=false){ctx.save();ctx.translate(x,y);ctx.scale(flip?-s:s,s);rect(5,2,8,10,'#e0c8a8');rect(3,0,12,4,'#9da3a3');rect(5,12,9,13,'#df6747');rect(2,13,4,12,'#d9b891');rect(14,13,4,10,'#d9b891');rect(6,25,4,12,'#bc704d');rect(11,25,4,12,'#bc704d');rect(3,36,9,2,'#332c2b');rect(20,9,2,31,'#60452d');rect(17,7,9,2,'#e8e0c4');rect(18,3,6,5,'#e0ddc6');ctx.restore()}
       function drawTroll(x,y,flip=false,jump=0,flash=false,swing=0){
         if(!trollSheet.complete||!trollSheet.naturalWidth)return;
         const frame=swing<=0?0:Math.min(7,Math.floor(swing*8));
         const fw=96,dw=122,dh=130,sx=dw/87,sy=dh/94,drawW=fw*sx,drawH=128*sy,drawX=-5*sx,drawY=-28*sy;
         ctx.save();ctx.translate(x+(flip?dw:0),y-jump);ctx.scale(flip?-1:1,1);
         ctx.drawImage(trollSheet,frame*fw,0,fw,128,drawX,drawY,drawW,drawH);
-        if(flash){ctx.globalAlpha=.26;ctx.globalCompositeOperation='source-atop';ctx.fillStyle='#fff3a0';ctx.fillRect(0,0,dw,dh)}
         ctx.restore();
       }
       function drawHumanFallback(x,y,kind,flip=false,jump=0,flash=false,swing=0){
-        const t=Math.max(0,Math.min(1,swing)),h=65,scale=1.1;
+        const t=Math.max(0,Math.min(1,swing)),scale=1.1;
         ctx.save();ctx.translate(x+48,y+130-jump);ctx.scale(flip?-scale:scale,scale);
-        // Upright guard; scale the visible body to three quarters of the troll's visible height.
         rect(-5,-50,10,11,'#d9bd98');rect(-7,-51,14,5,'#aeb9b8');rect(-5,-55,11,5,'#d0d4ce');
         rect(-6,-39,12,3,'#e0b98f');rect(-9,-36,18,16,'#ca4b39');rect(-7,-35,5,11,'#eb674c');rect(3,-34,4,8,'#a9312e');
         rect(-8,-20,16,3,'#60462d');rect(-2,-20,5,3,'#e6c35b');
@@ -142,7 +158,6 @@
           rect(-1,-weaponLen,2,weaponLen-5,'#68492c');rect(-3,-weaponLen+7,6,3,'#aa7a45');rect(-5,-weaponLen-3,10,8,'#b5bdbb');rect(-4,-weaponLen-2,8,6,'#d5d8d2');rect(-5,-weaponLen-3,3,3,'#e4e7de');rect(2,-weaponLen+1,3,3,'#e4e7de');
         }
         ctx.restore();
-        if(flash){ctx.globalAlpha=.28;ctx.globalCompositeOperation='source-atop';ctx.fillStyle='#fff3a0';ctx.fillRect(-14,-55,28,52)}
         ctx.restore();
       }
       function humanAttackFrame(t){
@@ -159,23 +174,10 @@
         if(humanAttackSheet.complete&&humanAttackSheet.naturalWidth){
           const row={axe:0,sword:1,morningstar:2}[kind]??1,frame=humanAttackFrame(t),cx=x+48,bottom=y+130-jump;
           ctx.save();ctx.translate(cx,bottom);ctx.scale(flip?-1:1,1);
-          // These six cells are the approved frame pictures, drawn at the human's 75% visible scale.
           ctx.drawImage(humanAttackSheet,frame*300,row*300,300,300,-36,-72,72,72);
-          if(flash){ctx.globalAlpha=.24;ctx.globalCompositeOperation='source-atop';ctx.fillStyle='#fff3a0';ctx.fillRect(-36,-72,72,72)}
           ctx.restore();return;
         }
-        if(!humanSheet.complete||!humanSheet.naturalWidth){drawHumanFallback(x,y,kind,flip,jump,flash,swing);return}
-        const cell={axe:0,sword:1,morningstar:2}[kind]??1,h=65,scale=h/128,bodyW=84*scale;
-        const weaponAngle=humanWeaponAngle(t),bodyLean=(t>.66&&t<.78)?.025*Math.sin((t-.66)/.12*Math.PI):0;
-        ctx.save();ctx.translate(x+48,y+130-jump);ctx.scale(flip?-1:1,1);ctx.rotate(bodyLean);
-        ctx.drawImage(humanSheet,cell*144,0,84,128,-bodyW/2,-h,bodyW,h);
-        const gripX=bodyW*.38,gripY=-h*.78,weaponH=h*.56,weaponW=weaponH*(60/128)*.82;
-        if(t>.32&&t<.76)drawHumanArcTrail(gripX,gripY,weaponH*.78,weaponAngle,t);
-        ctx.save();ctx.translate(gripX,gripY);ctx.rotate(weaponAngle);
-        ctx.drawImage(humanSheet,cell*144+84,0,60,128,0,-weaponH*(76/128),weaponW,weaponH);
-        ctx.restore();
-        if(flash){ctx.globalAlpha=.26;ctx.globalCompositeOperation='source-atop';ctx.fillStyle='#fff3a0';ctx.fillRect(-bodyW/2,-h,bodyW,h)}
-        ctx.restore();
+        drawHumanFallback(x,y,kind,flip,jump,flash,swing);
       }
       function humanWeaponAngle(t){
         if(t<=0)return 2.15;
@@ -190,23 +192,13 @@
         ctx.beginPath();ctx.arc(x,y,r,start,end,false);ctx.stroke();ctx.setLineDash([]);ctx.restore();
       }
       function drawFighter(type,x,y,flip=false,jump=0,flash=false,swing=0){if(type==='troll')drawTroll(x,y,flip,jump,flash,swing);else drawHuman(x,y,type,flip,jump,flash,swing)}
-      function fighterLabel(type){return type==='troll'?'THE TROLL':type==='axe'?'THE AXEMAN':type==='sword'?'THE SWORDSMAN':'THE MORNINGSTAR FIGHTER'}
-      function fighterWidth(type){return type==='troll'?122:96}
-      function fighterHeight(type){return type==='troll'?130:65}
-      function drawMeltLump(x,baseline,type,amount=1){
-        if(amount<=0)return;
-        const troll=type==='troll',color=troll?'#1675ce':'#d88968',shade=troll?'#10559e':'#ae624d',light=troll?'#39b8ed':'#efad83';
-        const width=(troll?34:27)*amount,height=(troll?8:6)*Math.min(1,amount*1.25),left=x+(fighterWidth(type)-width)/2;
-        rect(left,baseline-height,width,height,color);rect(left+3,baseline-height-2,width*.63,2,light);rect(left+width*.68,baseline-height+1,width*.24,2,shade);
-        rect(left+width*.17,baseline-height-1,3,1,shade);rect(left+width*.85,baseline-height-1,2,1,light);
-      }
-      function drawDyingPose(type,x,y,flip,fall,player){
-        const w=fighterWidth(type),bottom=y+130,eased=fall*fall*(3-2*fall),angle=(player?1:-1)*(Math.PI/2)*eased;
-        // The defeated fighter folds down onto the ground at its own position.
-        ctx.save();ctx.translate(x+w/2,bottom);ctx.rotate(angle);ctx.scale(.38,1);
-        drawFighter(type,-w/2,-130,flip,0,false,0);ctx.restore();
-      }
-      function deathAnimationFrame(elapsed){
+      function fighterLabel(type){return type==='troll'?'TROLL':type==='axe'?'AXEMAN':type==='sword'?'SWORDSMAN':'MORNINGSTAR FIGHTER'}
+      // Visible middle of a fighter, and the top of its head (row coordinates).
+      function centerX(f){return f.type==='troll'?(f.side==='L'?f.x+67:f.x+55):f.x+48}
+      function headY(f){return (f.type==='troll'?f.y+46:f.y+71)-f.jump}
+
+      // ---- Death: whole frames, feet kept on the fighter's own ground line ----
+      function deathFrame(elapsed){
         if(elapsed<160)return 0;
         if(elapsed<370)return 1;
         if(elapsed<610)return 2;
@@ -215,222 +207,313 @@
         if(elapsed<1450)return 5;
         return 6;
       }
-      function drawDissolving(side,elapsed){
-        const player=side==='player',type=player?game.ptype:game.etype,x=game.deathX,y=game.deathY;
-        if(deathSheet.complete&&deathSheet.naturalWidth){
-          const row=type==='troll'?1:0,frame=deathAnimationFrame(elapsed),height=type==='troll'?96:69,width=height*(80/96),center=x+fighterWidth(type)/2,bottom=y+130;
-          ctx.save();ctx.translate(center,bottom);ctx.scale(player?1:-1,1);
-          // The approved seven pictures move from collapse through ground dissolve to the final lump.
-          ctx.drawImage(deathSheet,frame*274,row*411,274,411,-width/2,-height,width,height);
-          ctx.restore();return;
-        }
-        drawDissolvingFallback(side,elapsed);
-      }
-      function drawDissolvingFallback(side,elapsed){
-        const player=side==='player',type=player?game.ptype:game.etype,x=game.deathX,y=game.deathY,flip=!player,w=fighterWidth(type),bottom=y+130,center=x+w/2;
-        const fall=Math.max(0,Math.min(1,(elapsed-90)/610)),dissolve=Math.max(0,Math.min(1,(elapsed-700)/1550)),span=130;
-        if(elapsed<700){drawDyingPose(type,x,y,flip,fall,player)}
-        else if(dissolve<1){
-          const frontier=player?center+span*dissolve:center-span*dissolve;
-          ctx.save();ctx.beginPath();
-          if(player){ctx.moveTo(frontier,0);ctx.lineTo(320,0);ctx.lineTo(320,200);ctx.lineTo(frontier,200)}
-          else{ctx.moveTo(0,0);ctx.lineTo(frontier,0);ctx.lineTo(frontier,200);ctx.lineTo(0,200)}
-          ctx.closePath();ctx.clip();drawDyingPose(type,x,y,flip,1,player);ctx.restore();
-          const glow=(1-dissolve)*.24;ctx.globalAlpha=glow;rect(center-12,bottom-2,24,2,'#e94d27');ctx.globalAlpha=1;
-          if(dissolve>0){const colors=type==='troll'?['#1473d2','#37b5f0','#1359a9']:['#d98b6c','#e9b08c','#b96d56'];for(let i=0;i<7;i++){const phase=((elapsed/280+i*.17)%1),px=frontier+(player?1:-1)*phase*13,py=bottom-5-(i%3)*3;ctx.globalAlpha=1-phase*.72;rect(px,py,2+(i%2),2,colors[i%colors.length]);}ctx.globalAlpha=1;}
-        }
-        drawMeltLump(x,bottom,type,Math.min(1,dissolve*1.12));
-      }
-      function drawReserveSoldier(cx,y,kind,flip=false){
-        if(humanSheet.complete&&humanSheet.naturalWidth){const cell={axe:0,sword:1,morningstar:2}[kind]??1;ctx.save();ctx.translate(cx+(flip?12:-12),y);ctx.scale(flip?-1:1,1);ctx.drawImage(humanSheet,cell*144,0,144,128,0,0,24,22);ctx.restore();return}
-        ctx.save();ctx.translate(cx-11,y);ctx.scale(1.12,1.12);if(flip){ctx.translate(22,0);ctx.scale(-1,1)}
-        // Bright helmet, cheek, tunic, belt and boots keep the human readable at roster size.
-        rect(6,2,8,5,'#d9c29f');rect(5,1,10,3,'#aeb6b5');rect(7,0,7,2,'#cdd1cb');rect(6,6,9,7,'#d85a42');
-        rect(5,6,3,2,'#f07350');rect(9,7,5,3,'#dbb998');rect(6,12,9,2,'#69503a');rect(9,12,3,2,'#e4c357');
-        rect(3,7,3,6,'#e0b98e');rect(15,7,3,5,'#e0b98e');rect(7,14,3,5,'#594738');rect(12,14,3,5,'#594738');
-        rect(6,18,5,2,'#292522');rect(11,18,5,2,'#292522');
-        // Distinct weapon silhouettes: broad axe, straight sword, or chained morningstar.
-        if(kind==='axe'){rect(17,3,2,12,'#68492c');rect(18,2,5,4,'#d6d3c7');rect(19,5,4,3,'#aeb8b5');rect(17,2,2,3,'#f1ead4')}
-        else if(kind==='sword'){rect(17,1,2,13,'#c8d0cb');rect(18,2,2,9,'#eef1e8');rect(15,7,6,2,'#e1d7b0');rect(16,14,4,2,'#765130')}
-        else {rect(17,7,2,8,'#68492c');rect(18,4,3,4,'#bcc3c1');rect(19,3,4,4,'#e1e0d7');rect(20,4,3,3,'#8f9999');rect(16,14,4,2,'#765130')}
+      function drawDeath(type,cx,feet,flip,frame){
+        if(!deathSheet.complete||!deathSheet.naturalWidth)return;
+        const d=DEATH[type==='troll'?'troll':'human'],s=d.stand/d.h0;
+        ctx.save();ctx.translate(cx,feet);ctx.scale(flip?-1:1,1);
+        ctx.drawImage(deathSheet,frame*d.cw,d.y,d.cw,d.ch,-d.cw*s/2,-d.ch*s,d.cw*s,d.ch*s);
         ctx.restore();
       }
-      function drawBottom(){
-        // The center-most unit is next to enter; each side's remaining queue closes inward.
-        const y=176;
-        for(let n=0;n<playerQueue.length-game.pIndex;n++){
-          const type=playerQueue[game.pIndex+n],cx=132-n*28;
-          if(type==='troll'){if(trollSheet.complete&&trollSheet.naturalWidth)ctx.drawImage(trollSheet,8,35,82,86,cx-12,y-3,24,25)}else drawReserveSoldier(cx,y,type,false);
-          if(n===0)rect(cx-6,198,12,1,'#dec769');
-        }
-        for(let n=0;n<enemyQueue.length-game.eIndex;n++){
-          const type=enemyQueue[game.eIndex+n],cx=188+n*28;
-          if(type==='troll'){if(trollSheet.complete&&trollSheet.naturalWidth){ctx.save();ctx.translate(cx+12,0);ctx.scale(-1,1);ctx.drawImage(trollSheet,8,35,82,86,0,y-3,24,25);ctx.restore()}}else drawReserveSoldier(cx,y,type,true);
-          if(n===0)rect(cx-6,198,12,1,'#dec769');
-        }
-        poly([[2,186],[14,178],[14,183],[24,183],[24,190],[14,190],[14,195]],'#b6d93f');
-        poly([[318,186],[306,178],[306,183],[296,183],[296,190],[306,190],[306,195]],'#b6d93f');
-        ctx.save();ctx.translate(159,187);ctx.rotate(-.72);rect(-2,-13,4,26,'#9aa4a4');rect(-6,-8,12,3,'#ddd4ac');rect(-2,9,4,7,'#735230');ctx.restore();
-        ctx.save();ctx.translate(161,187);ctx.rotate(.72);rect(-2,-13,4,26,'#a9b4b7');rect(-6,-8,12,3,'#ddd4ac');rect(-2,9,4,7,'#735230');ctx.restore();
-        if(game.done){rect(63,83,194,25,'#10131ddd');ctx.fillStyle='#ffe79b';ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillText(game.eIndex>=enemyQueue.length?'VICTORY':'DEFEAT',160,99)}
+      function drawReserveSoldier(cx,y,kind,flip=false){
+        if(humanSheet.complete&&humanSheet.naturalWidth){const cell={axe:0,sword:1,morningstar:2}[kind]??1;ctx.save();ctx.translate(cx+(flip?12:-12),y);ctx.scale(flip?-1:1,1);ctx.drawImage(humanSheet,cell*144,0,144,128,0,0,24,22);ctx.restore();}
       }
-      function draw(){
-        scenery();
-        for(const corpse of game.corpses)drawMeltLump(corpse.x,corpse.baseline,corpse.type,1);
-        const pSwing=game.playerSwing?Math.min(1,(performance.now()-game.playerSwing)/900):0;
-        const eSwing=game.enemySwing?Math.min(1,(performance.now()-game.enemySwing)/900):0;
-        if(game.phase==='death'){
-          if(game.deadSide==='player')drawFighter(game.etype,game.ex,game.ey,true,game.ejump,game.flash<0,eSwing);else drawFighter(game.ptype,game.px,game.py,false,game.pjump,game.flash>0,pSwing);
-          drawDissolving(game.deadSide,Math.min(2500,performance.now()-game.phaseAt));
-        }else if(game.phase==='finished'){
-          if(game.deadSide==='player')drawFighter(game.etype,game.ex,game.ey,true,game.ejump,game.flash<0,eSwing);
-          else drawFighter(game.ptype,game.px,game.py,false,game.pjump,game.flash>0,pSwing);
-        }else{
-          const bob=game.phase==='entry'?Math.sin((performance.now()-game.phaseAt)/75)*1.5:0;
-          drawFighter(game.ptype,game.px,game.py,false,game.pjump+bob,game.flash>0,pSwing);
-          drawFighter(game.etype,game.ex,game.ey,true,game.ejump-bob,game.flash<0,eSwing);
-        }
-        drawBottom();
-        root.querySelector('#bb-player-hp').style.width=`${Math.max(0,game.php)*10}%`;
-        root.querySelector('#bb-enemy-hp').style.width=`${Math.max(0,game.ehp)*10}%`;
-        root.querySelector('#bb-health').textContent=`${game.php} · ${game.ehp}`;
-        const status=root.querySelector('#bb-status');if(status.textContent!==game.status)status.textContent=game.status;
-        replay.hidden=!game.done;
+      function drawReserveTroll(cx,y,flip=false){
+        if(!trollSheet.complete||!trollSheet.naturalWidth)return;
+        ctx.save();ctx.translate(cx+(flip?12:-12),0);ctx.scale(flip?-1:1,1);ctx.drawImage(trollSheet,8,35,82,86,0,y-3,24,25);ctx.restore();
       }
-      // Contact is checked against the visible strike pose and a small body hitbox.
-      const playerBodyFront=()=>front(game.ptype,false)??(game.ptype==='troll'?92:68);
-      const enemyBodyFront=()=>front(game.etype,true)??(game.etype==='troll'?30:28);
-      // Gap = distance between the two idle silhouettes' leading edges (weapon tips included); negative means the sprites overlap.
-      // strikeLimit() measures, from the drawn pixels, the largest gap at which the attacker's contact pose touches the rival.
+
+      // ---- Reach, measured from the drawn pixels ----
       const MIN_TOUCH=12; // a graze of a few pixels is not a hit
-      // The vulnerable body is the part of a silhouette made of tall columns; thin protruding weapons are not part of it.
       function bodyEdge(d,facingRight){
         const cols=new Int16Array(W);for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(d[(y*W+x)*4+3]>128)cols[x]++;
         if(facingRight){for(let x=W-1;x>=0;x--)if(cols[x]>=30)return x}else{for(let x=0;x<W;x++)if(cols[x]>=30)return x}
         return facingRight?W-1:0;
       }
+      const bodyFrontL=t=>front(t,false)??(t==='troll'?92:68);
+      const bodyFrontR=t=>front(t,true)??(t==='troll'?30:28);
       const limitCache={};
-      function strikeLimit(side){
-        const player=side==='player',key=side+game.ptype+game.etype;
-        if(key in limitCache)return limitCache[key];
-        const pF=front(game.ptype,false),eF=front(game.etype,true);
+      // Largest gap at which `side`'s contact pose touches the other's body.
+      function strikeLimit(side,lt,rt){
+        const key=side+lt+rt;if(key in limitCache)return limitCache[key];
+        const pF=front(lt,false),eF=front(rt,true);
         if(pF==null||eF==null)return 8;
-        const strikeT=t=>t==='troll'?.68:.70,PX=60,EX=PX+pF-eF;
-        const a=silhouette(0,()=>drawFighter(game.ptype,PX,42,false,0,false,player?strikeT(game.ptype):0));
-        const b=silhouette(1,()=>drawFighter(game.etype,EX,42,true,0,false,player?0:strikeT(game.etype)));
-        let limit=-80;
-        // Defender = the side not striking; only its body columns count.
-        const aEdge=bodyEdge(a,true),bEdge=bodyEdge(b,false);
+        const L=side==='L',strikeT=t=>t==='troll'?.68:.70,PX=60,EX=PX+pF-eF;
+        const a=silhouette(0,()=>drawFighter(lt,PX,42,false,0,false,L?strikeT(lt):0));
+        const b=silhouette(1,()=>drawFighter(rt,EX,42,true,0,false,L?0:strikeT(rt)));
+        let limit=-80;const aEdge=bodyEdge(a,true),bEdge=bodyEdge(b,false);
         search:for(let gap=12;gap>=-80;gap--){
           let touch=0;
           for(let y=0;y<H;y++)for(let x=Math.max(0,gap);x<W;x++){
             const ai=(y*W+x)*4+3,bx=x-gap,bi=(y*W+bx)*4+3;
-            if(a[ai]>128&&b[bi]>128&&(player?bx>=bEdge:x<=aEdge)&&++touch>=MIN_TOUCH){limit=gap;break search}
+            if(a[ai]>128&&b[bi]>128&&(L?bx>=bEdge:x<=aEdge)&&++touch>=MIN_TOUCH){limit=gap;break search}
           }
         }
         return limitCache[key]=limit;
       }
-      // Fighters can close until both can land a blow; the rival walks in until both sides can land a blow, then starts swinging.
-      const closestGap=()=>Math.min(strikeLimit('player'),strikeLimit('enemy'))-14;
-      const attackGap=()=>Math.min(strikeLimit('player'),strikeLimit('enemy'))-10;
-      const meleeSpacing=()=>playerBodyFront()-enemyBodyFront()+closestGap();
-      const gapBetween=()=>game.ex+enemyBodyFront()-(game.px+playerBodyFront());
-      function weaponHitsBody(side,now){
-        const player=side==='player',start=player?game.playerSwing:game.enemySwing;
-        const type=player?game.ptype:game.etype;
-        const t=Math.max(0,Math.min(1,(now-start)/900));
-        const frame=type==='troll'?Math.min(7,Math.floor(t*8)):humanAttackFrame(t);
-        // Only the contact pose can hurt: troll frame 5, human frame 4.
-        if(frame!==(type==='troll'?5:4))return false;
-        const pT=game.playerSwing?Math.min(1,(now-game.playerSwing)/900):0,eT=game.enemySwing?Math.min(1,(now-game.enemySwing)/900):0;
-        const a=silhouette(0,()=>drawFighter(game.ptype,game.px,game.py,false,game.pjump,false,pT));
-        const b=silhouette(1,()=>drawFighter(game.etype,game.ex,game.ey,true,game.ejump,false,eT));
+      const closestGap=(lt,rt)=>Math.min(strikeLimit('L',lt,rt),strikeLimit('R',lt,rt))-14;
+      const attackGap=(lt,rt)=>Math.min(strikeLimit('L',lt,rt),strikeLimit('R',lt,rt))-10;
+      const outReach=(lt,rt)=>Math.max(strikeLimit('L',lt,rt),strikeLimit('R',lt,rt));
+      const spacing=(lt,rt)=>bodyFrontL(lt)-bodyFrontR(rt)+closestGap(lt,rt);
+      const gapOf=lane=>lane.R.x+bodyFrontR(lane.R.type)-(lane.L.x+bodyFrontL(lane.L.type));
+      const swingT=(f,now)=>f.swing?Math.min(1,(now-f.swing)/SWING_MS):0;
+      function weaponHitsBody(lane,side,now){
+        const att=side==='L'?lane.L:lane.R;
+        const t=swingT(att,now);
+        const frame=att.type==='troll'?Math.min(7,Math.floor(t*8)):humanAttackFrame(t);
+        if(frame!==(att.type==='troll'?5:4))return false; // only the contact pose can hurt
+        const a=silhouette(0,()=>drawFighter(lane.L.type,lane.L.x,lane.L.y,false,lane.L.jump,false,swingT(lane.L,now)));
+        const b=silhouette(1,()=>drawFighter(lane.R.type,lane.R.x,lane.R.y,true,lane.R.jump,false,swingT(lane.R,now)));
         const aEdge=bodyEdge(a,true),bEdge=bodyEdge(b,false);let touch=0;
         for(let y=0;y<H;y++)for(let x=0;x<W;x++){
           const i=(y*W+x)*4+3;
-          if(a[i]>128&&b[i]>128&&(player?x>=bEdge:x<=aEdge)&&++touch>=MIN_TOUCH)return true;
+          if(a[i]>128&&b[i]>128&&(side==='L'?x>=bEdge:x<=aEdge)&&++touch>=MIN_TOUCH)return true;
         }
         return false;
       }
-      function beginPlayerSwing(now){if(game.done||game.phase!=='battle'||game.playerSwing||now<game.playerReady)return;game.playerSwing=now;game.playerHitDone=false;game.playerReady=now+1020;game.status=game.ptype==='troll'?'YOU RAISE THE CLUB':'YOU LIFT YOUR WEAPON OVERHEAD'}
-      function beginDeath(side,now){
-        if(game.phase!=='battle')return;
-        game.phase='death';game.deadSide=side;game.phaseAt=now;game.deathX=side==='player'?game.px:game.ex;game.deathY=side==='player'?game.py:game.ey;
-        game.playerSwing=0;game.enemySwing=0;held.clear();
-        const type=side==='player'?game.ptype:game.etype;
-        game.status=`${fighterLabel(type)} FALLS AND DISSOLVES`;
+
+      // ---- Armies & rows ----
+      let game;
+      function makeArmy(){const a=[];for(let i=0;i<ARMY_SIZE;i++)a.push(TYPES[Math.floor(Math.random()*TYPES.length)]);return a}
+      function makeFighter(side,type,lane,x){
+        return {side,type,lane,x,y:42,jump:0,hp:10,state:'fight',swing:0,hitDone:false,ready:0,stun:0,knock:0,knockAt:0,flashUntil:0,
+                ai:{mode:'approach',until:0,willHold:Math.random()<.65,pad:rand(8,20),wait:0,rushAt:0},
+                ctrl:(lane==='front'&&side==='L')?'player':'ai',entryFrom:x,entryTo:x,entryAt:0};
       }
-      function playerImpact(now){
-        if(game.phase!=='battle'||game.playerHitDone||!game.playerSwing||now-game.playerSwing<600)return;
-        game.playerHitDone=true;
-        if(weaponHitsBody('player',now)){
-          game.ehp=Math.max(0,game.ehp-2);game.flash=5;game.enemyKnock=3;game.enemyKnockAt=now;game.enemyStun=now+630;
-          if(game.enemySwing&&!game.enemyHitDone&&now-game.enemySwing<600)game.enemySwing=0;
-          if(game.ehp===0)beginDeath('enemy',now);else game.status=`HIT! ${fighterLabel(game.etype)} STAGGERS BACK`;
-        }else game.status='MISS! OUT OF BODY RANGE';
+      function newGame(){
+        game={done:false,winner:'',status:'REAL-TIME FIGHT',statusAt:0,last:performance.now(),
+          army:{L:makeArmy(),R:makeArmy()},
+          lanes:{back:{id:'back',L:null,R:null,corpses:[]},front:{id:'front',L:null,R:null,corpses:[]}}};
+        for(const id of ['front','back']){
+          const lane=game.lanes[id];
+          lane.L=makeFighter('L',game.army.L.shift(),id,56);
+          lane.R=makeFighter('R',game.army.R.shift(),id,194);
+        }
+        held.clear();
       }
-      function enemyImpact(now){
-        if(game.phase!=='battle'||game.enemyHitDone||!game.enemySwing||now-game.enemySwing<600)return;
-        game.enemyHitDone=true;
-        if(weaponHitsBody('enemy',now)){
-          game.php=Math.max(0,game.php-2);game.flash=-5;game.playerKnock=3;game.playerKnockAt=now;game.playerStun=now+630;
-          if(game.playerSwing&&!game.playerHitDone&&now-game.playerSwing<600)game.playerSwing=0;
-          if(game.php===0)beginDeath('player',now);else game.status=`${fighterLabel(game.etype)} HITS — YOU STAGGER BACK`;
-        }else game.status='THE RIVAL MISSES';
+      const alive=f=>f&&(f.state==='fight'||f.state==='entry');
+      const remaining=side=>game.army[side].length+['front','back'].reduce((n,id)=>n+(alive(game.lanes[id][side])?1:0),0);
+      function say(msg,now){game.status=msg;game.statusAt=now}
+      function who(f){return (f.side==='L'?'YOUR ':'RIVAL ')+fighterLabel(f.type)}
+
+      function startSwing(f,now){
+        if(f.state!=='fight'||f.swing||now<f.ready||now<f.stun||f.knock)return false;
+        f.swing=now;f.hitDone=false;f.ready=now+SWING_MS+RECOVER_MS;
+        return true;
       }
-      function beginEntry(side,now){
-        const player=side==='player';game.entrySide=side;game.phase='entry';game.phaseAt=now;
-        game.entryFrom=player?-52:324;game.entryTo=player?Math.max(25,Math.min(56,game.ex-meleeSpacing())):Math.min(198,Math.max(194,game.px+meleeSpacing()));
-        if(player){game.pIndex++;game.ptype=playerQueue[game.pIndex];game.php=10;game.px=game.entryFrom;}
-        else{game.eIndex++;game.etype=enemyQueue[game.eIndex];game.ehp=10;game.ex=game.entryFrom;}
-        game.playerSwing=0;game.enemySwing=0;game.playerReady=now+400;game.enemyReady=now+700;
-        game.status=`${fighterLabel(player?game.ptype:game.etype)} ENTERS THE BATTLE`;
+      // Keep each fighter on the field and out of the other's body.
+      function moveTo(lane,f,x){
+        const o=f.side==='L'?lane.R:lane.L;
+        if(f.side==='L'){x=Math.max(25,Math.min(198,x));if(alive(o))x=Math.min(x,o.x-spacing(f.type,o.type))}
+        else{x=Math.min(198,Math.max(25,x));if(alive(o))x=Math.max(x,o.x+spacing(o.type,f.type))}
+        f.x=x;
       }
-      function finishDeath(now){
-        const side=game.deadSide,player=side==='player';
-        const index=player?game.pIndex:game.eIndex,queue=player?playerQueue:enemyQueue;
-        if(index+1>=queue.length){game.phase='finished';game.done=true;game.status=player?'DEFEAT — YOUR LINE IS BROKEN':'VICTORY — THE RIVAL LINE IS BROKEN';held.clear();return;}
-        beginEntry(side,now);
-      }
-      function update(now){
-        const dt=Math.min(.04,Math.max(0,(now-game.lastFrame)/1000||0));game.lastFrame=now;
-        if(!game.done){
-          if(game.phase==='death'){
-            if(now-game.phaseAt>=2500){const type=game.deadSide==='player'?game.ptype:game.etype;game.corpses.push({x:game.deathX,baseline:game.deathY+130,type});finishDeath(now);}
-          }else if(game.phase==='entry'){
-            const t=Math.min(1,(now-game.phaseAt)/900),eased=t*t*(3-2*t),x=game.entryFrom+(game.entryTo-game.entryFrom)*eased;
-            if(game.entrySide==='player')game.px=x;else game.ex=x;
-            if(t>=1){game.phase='battle';game.status='REAL-TIME FIGHT';game.entrySide=''}
-          }else if(game.phase==='battle'){
-            const pLocked=(game.playerSwing&&now-game.playerSwing<900)||now<game.playerStun;
-            const eLocked=(game.enemySwing&&now-game.enemySwing<900)||now<game.enemyStun;
-            if(game.playerKnock&&now>=game.playerKnockAt){game.px=Math.max(25,game.px-8);game.playerKnock--;game.playerKnockAt=now+105}
-            if(game.enemyKnock&&now>=game.enemyKnockAt){game.ex=Math.min(198,game.ex+8);game.enemyKnock--;game.enemyKnockAt=now+105}
-            const dir=(held.has('right')?1:0)-(held.has('left')?1:0);
-            if(!pLocked&&!game.playerKnock){game.px=Math.max(25,Math.min(game.ex-meleeSpacing(),game.px+dir*80*dt));game.pjump=held.has('up')?15:0}
-            playerImpact(now);
-            if(game.phase==='battle'){
-              if(game.playerSwing&&now-game.playerSwing>=900)game.playerSwing=0;
-              if(held.has('attack')&&!game.playerSwing&&now>=game.playerReady)beginPlayerSwing(now);
-              if(!eLocked&&!game.enemyKnock){const gap=gapBetween();if(gap>attackGap())game.ex=Math.max(game.px+meleeSpacing(),game.ex-34*dt);else if(now>=game.enemyReady){game.enemySwing=now;game.enemyHitDone=false;game.enemyReady=now+1180;game.status=game.etype==='troll'?'THE RIVAL LIFTS THE CLUB':'THE RIVAL LIFTS A WEAPON OVERHEAD'}}
-              enemyImpact(now);
-              if(game.phase==='battle'&&game.enemySwing&&now-game.enemySwing>=900)game.enemySwing=0;
-              if(game.flash>0)game.flash=Math.max(0,game.flash-dt*25);else if(game.flash<0)game.flash=Math.min(0,game.flash+dt*25);
-            }
+      const toward=(f,amt)=>f.side==='L'?f.x+amt:f.x-amt;
+
+      // ---- The rival's brain (also runs both back-row fighters) ----
+      function think(lane,f,op,now,dt){
+        const A=f.ai;
+        if(f.state!=='fight')return;
+        if(!op||op.state!=='fight'){A.mode='approach';return}
+        if(now<f.stun||f.knock)return;
+        if(f.swing&&now-f.swing<SWING_MS)return;
+        const lt=lane.L.type,rt=lane.R.type;
+        const gap=gapOf(lane),atk=attackGap(lt,rt),reach=outReach(lt,rt),holdAt=reach+A.pad;
+        const inRange=gap<=atk,canSwing=now>=f.ready;
+        const opSwinging=op.swing&&now-op.swing<SWING_MS;
+        const opRecovering=now<op.ready&&(!op.swing||now-op.swing>IMPACT_MS+90);
+        const swing=(r0=70,r1=240)=>{if(!A.wait)A.wait=now+rand(r0,r1);if(now>=A.wait&&startSwing(f,now)){A.wait=0;A.mode='recover';return true}return false};
+        // Sees a swing coming: (most of the time) refuses to walk into it, then punishes the recovery.
+        if(opSwinging&&now-op.swing<IMPACT_MS+90&&!(f.swing)){
+          if(A.seen!==op.swing){A.seen=op.swing;A.smart=Math.random()<.75}
+          if(A.smart){
+            if(gap>reach){A.mode='punish';A.rushAt=op.swing+IMPACT_MS+110+rand(0,140);return}
+            if(!(inRange&&canSwing&&now-op.swing>IMPACT_MS-250)){moveTo(lane,f,toward(f,-AI_BACK*1.3*dt));A.mode='punish';A.rushAt=op.swing+IMPACT_MS+110+rand(0,140);return}
           }
         }
-        draw();requestAnimationFrame(update);
+        switch(A.mode){
+          case 'approach':
+            if(inRange){if(canSwing)swing();break}
+            if(A.willHold&&gap<=holdAt){A.mode='hold';A.until=now+rand(500,1900);break}
+            moveTo(lane,f,toward(f,AI_WALK*dt));
+            break;
+          case 'hold':
+            // Stand just out of reach and wait for the other to swing first.
+            if(opRecovering&&canSwing){A.rushAt=now+rand(60,160);A.mode='punish';break}
+            if(inRange&&canSwing){swing();break}
+            if(gap<holdAt-4)moveTo(lane,f,toward(f,-AI_BACK*(gap<=reach?1.2:.6)*dt));
+            if(now>A.until){
+              const r=Math.random();
+              if(r<.5){A.mode='approach';A.willHold=false}
+              else if(r<.75){A.mode='back';A.until=now+rand(250,600)}
+              else{A.until=now+rand(400,1200)}
+            }
+            break;
+          case 'punish':
+            // Rush in while the other is still recovering from the swing.
+            if(now<A.rushAt)break;
+            if(inRange){if(canSwing)swing(30,110);break}
+            if(now>=op.ready&&!opSwinging){A.mode='approach';A.willHold=Math.random()<.5;break}
+            moveTo(lane,f,toward(f,AI_RUSH*dt));
+            break;
+          case 'back':
+            moveTo(lane,f,toward(f,-AI_BACK*dt));
+            if(now>A.until){A.mode='hold';A.until=now+rand(400,1400);A.pad=rand(8,20)}
+            break;
+          case 'recover':
+            if(now>=f.ready-250){
+              if(Math.random()<.45){A.mode='back';A.until=now+rand(300,650)}
+              else{A.mode='approach';A.willHold=Math.random()<.65}
+              A.pad=rand(8,20);
+            }
+            break;
+        }
       }
-      function press(action,event){if(game.done)return;event.preventDefault();held.add(action);if(action==='attack')beginPlayerSwing(performance.now());if(event.pointerId!==undefined&&event.currentTarget.setPointerCapture)event.currentTarget.setPointerCapture(event.pointerId)}
+
+      function impact(lane,att,def,now){
+        if(!att||att.state!=='fight'||!att.swing||att.hitDone||now-att.swing<IMPACT_MS)return;
+        att.hitDone=true;
+        if(!def||def.state!=='fight'){return}
+        const isFront=lane.id==='front';
+        if(weaponHitsBody(lane,att.side,now)){
+          def.hp=Math.max(0,def.hp-2);def.flashUntil=now+220;def.knock=3;def.knockAt=now;def.stun=now+630;
+          if(def.swing&&!def.hitDone&&now-def.swing<IMPACT_MS)def.swing=0; // a hit interrupts a swing that hasn't landed
+          if(def.hp===0){
+            def.state='dying';def.deathAt=now;def.swing=0;
+            say(`${isFront?'':'BACK ROW: '}${who(def)} FALLS`,now);
+          }else if(isFront)say(att.side==='L'?`HIT! THE ${fighterLabel(def.type)} STAGGERS BACK`:`THE ${fighterLabel(att.type)} HITS — YOU STAGGER`,now);
+        }else if(isFront)say(att.side==='L'?'MISS! OUT OF REACH':'THE RIVAL MISSES',now);
+      }
+
+      function refill(lane,side,now){
+        const army=game.army[side];
+        if(!army.length){lane[side]=null;return}
+        const o=side==='L'?lane.R:lane.L,type=army.shift();
+        const f=makeFighter(side,type,lane.id,0);
+        f.state='entry';f.entryAt=now;
+        if(side==='L'){f.entryFrom=-60;f.entryTo=alive(o)?Math.max(25,Math.min(56,o.x-spacing(type,o.type)-36)):56}
+        else{f.entryFrom=330;f.entryTo=alive(o)?Math.min(198,Math.max(194,o.x+spacing(o.type,type)+36)):194}
+        f.x=f.entryFrom;f.ready=now+500;
+        lane[side]=f;
+        if(lane.id==='front')say(`${who(f)} ENTERS THE BATTLE`,now);
+      }
+
+      function updateLane(lane,now,dt){
+        for(const side of ['L','R']){
+          const f=lane[side];if(!f)continue;
+          if(f.state==='entry'){
+            const t=Math.min(1,(now-f.entryAt)/900),e=t*t*(3-2*t);
+            f.x=f.entryFrom+(f.entryTo-f.entryFrom)*e;
+            if(t>=1){f.state='fight';if(f.ctrl==='player')say('REAL-TIME FIGHT',now)}
+          }else if(f.state==='dying'&&now-f.deathAt>=2500){
+            lane.corpses.push({type:f.type,cx:centerX(f),flip:f.side==='R'});
+            if(lane.corpses.length>10)lane.corpses.shift();
+            refill(lane,side,now);
+          }
+        }
+        const L=lane.L,R=lane.R;
+        for(const f of [L,R]){
+          if(!f||f.state!=='fight')continue;
+          if(f.knock&&now>=f.knockAt){moveTo(lane,f,toward(f,-8));f.knock--;f.knockAt=now+105}
+          if(f.swing&&now-f.swing>=SWING_MS)f.swing=0;
+        }
+        if(L&&L.state==='fight'&&L.ctrl==='player'&&!game.done){
+          const locked=(L.swing&&now-L.swing<SWING_MS)||now<L.stun||L.knock;
+          if(!locked){
+            const dir=(held.has('right')?1:0)-(held.has('left')?1:0);
+            moveTo(lane,L,L.x+dir*PLAYER_SPEED*dt);
+            L.jump=held.has('up')?15:0;
+          }
+          if(held.has('attack'))startSwing(L,now);
+        }else if(L)think(lane,L,R,now,dt);
+        if(R)think(lane,R,L,now,dt);
+        impact(lane,L,R,now);impact(lane,R,L,now);
+      }
+
+      // ---- Drawing ----
+      function laneTransform(id){const t=LANES[id];ctx.setTransform(DPR*t.s,0,0,DPR*t.s,DPR*t.ox,DPR*t.oy)}
+      function drawLane(lane,now){
+        laneTransform(lane.id);
+        for(const c of lane.corpses)drawDeath(c.type,c.cx,42+FEET,c.flip,6);
+        for(const f of [lane.L,lane.R]){if(!f||f.state==='dying')continue;
+          ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(centerX(f),42+FEET-1,f.type==='troll'?30:22,4,0,0,Math.PI*2);ctx.fill()}
+        for(const f of [lane.L,lane.R]){
+          if(!f)continue;
+          if(f.state==='dying'){drawDeath(f.type,centerX(f),42+FEET,f.side==='R',deathFrame(now-f.deathAt));continue}
+          const bob=f.state==='entry'?Math.sin((now-f.entryAt)/75)*1.5:0;
+          drawFighter(f.type,f.x,f.y,f.side==='R',f.jump+bob,false,swingT(f,now));
+          if(now<f.flashUntil){ctx.save();ctx.globalAlpha=.5*(f.flashUntil-now)/220;ctx.fillStyle='#fff3a0';ctx.beginPath();ctx.ellipse(centerX(f),headY(f)+30,18,26,0,0,Math.PI*2);ctx.fill();ctx.restore()}
+          // health bar over the head
+          const cx=centerX(f),hy=headY(f)-8;
+          rect(cx-16,hy,32,4,'#1c1c1c');rect(cx-15,hy+1,30*f.hp/10,2,f.side==='L'?'#e1d54d':'#e57b51');
+          if(f.ctrl==='player'){poly([[cx-5,hy-9],[cx+5,hy-9],[cx,hy-3]],'#ffe79b');}
+        }
+      }
+      function drawHud(){
+        ctx.setTransform(DPR,0,0,DPR,0,0);
+        const y=215;
+        const show=(side)=>{
+          const a=game.army[side],n=Math.min(5,a.length);
+          for(let i=0;i<n;i++){
+            const t=a[i],cx=side==='L'?140-i*24:180+i*24;
+            if(t==='troll')drawReserveTroll(cx,y,side==='R');else drawReserveSoldier(cx,y,t,side==='R');
+            if(i===0)rect(cx-6,238,12,1,'#dec769');
+          }
+          ctx.fillStyle='#e7dab8';ctx.font='bold 9px monospace';ctx.textAlign=side==='L'?'left':'right';
+          ctx.fillText(`×${a.length}`,side==='L'?6:SW-6,231);
+        };
+        show('L');show('R');
+        ctx.save();ctx.translate(159,227);ctx.rotate(-.72);rect(-2,-10,4,20,'#9aa4a4');rect(-5,-6,10,3,'#ddd4ac');rect(-2,7,4,5,'#735230');ctx.restore();
+        ctx.save();ctx.translate(161,227);ctx.rotate(.72);rect(-2,-10,4,20,'#a9b4b7');rect(-5,-6,10,3,'#ddd4ac');rect(-2,7,4,5,'#735230');ctx.restore();
+        ctx.fillStyle='rgba(16,19,29,.7)';ctx.fillRect(4,118,46,10);ctx.fillRect(4,194,52,10);
+        ctx.fillStyle='#e7dab8';ctx.font='bold 7px monospace';ctx.textAlign='left';
+        ctx.fillText('BACK · AI',7,125);ctx.fillText('FRONT · YOU',7,201);
+        if(game.done){rect(63,96,194,26,'#10131ddd');ctx.fillStyle='#ffe79b';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillText(game.winner==='L'?'VICTORY':'DEFEAT',160,113)}
+      }
+      function draw(now){
+        ctx.setTransform(DPR,0,0,DPR,0,0);
+        scenery();
+        drawLane(game.lanes.back,now);
+        drawLane(game.lanes.front,now);
+        drawHud();
+        const l=remaining('L'),r=remaining('R');
+        root.querySelector('#bb-player-hp').style.width=`${l/ARMY_SIZE*100}%`;
+        root.querySelector('#bb-enemy-hp').style.width=`${r/ARMY_SIZE*100}%`;
+        root.querySelector('#bb-health').textContent=`${l} · ${r}`;
+        const status=root.querySelector('#bb-status');if(status.textContent!==game.status)status.textContent=game.status;
+        const pl=game.lanes.front.L;atkBtn.classList.toggle('cooling',!!(pl&&pl.ctrl==='player'&&now<pl.ready));
+        replay.hidden=!game.done;
+      }
+
+      function update(now){
+        const dt=Math.min(.04,Math.max(0,(now-game.last)/1000||0));game.last=now;
+        if(!game.done){
+          updateLane(game.lanes.back,now,dt);
+          updateLane(game.lanes.front,now,dt);
+          const l=remaining('L'),r=remaining('R');
+          const dyingOf=side=>['front','back'].some(id=>{const f=game.lanes[id][side];return f&&f.state==='dying'});
+          if((l===0&&!dyingOf('L'))||(r===0&&!dyingOf('R'))){
+            game.done=true;game.winner=l>0?'L':'R';held.clear();
+            say(game.winner==='L'?'VICTORY — THE RIVAL ARMY IS BROKEN':'DEFEAT — YOUR ARMY IS BROKEN',now);
+          }else if(!alive(game.lanes.front.L)&&!(game.lanes.front.L&&game.lanes.front.L.state==='dying')&&l>0&&now-game.statusAt>1500){
+            say('YOUR LAST FIGHTERS HOLD THE BACK ROW',now);
+          }
+        }
+        draw(now);requestAnimationFrame(update);
+      }
+
+      function press(action,event){if(game.done)return;event.preventDefault();held.add(action);if(action==='attack'){const f=game.lanes.front.L;if(f&&f.ctrl==='player')startSwing(f,performance.now())}try{if(event.pointerId!==undefined&&event.currentTarget.setPointerCapture)event.currentTarget.setPointerCapture(event.pointerId)}catch(e){}}
       function release(action){held.delete(action)}
       root.querySelectorAll('[data-action]').forEach(b=>{const action=b.dataset.action;b.addEventListener('pointerdown',e=>press(action,e));for(const name of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(name,()=>release(action))});
-      replay.addEventListener('click',()=>{held.clear();Object.assign(game,{px:56,ex:194,py:42,ey:42,corpses:[],php:10,ehp:10,ptype:'troll',etype:'troll',pIndex:0,eIndex:0,pjump:0,ejump:0,flash:0,done:false,phase:'battle',deadSide:'',phaseAt:0,deathX:0,deathY:42,entrySide:'',entryFrom:0,entryTo:0,status:'REAL-TIME FIGHT',playerSwing:0,enemySwing:0,playerHitDone:false,enemyHitDone:false,playerReady:0,enemyReady:0,playerStun:0,enemyStun:0,playerKnock:0,enemyKnock:0,playerKnockAt:0,enemyKnockAt:0,lastFrame:performance.now()});draw()});
+      replay.addEventListener('click',()=>{newGame();game.last=performance.now()});
       const keyMap={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',' ':'attack',Enter:'attack'};
-      root.addEventListener('keydown',e=>{const action=keyMap[e.key];if(action){e.preventDefault();if(!held.has(action)&&action==='attack')beginPlayerSwing(performance.now());held.add(action)}});
+      root.addEventListener('keydown',e=>{const action=keyMap[e.key];if(action){e.preventDefault();if(!held.has(action)&&action==='attack'){const f=game.lanes.front.L;if(f&&f.ctrl==='player')startSwing(f,performance.now())}held.add(action)}});
       root.addEventListener('keyup',e=>{const action=keyMap[e.key];if(action)held.delete(action)});
       window.addEventListener('blur',()=>held.clear());
       document.addEventListener('visibilitychange',()=>{if(document.hidden)held.clear()});
-      draw();requestAnimationFrame(update);
+      newGame();
+      // expose state for automated testing only
+      window.__bb={get game(){return game},attackGap,outReach,gapOf};
+      requestAnimationFrame(update);
     })();
   </script>
 </div>
