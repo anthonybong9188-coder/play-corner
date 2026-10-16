@@ -96,24 +96,47 @@
       <circle cx="206" cy="395" r="6" fill="#fff"/>
 
       <!-- goalkeeper -->
-      <ellipse id="keeperShadow" cx="206" cy="272" rx="28" ry="6" fill="rgba(0,0,0,.18)"/>
+      <ellipse id="keeperShadow" cx="206" cy="271" rx="30" ry="6" fill="rgba(0,0,0,.2)"/>
+      <!-- Goalie is drawn with his feet at (0,0); JS moves, lifts and tilts him -->
       <g id="keeper">
+        <!-- legs + boots -->
+        <path d="M-10 -30V-9M10 -30V-9" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+        <path d="M-10 -22V-17M10 -22V-17" stroke="#FF8A3D" stroke-width="10"/>
+        <ellipse cx="-12" cy="-5" rx="10" ry="6" fill="#1D2B4F"/>
+        <ellipse cx="12" cy="-5" rx="10" ry="6" fill="#1D2B4F"/>
+        <!-- shorts -->
+        <rect x="-20" y="-42" width="40" height="17" rx="7" fill="#1D2B4F"/>
+        <!-- arms: resting -->
         <g id="armsDown">
-          <path d="M27 42L8 60M53 42L72 60" stroke="#F5B800" stroke-width="10" stroke-linecap="round"/>
-          <circle cx="7" cy="61" r="8" fill="#fff" stroke="#1D2B4F" stroke-width="3"/>
-          <circle cx="73" cy="61" r="8" fill="#fff" stroke="#1D2B4F" stroke-width="3"/>
+          <path d="M-18 -66Q-32 -60 -35 -45M18 -66Q32 -60 35 -45" fill="none" stroke="#FF8A3D" stroke-width="10" stroke-linecap="round"/>
+          <ellipse cx="-36" cy="-40" rx="10" ry="11" fill="#C6F432" stroke="#1D2B4F" stroke-width="2.5"/>
+          <ellipse cx="36" cy="-40" rx="10" ry="11" fill="#C6F432" stroke="#1D2B4F" stroke-width="2.5"/>
+          <path d="M-40 -44V-36M-36 -46V-35M-32 -44V-36M32 -44V-36M36 -46V-35M40 -44V-36" stroke="#1D2B4F" stroke-width="1.5" stroke-linecap="round" opacity=".45"/>
         </g>
+        <!-- arms: reaching up -->
         <g id="armsUp" style="display:none">
-          <path d="M27 38L12 8M53 38L68 8" stroke="#F5B800" stroke-width="10" stroke-linecap="round"/>
-          <circle cx="11" cy="7" r="8" fill="#fff" stroke="#1D2B4F" stroke-width="3"/>
-          <circle cx="69" cy="7" r="8" fill="#fff" stroke="#1D2B4F" stroke-width="3"/>
+          <path d="M-17 -68Q-27 -88 -26 -114M17 -68Q27 -88 26 -114" fill="none" stroke="#FF8A3D" stroke-width="10" stroke-linecap="round"/>
+          <ellipse cx="-27" cy="-121" rx="11" ry="12" fill="#C6F432" stroke="#1D2B4F" stroke-width="2.5"/>
+          <ellipse cx="27" cy="-121" rx="11" ry="12" fill="#C6F432" stroke="#1D2B4F" stroke-width="2.5"/>
+          <path d="M-31 -126V-117M-27 -128V-116M-23 -126V-117M23 -126V-117M27 -128V-116M31 -126V-117" stroke="#1D2B4F" stroke-width="1.5" stroke-linecap="round" opacity=".45"/>
         </g>
-        <circle cx="40" cy="20" r="13" fill="#E9B98C"/>
-        <circle cx="35" cy="19" r="2" fill="#1D2B4F"/>
-        <circle cx="45" cy="19" r="2" fill="#1D2B4F"/>
-        <rect x="24" y="32" width="32" height="40" rx="10" fill="#F5B800"/>
-        <rect x="26" y="68" width="28" height="14" rx="4" fill="#1D2B4F"/>
-        <path d="M33 82L30 104M47 82L50 104" stroke="#2B3A67" stroke-width="9" stroke-linecap="round"/>
+        <!-- jersey -->
+        <rect x="-23" y="-76" width="46" height="40" rx="15" fill="#FF8A3D"/>
+        <path d="M-9 -76Q0 -68 9 -76" fill="#E86A1C"/>
+        <text x="0" y="-45" text-anchor="middle" font-family="'Baloo 2', sans-serif" font-weight="800" font-size="20" fill="#FFFFFF">1</text>
+        <!-- head -->
+        <circle cx="-25" cy="-92" r="5" fill="#EBB892"/>
+        <circle cx="25" cy="-92" r="5" fill="#EBB892"/>
+        <circle cx="0" cy="-94" r="25" fill="#F5CBA7"/>
+        <path d="M-25 -97C-26 -122 -6 -125 2 -121C14 -127 29 -116 25 -97C20 -106 12 -108 6 -106C0 -112 -10 -110 -14 -104C-18 -106 -22 -103 -25 -97Z" fill="#6B4226"/>
+        <ellipse cx="-9" cy="-92" rx="4.2" ry="5.4" fill="#1D2B4F"/>
+        <ellipse cx="9" cy="-92" rx="4.2" ry="5.4" fill="#1D2B4F"/>
+        <circle cx="-7.5" cy="-94.2" r="1.7" fill="#FFFFFF"/>
+        <circle cx="10.5" cy="-94.2" r="1.7" fill="#FFFFFF"/>
+        <ellipse cx="-16" cy="-84" rx="5" ry="3.2" fill="#F28B9B" opacity=".75"/>
+        <ellipse cx="16" cy="-84" rx="5" ry="3.2" fill="#F28B9B" opacity=".75"/>
+        <path id="mouthSmile" d="M-6 -82Q0 -76 6 -82" fill="none" stroke="#1D2B4F" stroke-width="2.6" stroke-linecap="round"/>
+        <ellipse id="mouthOpen" cx="0" cy="-79.5" rx="4" ry="4.8" fill="#B23A48" style="display:none"/>
       </g>
 
       <!-- aim arrow -->
@@ -166,15 +189,23 @@
   // ---- Tuning: change these to make it easier or harder ----
   var KEEPER_PERIOD = 3.2;   // seconds for the goalie to slide left→right→left
   var ARROW_SWING = 1.7;     // seconds for the arrow to swing from one side to the other
-  var SAVE_REACH = 46;       // how close (px) the shot must be to the goalie to be saved
+  var REACH_UP = 42;         // straight-up jump: saves shots this close (px) to the goalie
+  var REACH_DIVE = 70;       // 70° side dive: saves shots this close (px) to the goalie
+  var STRAIGHT_ZONE = 24;    // shots closer than this get the straight-up jump, others the dive
   var KICKS = 5;
 
   // ---- Pitch geometry (SVG units) ----
   var CX = 206, BALL_Y = 395, NET_Y = 175, DEPTH = 220;
-  var KEEPER_TOP = 160, KEEPER_AMP = 150, POST_AT = 182, JUMP = 64;
+  var FEET_Y = 268, KEEPER_AMP = 150, POST_AT = 182;
+  var JUMP = 50, JUMP_MS = 1100, SHOT_MS = 650;
+  var DIVE_ANGLE = 70;                                            // degrees above the ground
+  var DIVE_X = JUMP / Math.tan(DIVE_ANGLE * Math.PI / 180);        // sideways travel at the top
+  var DIVE_TILT = 90 - DIVE_ANGLE;                                 // body leans with the dive
+  var PIVOT = 55;                                                  // tilt around the tummy
 
   var $ = function (id) { return document.getElementById(id); };
   var keeper = $('keeper'), shadow = $('keeperShadow'), armsUp = $('armsUp'), armsDown = $('armsDown');
+  var mouthSmile = $('mouthSmile'), mouthOpen = $('mouthOpen');
   var arrow = $('arrow'), ball = $('ball'), netFlash = $('netFlash');
   var banners = { goal: $('bGoal'), save: $('bSave'), post: $('bPost') };
   var dotsEl = $('dots'), goalsEl = $('goals'), done = $('done'), doneText = $('done-text');
@@ -217,23 +248,48 @@
     netFlash.classList.remove('show');
   }
 
+  // Where the goalie is at `el` ms into his jump.
+  function pose(kx, sh, el) {
+    var h = Math.sin(Math.PI * Math.min(1, Math.max(0, el) / JUMP_MS));
+    var dive = sh && sh.mode === 'dive';
+    return {
+      x: kx + (dive ? sh.dir * DIVE_X * h : 0),
+      lift: JUMP * h,
+      tilt: dive ? sh.dir * DIVE_TILT * h : 0
+    };
+  }
+  // A point drawn at (lx, ly) on the goalie, in pitch coordinates.
+  function bodyPoint(pz, lx, ly) {
+    var r = pz.tilt * Math.PI / 180, dy = ly + PIVOT;
+    return {
+      x: pz.x + lx * Math.cos(r) - dy * Math.sin(r),
+      y: FEET_Y - pz.lift - PIVOT + lx * Math.sin(r) + dy * Math.cos(r)
+    };
+  }
+
   function kick() {
     if (s.phase !== 'aim' || s.kicks.length >= KICKS) return;
     var deg = arrowDeg(s.ta);
     var kx = keeperX(s.tk);
     var xt = CX + Math.tan(deg * Math.PI / 180) * DEPTH * 0.86;
-    var outcome, ex = xt, ey = NET_Y;
+    var dx = xt - kx;
+    var sh = { t0: performance.now(), deg: deg, kx: kx,
+               dir: dx < 0 ? -1 : 1,
+               mode: Math.abs(dx) <= STRAIGHT_ZONE ? 'up' : 'dive' };
+    var reach = sh.mode === 'up' ? REACH_UP : REACH_DIVE;
+    sh.ex = xt; sh.ey = NET_Y;
     if (Math.abs(xt - CX) > POST_AT) {
-      outcome = 'post';
-      ex = CX + (xt > CX ? 1 : -1) * 190; ey = 200;
-    } else if (Math.abs(xt - kx) < SAVE_REACH) {
-      outcome = 'save';
-      ex = kx; ey = KEEPER_TOP - JUMP + 30;
+      sh.outcome = 'post';
+      sh.ex = CX + (xt > CX ? 1 : -1) * 190; sh.ey = 200;
+    } else if (Math.abs(dx) < reach) {
+      sh.outcome = 'save';
+      var hands = bodyPoint(pose(kx, sh, SHOT_MS), 0, -121);
+      sh.ex = hands.x; sh.ey = hands.y;
     } else {
-      outcome = 'goal';
+      sh.outcome = 'goal';
     }
     s.phase = 'shot';
-    s.shot = { t0: performance.now(), ex: ex, ey: ey, outcome: outcome, deg: deg };
+    s.shot = sh;
   }
 
   ball.addEventListener('pointerdown', function (e) { e.preventDefault(); kick(); });
@@ -246,19 +302,26 @@
     var dt = Math.min(0.05, (now - last) / 1000);
     last = now;
 
-    var bx = CX, by = BALL_Y, bs = 1, jump = 0, deg;
+    var bx = CX, by = BALL_Y, bs = 1, deg;
+    var pz = { x: keeperX(s.tk), lift: 0, tilt: 0 };
 
     if (s.phase === 'aim') {
       if (s.kicks.length < KICKS) { s.tk += dt; s.ta += dt; }
       deg = arrowDeg(s.ta);
+      pz.x = keeperX(s.tk);
     } else {
       var sh = s.shot, el = now - sh.t0;
-      var p = Math.min(1, el / 650);
+      var p = Math.min(1, el / SHOT_MS);
       var e = 1 - Math.pow(1 - p, 3);
+      pz = pose(sh.kx, sh, el);
       bx = CX + (sh.ex - CX) * e;
       by = BALL_Y + (sh.ey - BALL_Y) * e;
       bs = 1 - 0.4 * e;
-      jump = JUMP * Math.sin(Math.PI * Math.min(1, el / 750));
+      if (sh.outcome === 'save' && p >= 1) {
+        // caught: the ball stays in his gloves (or hugged to his tummy once he lands)
+        var held = pz.lift > 6 ? bodyPoint(pz, 0, -121) : bodyPoint(pz, 0, -58);
+        bx = held.x; by = held.y;
+      }
       deg = sh.deg;
 
       if (s.phase === 'shot' && p >= 1) {
@@ -281,13 +344,15 @@
       }
     }
 
-    var kx = keeperX(s.tk);
-    keeper.setAttribute('transform', 'translate(' + (kx - 40) + ' ' + (KEEPER_TOP - jump) + ')');
-    shadow.setAttribute('cx', kx);
-    shadow.setAttribute('rx', 28 - jump * 0.15);
-    var up = jump > 6;
+    keeper.setAttribute('transform',
+      'translate(' + pz.x + ' ' + (FEET_Y - pz.lift) + ') rotate(' + pz.tilt + ' 0 ' + (-PIVOT) + ')');
+    shadow.setAttribute('cx', pz.x);
+    shadow.setAttribute('rx', 30 - pz.lift * 0.18);
+    var up = pz.lift > 6;
     armsUp.style.display = up ? '' : 'none';
     armsDown.style.display = up ? 'none' : '';
+    mouthOpen.style.display = up ? '' : 'none';
+    mouthSmile.style.display = up ? 'none' : '';
 
     arrow.setAttribute('transform', 'rotate(' + deg + ' ' + CX + ' ' + BALL_Y + ')');
     arrow.style.display = (s.phase === 'aim' && s.kicks.length < KICKS) ? '' : 'none';
