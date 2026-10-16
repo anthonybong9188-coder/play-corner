@@ -85,24 +85,32 @@
 <script>
 (function () {
   var PAIRS = [
-    { shape: 'circle', color: '#E5484D', name: 'Red circle' },
-    { shape: 'circle', color: '#2F6FED', name: 'Blue circle' },
-    { shape: 'square', color: '#2FA86B', name: 'Green square' },
-    { shape: 'square', color: '#F28C28', name: 'Orange square' },
-    { shape: 'star',   color: '#F5B800', name: 'Yellow star' },
-    { shape: 'star',   color: '#8B5CF6', name: 'Purple star' },
-    { shape: 'hex',    color: '#14A3A3', name: 'Teal hexagon' },
-    { shape: 'hex',    color: '#E8579B', name: 'Pink hexagon' },
-    { shape: 'circle', color: '#8B5CF6', name: 'Purple circle' },
-    { shape: 'hex',    color: '#2F6FED', name: 'Blue hexagon' }
+    { shape: 'circle',   color: '#E5484D', name: 'Red circle' },
+    { shape: 'square',   color: '#2F6FED', name: 'Blue square' },
+    { shape: 'star',     color: '#F5B800', name: 'Yellow star' },
+    { shape: 'hex',      color: '#14A3A3', name: 'Teal hexagon' },
+    { shape: 'triangle', color: '#2FA86B', name: 'Green triangle' },
+    { shape: 'cross',    color: '#8B5CF6', name: 'Purple cross' },
+    { shape: 's',        color: '#F28C28', name: 'Orange S' },
+    { shape: 'heart',    color: '#E8579B', name: 'Pink heart' },
+    { shape: 'diamond',  color: '#A0522D', name: 'Brown diamond' },
+    { shape: 'moon',     color: '#1D2B4F', name: 'Navy moon' }
   ];
 
   function shapeSvg(p) {
-    var inner;
-    if (p.shape === 'circle') inner = '<circle cx="50" cy="50" r="40" fill="' + p.color + '"/>';
-    else if (p.shape === 'square') inner = '<rect x="12" y="12" width="76" height="76" rx="12" fill="' + p.color + '"/>';
-    else if (p.shape === 'star') inner = '<polygon points="50,6 62,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 38,37" fill="' + p.color + '"/>';
-    else inner = '<polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="' + p.color + '"/>';
+    var c = p.color, inner;
+    switch (p.shape) {
+      case 'circle':   inner = '<circle cx="50" cy="50" r="40" fill="' + c + '"/>'; break;
+      case 'square':   inner = '<rect x="12" y="12" width="76" height="76" rx="12" fill="' + c + '"/>'; break;
+      case 'star':     inner = '<polygon points="50,6 62,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 38,37" fill="' + c + '"/>'; break;
+      case 'hex':      inner = '<polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="' + c + '"/>'; break;
+      case 'triangle': inner = '<path d="M50 10 L92 86 L8 86 Z" fill="' + c + '" stroke="' + c + '" stroke-width="6" stroke-linejoin="round"/>'; break;
+      case 'cross':    inner = '<path d="M38 10H62V38H90V62H62V90H38V62H10V38H38Z" fill="' + c + '" stroke="' + c + '" stroke-width="4" stroke-linejoin="round"/>'; break;
+      case 's':        inner = '<path d="M72 24 C62 8 26 10 28 32 C30 50 72 48 72 68 C72 90 36 92 26 76" fill="none" stroke="' + c + '" stroke-width="16" stroke-linecap="round"/>'; break;
+      case 'heart':    inner = '<path d="M50 88 C20 66 6 48 14 29 C22 12 44 12 50 30 C56 12 78 12 86 29 C94 48 80 66 50 88 Z" fill="' + c + '"/>'; break;
+      case 'diamond':  inner = '<path d="M50 6 L86 50 L50 94 L14 50 Z" fill="' + c + '" stroke="' + c + '" stroke-width="4" stroke-linejoin="round"/>'; break;
+      case 'moon':     inner = '<path d="M60 8 A42 42 0 1 0 92 68 A34 34 0 1 1 60 8 Z" fill="' + c + '"/>'; break;
+    }
     return '<svg viewBox="0 0 100 100" aria-hidden="true">' + inner + '</svg>';
   }
   var BACK = '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="30" fill="none" stroke="#fff" stroke-width="10"/></svg>';
