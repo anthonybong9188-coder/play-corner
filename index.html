@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play Corner</title>
+<meta name="description" content="Simple, no-login games for little ones.">
+<meta name="theme-color" content="#F4F8FC">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
+<style>
+  .brand { display: flex; align-items: center; gap: 12px; padding-top: 8px; }
+  .brand-mark { width: 48px; height: 48px; border-radius: 16px; background: var(--sky); display: flex; align-items: center; justify-content: center; }
+  .brand-name { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1; }
+  .intro h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 40px; line-height: 1.05; }
+  .intro p { margin: 4px 0 0; font-size: 17px; font-weight: 700; color: var(--ink-2); }
+
+  .tile {
+    display: flex; flex-direction: column; gap: 14px;
+    text-decoration: none; color: var(--ink);
+    background: var(--card); border-radius: 28px; padding: 18px;
+    box-shadow: 0 6px 0 var(--card-shadow);
+  }
+  .tile:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--card-shadow); }
+  .tile-art { height: 150px; border-radius: 20px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 18px; }
+  .tile-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .tile-name { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1.1; }
+  .tile-sub { font-size: 16px; font-weight: 700; color: var(--ink-2); }
+  .play { width: 56px; height: 56px; flex-shrink: 0; border-radius: 28px; background: var(--go); box-shadow: 0 4px 0 var(--go-shadow); display: flex; align-items: center; justify-content: center; }
+
+  .mini-card { width: 78px; height: 104px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+  .mini-back { background: var(--sky); box-shadow: inset 0 0 0 5px #fff, 0 4px 0 var(--sky-shadow); transform: rotate(-8deg); }
+  .mini-front { background: #fff; box-shadow: 0 4px 0 #C9D7E4; transform: rotate(7deg); }
+
+  .pitch-art { background: #4CB86B; }
+  .soon {
+    border-radius: 24px; border: 3px dashed #BFD2E3; min-height: 110px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    color: var(--ink-3); font-weight: 800; font-size: 16px;
+  }
+  .foot { margin-top: auto; text-align: center; font-size: 14px; font-weight: 700; color: var(--ink-3); }
+</style>
+</head>
+<body>
+<main class="screen" style="gap: 20px">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg width="28" height="28" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,8 61,38 94,38 67,57 77,89 50,70 23,89 33,57 6,38 39,38" fill="#fff"/></svg>
+    </div>
+    <div class="brand-name">Play Corner</div>
+  </div>
+
+  <div class="intro">
+    <h1>Pick a game</h1>
+    <p>Tap a picture to start playing.</p>
+  </div>
+
+  <a class="tile" href="match/" aria-label="Play Match the Cards">
+    <div class="tile-art" style="background: var(--sky-soft)">
+      <div class="mini-card mini-back">
+        <svg width="30" height="30" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="30" fill="none" stroke="#fff" stroke-width="10"/></svg>
+      </div>
+      <div class="mini-card mini-front">
+        <svg width="54" height="54" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,8 61,38 94,38 67,57 77,89 50,70 23,89 33,57 6,38 39,38" fill="#F5B800"/></svg>
+      </div>
+    </div>
+    <div class="tile-foot">
+      <div>
+        <div class="tile-name">Match the Cards</div>
+        <div class="tile-sub">Find the same shapes</div>
+      </div>
+      <div class="play"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="#fff"/></svg></div>
+    </div>
+  </a>
+
+  <a class="tile" href="penalty/" aria-label="Play Penalty Kick">
+    <div class="tile-art pitch-art">
+      <svg width="100%" height="100%" viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <rect x="40" y="18" width="220" height="70" fill="rgba(255,255,255,.15)"/>
+        <path d="M40 88V18H260V88" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>
+        <rect x="0" y="86" width="300" height="4" fill="#fff"/>
+        <rect x="160" y="34" width="26" height="36" rx="9" fill="#F5B800"/>
+        <circle cx="173" cy="27" r="9" fill="#E9B98C"/>
+        <circle cx="140" cy="122" r="16" fill="#fff" stroke="#1D2B4F" stroke-width="3"/>
+        <polygon points="140,114 146,119 144,126 136,126 134,119" fill="#1D2B4F"/>
+      </svg>
+    </div>
+    <div class="tile-foot">
+      <div>
+        <div class="tile-name">Penalty Kick</div>
+        <div class="tile-sub">Shoot past the goalie</div>
+      </div>
+      <div class="play"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="#fff"/></svg></div>
+    </div>
+  </a>
+
+  <div class="soon">
+    <svg width="28" height="28" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,8 86,29 86,71 50,92 14,71 14,29" fill="#CFE0EE"/></svg>
+    More games coming soon
+  </div>
+
+  <div class="foot">No sign-in needed · Add to your home screen to play offline</div>
+</main>
+<script src="assets/sw-register.js"></script>
+</body>
+</html>
