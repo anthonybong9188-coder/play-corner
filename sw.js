@@ -1,7 +1,7 @@
 // Play Corner offline support.
 // Pages: network first (so new deploys show up straight away), cache as fallback when offline.
 // Everything else: serve from cache, refresh in the background.
-var CACHE = 'play-corner-v3';
+var CACHE = 'play-corner-v4';
 var CORE = [
   './',
   './index.html',
@@ -9,6 +9,15 @@ var CORE = [
   './match/index.html',
   './penalty/',
   './penalty/index.html',
+  './balloon/',
+  './balloon/index.html',
+  './battle/',
+  './battle/index.html',
+  './battle/thumb.jpg',
+  './battle/img/troll.png',
+  './battle/img/humans.png',
+  './battle/img/human-attacks.png',
+  './battle/img/deaths.png',
   './assets/app.css',
   './assets/sw-register.js',
   './assets/icon-192.png',

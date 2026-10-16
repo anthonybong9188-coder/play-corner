@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Betrayal Battlefield · Play Corner</title>
+<meta name="theme-color" content="#101010">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<style>:root{color-scheme:dark;background:#101010}html,body{margin:0;min-height:100%;background:#101010}body{padding:16px;display:flex;justify-content:center;align-items:flex-start}</style>
+<style>
+  body{flex-direction:column;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+  .bb-top{width:100%;max-width:600px;display:flex;align-items:center;gap:12px;margin:0 auto 10px}
+  .bb-back{width:48px;height:48px;flex-shrink:0;border-radius:24px;background:#27261f;border:1px solid #6a6047;display:flex;align-items:center;justify-content:center;text-decoration:none}
+  .bb-back:active{transform:translateY(1px);background:#776033}
+  .bb-back:focus-visible{outline:3px solid #ffe49b;outline-offset:2px}
+  .bb-title{margin:0;color:#f2e8c9;font:800 20px/1.1 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.5px}
+  #betrayal-battlefield{width:100%}
+</style>
+</head>
+<body>
+<div class="bb-top">
+  <a class="bb-back" href="../" aria-label="Back to games">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f2e8c9" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+  </a>
+  <h1 class="bb-title">Betrayal Battlefield</h1>
+</div>
+<div id="betrayal-battlefield" aria-label="Playable retro fantasy battlefield">
+  <style>
+    #betrayal-battlefield{max-width:600px;margin:0 auto;color:#eee5c8;font:14px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif}
+    #betrayal-battlefield *{box-sizing:border-box}
+    #betrayal-battlefield .screen{position:relative;background:#101010;border:3px solid #262626;overflow:hidden}
+    #betrayal-battlefield canvas{display:block;width:100%;height:auto;aspect-ratio:8/5;image-rendering:auto;touch-action:none;background:#36c8d2}
+    #betrayal-battlefield .vitals{position:absolute;left:8px;right:8px;top:7px;display:flex;justify-content:space-between;pointer-events:none}
+    #betrayal-battlefield .vital{width:30%;color:#fff;font-size:10px;text-shadow:1px 1px #111}
+    #betrayal-battlefield .vital:last-child{text-align:right}
+    #betrayal-battlefield .meter{height:5px;background:#222;margin-top:2px;box-shadow:0 0 0 1px #ded0a0}
+    #betrayal-battlefield .fill{height:100%;background:#e1d54d;transition:width .15s}
+    #betrayal-battlefield .vital:last-child .fill{margin-left:auto;background:#e57b51}
+    #betrayal-battlefield .caption{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 2px;color:#bdb79e;font-size:12px}
+    #betrayal-battlefield .caption strong{color:#e7dab8;letter-spacing:.6px}
+    #betrayal-battlefield .controls{display:grid;grid-template-columns:repeat(5,minmax(44px,1fr));gap:7px;max-width:390px;margin:8px auto 0}
+    #betrayal-battlefield .controls button{height:48px;border:1px solid #6a6047;border-radius:7px;background:#27261f;color:#f2e8c9;font:700 18px system-ui;touch-action:none;user-select:none;cursor:pointer}
+    #betrayal-battlefield .controls button.attack{background:#a13d34;color:white;font-size:13px;letter-spacing:.4px}
+    #betrayal-battlefield .replay{display:block;width:min(100%,390px);height:46px;margin:8px auto 0;border:1px solid #c6a45c;border-radius:7px;background:#c6a45c;color:#10130f;font:800 13px system-ui;letter-spacing:.7px;cursor:pointer}
+    #betrayal-battlefield .replay[hidden]{display:none}
+    #betrayal-battlefield .controls button:active{transform:translateY(1px);background:#776033}
+    #betrayal-battlefield .controls button:focus-visible{outline:3px solid #ffe49b;outline-offset:2px}
+    #betrayal-battlefield .hint{text-align:center;color:#9b988a;font-size:11px;margin:7px 0 0}
+    @media(max-width:360px){#betrayal-battlefield .controls{gap:4px}#betrayal-battlefield .controls button{height:46px}}
+  </style>
+  <div class="screen">
+    <canvas id="bb-canvas" width="640" height="400" role="img" aria-label="Pixel-art duel between two trolls on a green battlefield"></canvas>
+    <div class="vitals" aria-hidden="true">
+      <div class="vital">YOUR FIGHTER<div class="meter"><div class="fill" id="bb-player-hp" style="width:100%"></div></div></div>
+      <div class="vital">RIVAL<div class="meter"><div class="fill" id="bb-enemy-hp" style="width:100%"></div></div></div>
+    </div>
+  </div>
+  <div class="caption"><strong id="bb-status" aria-live="polite">REAL-TIME FIGHT</strong><span id="bb-health">10 · 10</span></div>
+  <div class="controls" aria-label="Battle controls">
+    <button type="button" data-action="left" aria-label="Move left">◀</button>
+    <button type="button" data-action="up" aria-label="Jump">▲</button>
+    <button type="button" data-action="attack" class="attack" aria-label="Attack">ATTACK</button>
+    <button type="button" data-action="down" aria-label="Crouch">▼</button>
+    <button type="button" data-action="right" aria-label="Move right">▶</button>
+  </div>
+  <button type="button" class="replay" id="bb-replay" hidden>PLAY AGAIN</button>
+  <p class="hint">Hold a direction to move · tap ATTACK · defeated fighters dissolve as the next reserve enters</p>
+  <script>
+    (()=>{
+      const root=document.getElementById('betrayal-battlefield');
+      const canvas=root.querySelector('#bb-canvas');
+      const mainCtx=canvas.getContext('2d');mainCtx.scale(2,2);mainCtx.imageSmoothingEnabled=true;mainCtx.imageSmoothingQuality='high';let ctx=mainCtx;
+      const replay=root.querySelector('#bb-replay');
+      const W=320,H=200;
+      const playerQueue=['troll','axe','sword','morningstar'],enemyQueue=['troll','axe','sword','morningstar'];
+      const game={px:56,ex:194,py:42,ey:42,php:10,ehp:10,ptype:'troll',etype:'troll',pIndex:0,eIndex:0,pjump:0,ejump:0,flash:0,done:false,phase:'battle',deadSide:'',phaseAt:0,deathX:0,deathY:42,entrySide:'',entryFrom:0,entryTo:0,corpses:[],status:'REAL-TIME FIGHT',playerSwing:0,enemySwing:0,playerHitDone:false,enemyHitDone:false,playerReady:0,enemyReady:0,playerStun:0,enemyStun:0,playerKnock:0,enemyKnock:0,playerKnockAt:0,enemyKnockAt:0,lastFrame:0};
+      const trollSheet=new Image();trollSheet.src='img/troll.png';
+      const humanSheet=new Image();humanSheet.src='img/humans.png';
+      // Embedded six-frame human attacks (axe/sword/morningstar) and seven-frame deaths (human/troll).
+      const humanAttackSheet=new Image();humanAttackSheet.src='img/human-attacks.png';
+      const deathSheet=new Image();deathSheet.src='img/deaths.png';
+      const held=new Set();
+      // Contact is judged on the drawn pixels: each fighter is rendered off-screen in its current pose and a strike lands only when the two silhouettes touch.
+      const maskCtx=[0,1].map(()=>{const c=document.createElement('canvas');c.width=W;c.height=H;return c.getContext('2d',{willReadFrequently:true})});
+      function silhouette(i,fn){const c=maskCtx[i],prev=ctx;c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,W,H);ctx=c;try{fn()}finally{ctx=prev}return c.getImageData(0,0,W,H).data}
+      const frontCache={};
+      function front(type,flip){
+        const sheet=type==='troll'?trollSheet:humanAttackSheet;
+        if(!sheet.complete||!sheet.naturalWidth)return null;
+        const key=type+(flip?'L':'R');if(key in frontCache)return frontCache[key];
+        const d=silhouette(0,()=>drawFighter(type,100,42,flip,0,false,0));let lo=1e9,hi=-1;
+        for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(d[(y*W+x)*4+3]>128){if(x<lo)lo=x;if(x>hi)hi=x}
+        return frontCache[key]=(flip?lo:hi)-100;
+      }
+      const rect=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))};
+      const poly=(pts,c)=>{ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();ctx.fill()};
+      function scenery(){
+        rect(0,0,320,200,'#40ccd2');
+        // Layered, blocky mountain skyline and distant ridge.
+        poly([[0,9],[10,12],[20,3],[30,17],[41,1],[52,22],[63,7],[76,26],[87,11],[98,21],[109,8],[121,27],[135,15],[150,30],[166,13],[181,27],[194,7],[208,23],[223,0],[238,18],[251,4],[268,25],[281,11],[294,28],[307,8],[320,15],[320,54],[0,54]],'#3348a3');
+        poly([[0,32],[14,24],[28,31],[43,19],[55,39],[68,16],[83,32],[98,24],[115,41],[130,26],[148,36],[164,20],[180,38],[198,23],[211,36],[230,18],[248,37],[262,20],[279,40],[296,22],[310,34],[320,27],[320,58],[0,58]],'#5964ce');
+        poly([[0,47],[25,41],[42,50],[64,39],[82,49],[100,43],[120,54],[142,41],[160,51],[183,42],[206,54],[228,39],[251,51],[274,42],[296,52],[320,43],[320,67],[0,67]],'#6655b0');
+        rect(0,58,320,10,'#a9dd9a');rect(0,66,320,109,'#13c61d');
+        // Field flecks, tufts and stones.
+        const flecks=[[4,85,5,2,'#29862b'],[24,112,7,2,'#f6d850'],[47,77,4,2,'#b7e747'],[70,136,8,2,'#744d29'],[88,93,3,2,'#fff05b'],[117,120,8,2,'#267f37'],[141,78,5,2,'#f5d94c'],[171,143,7,2,'#89623d'],[197,89,5,2,'#eee260'],[222,122,9,2,'#435ca2'],[247,80,7,2,'#e7d247'],[277,140,9,2,'#8e6d40'],[302,96,6,2,'#ffec54'],[12,151,10,3,'#60523a'],[53,163,11,2,'#e6d447'],[106,153,7,3,'#65706b'],[186,164,9,2,'#eee25a'],[238,154,7,3,'#5c6466'],[292,165,10,2,'#dbd052']];
+        for(const [x,y,w,h,c] of flecks)rect(x,y,w,h,c);
+        for(const [x,y] of [[20,128],[35,89],[77,159],[128,104],[154,156],[212,107],[264,130],[313,118]]){rect(x,y,2,7,'#80dc37');rect(x-3,y+2,3,2,'#a4ed51');rect(x+2,y+1,3,2,'#9de544')}
+        // Distant soldiers.
+        drawSoldier(28,42,.62);drawSoldier(257,43,.62,true);
+        rect(0,173,320,27,'#171b1a');
+      }
+      function drawSoldier(x,y,s=1,flip=false){ctx.save();ctx.translate(x,y);ctx.scale(flip?-s:s,s);rect(5,2,8,10,'#e0c8a8');rect(3,0,12,4,'#9da3a3');rect(5,12,9,13,'#df6747');rect(2,13,4,12,'#d9b891');rect(14,13,4,10,'#d9b891');rect(6,25,4,12,'#bc704d');rect(11,25,4,12,'#bc704d');rect(3,36,9,2,'#332c2b');rect(20,9,2,31,'#60452d');rect(17,7,9,2,'#e8e0c4');rect(18,3,6,5,'#e0ddc6');ctx.restore()}
+      function drawTroll(x,y,flip=false,jump=0,flash=false,swing=0){
+        if(!trollSheet.complete||!trollSheet.naturalWidth)return;
+        const frame=swing<=0?0:Math.min(7,Math.floor(swing*8));
+        const fw=96,dw=122,dh=130,sx=dw/87,sy=dh/94,drawW=fw*sx,drawH=128*sy,drawX=-5*sx,drawY=-28*sy;
+        ctx.save();ctx.translate(x+(flip?dw:0),y-jump);ctx.scale(flip?-1:1,1);
+        ctx.drawImage(trollSheet,frame*fw,0,fw,128,drawX,drawY,drawW,drawH);
+        if(flash){ctx.globalAlpha=.26;ctx.globalCompositeOperation='source-atop';ctx.fillStyle='#fff3a0';ctx.fillRect(0,0,dw,dh)}
+        ctx.restore();
+      }
+      function drawHumanFallback(x,y,kind,flip=false,jump=0,flash=false,swing=0){
+        const t=Math.max(0,Math.min(1,swing)),h=65,scale=1.1;
+        ctx.save();ctx.translate(x+48,y+130-jump);ctx.scale(flip?-scale:scale,scale);
+        // Upright guard; scale the visible body to three quarters of the troll's visible height.
+        rect(-5,-50,10,11,'#d9bd98');rect(-7,-51,14,5,'#aeb9b8');rect(-5,-55,11,5,'#d0d4ce');
+        rect(-6,-39,12,3,'#e0b98f');rect(-9,-36,18,16,'#ca4b39');rect(-7,-35,5,11,'#eb674c');rect(3,-34,4,8,'#a9312e');
+        rect(-8,-20,16,3,'#60462d');rect(-2,-20,5,3,'#e6c35b');
+        rect(-7,-17,6,10,'#665a49');rect(1,-17,6,10,'#665a49');rect(-8,-7,8,3,'#292523');rect(0,-7,9,3,'#292523');
+        rect(-12,-35,4,12,'#dcb58d');rect(8,-35,4,11,'#dcb58d');
+        const angle=humanWeaponAngle(t),weaponY=-42,weaponLen=23;
+        ctx.save();ctx.translate(8,weaponY);
+        if(t>.32&&t<.76)drawHumanArcTrail(8,weaponY,weaponLen,angle,t);
+        ctx.rotate(angle);
+        if(kind==='axe'){
+          rect(-1,-weaponLen,2,weaponLen,'#68492c');rect(-2,-weaponLen,10,3,'#d2d1c7');rect(5,-weaponLen-5,5,8,'#d9d8ce');rect(5,-weaponLen+1,5,7,'#abb5b5');rect(6,-weaponLen-4,2,5,'#f0ead7');
+        }else if(kind==='sword'){
+          rect(-2,-weaponLen,4,6,'#765130');rect(-5,-weaponLen+4,10,2,'#ddc66a');rect(-2,-weaponLen+6,4,weaponLen-7,'#bbc7c7');poly([[-2,-2],[0,2],[2,-2]],'#f1eee0');
+        }else{
+          rect(-1,-weaponLen,2,weaponLen-5,'#68492c');rect(-3,-weaponLen+7,6,3,'#aa7a45');rect(-5,-weaponLen-3,10,8,'#b5bdbb');rect(-4,-weaponLen-2,8,6,'#d5d8d2');rect(-5,-weaponLen-3,3,3,'#e4e7de');rect(2,-weaponLen+1,3,3,'#e4e7de');
+        }
+        ctx.restore();
+        if(flash){ctx.globalAlpha=.28;ctx.globalCompositeOperation='source-atop';ctx.fillStyle='#fff3a0';ctx.fillRect(-14,-55,28,52)}
+        ctx.restore();
+      }
+      function humanAttackFrame(t){
+        if(t<.10)return 0;
+        if(t<.30)return 1; // weapon overhead
+        if(t<.46)return 2; // early curved downswing
+        if(t<.64)return 3; // continued arc
+        if(t<.76)return 4; // impact
+        if(t<.91)return 5; // recovery
+        return 0;
+      }
+      function drawHuman(x,y,kind,flip=false,jump=0,flash=false,swing=0){
+        const t=Math.max(0,Math.min(1,swing));
+        if(humanAttackSheet.complete&&humanAttackSheet.naturalWidth){
+          const row={axe:0,sword:1,morningstar:2}[kind]??1,frame=humanAttackFrame(t),cx=x+48,bottom=y+130-jump;
+          ctx.save();ctx.translate(cx,bottom);ctx.scale(flip?-1:1,1);
+          // These six cells are the approved frame pictures, drawn at the human's 75% visible scale.
+          ctx.drawImage(humanAttackSheet,frame*300,row*300,300,300,-36,-72,72,72);
+          if(flash){ctx.globalAlpha=.24;ctx.globalCompositeOperation='source-atop';ctx.fillStyle='#fff3a0';ctx.fillRect(-36,-72,72,72)}
+          ctx.restore();return;
+        }
+        if(!humanSheet.complete||!humanSheet.naturalWidth){drawHumanFallback(x,y,kind,flip,jump,flash,swing);return}
+        const cell={axe:0,sword:1,morningstar:2}[kind]??1,h=65,scale=h/128,bodyW=84*scale;
+        const weaponAngle=humanWeaponAngle(t),bodyLean=(t>.66&&t<.78)?.025*Math.sin((t-.66)/.12*Math.PI):0;
+        ctx.save();ctx.translate(x+48,y+130-jump);ctx.scale(flip?-1:1,1);ctx.rotate(bodyLean);
+        ctx.drawImage(humanSheet,cell*144,0,84,128,-bodyW/2,-h,bodyW,h);
+        const gripX=bodyW*.38,gripY=-h*.78,weaponH=h*.56,weaponW=weaponH*(60/128)*.82;
+        if(t>.32&&t<.76)drawHumanArcTrail(gripX,gripY,weaponH*.78,weaponAngle,t);
+        ctx.save();ctx.translate(gripX,gripY);ctx.rotate(weaponAngle);
+        ctx.drawImage(humanSheet,cell*144+84,0,60,128,0,-weaponH*(76/128),weaponW,weaponH);
+        ctx.restore();
+        if(flash){ctx.globalAlpha=.26;ctx.globalCompositeOperation='source-atop';ctx.fillStyle='#fff3a0';ctx.fillRect(-bodyW/2,-h,bodyW,h)}
+        ctx.restore();
+      }
+      function humanWeaponAngle(t){
+        if(t<=0)return 2.15;
+        const keys=[[0,2.15],[.22,0],[.32,0],[.48,.78],[.66,1.82],[.74,2.42],[.91,2.15],[1,2.15]];
+        for(let i=1;i<keys.length;i++){if(t<=keys[i][0]){const [a0,v0]=keys[i-1],[a1,v1]=keys[i],u=(t-a0)/(a1-a0),e=u*u*(3-2*u);return v0+(v1-v0)*e}}
+        return 2.15;
+      }
+      function drawHumanArcTrail(x,y,r,angle,t){
+        const end=angle-Math.PI/2,start=-Math.PI/2,progress=Math.max(0,Math.min(1,(t-.32)/.42));
+        if(progress<=0)return;
+        ctx.save();ctx.globalAlpha=.18+.52*Math.sin(progress*Math.PI);ctx.strokeStyle='#ffe69a';ctx.lineWidth=2;ctx.setLineDash([2,2]);
+        ctx.beginPath();ctx.arc(x,y,r,start,end,false);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+      }
+      function drawFighter(type,x,y,flip=false,jump=0,flash=false,swing=0){if(type==='troll')drawTroll(x,y,flip,jump,flash,swing);else drawHuman(x,y,type,flip,jump,flash,swing)}
+      function fighterLabel(type){return type==='troll'?'THE TROLL':type==='axe'?'THE AXEMAN':type==='sword'?'THE SWORDSMAN':'THE MORNINGSTAR FIGHTER'}
+      function fighterWidth(type){return type==='troll'?122:96}
+      function fighterHeight(type){return type==='troll'?130:65}
+      function drawMeltLump(x,baseline,type,amount=1){
+        if(amount<=0)return;
+        const troll=type==='troll',color=troll?'#1675ce':'#d88968',shade=troll?'#10559e':'#ae624d',light=troll?'#39b8ed':'#efad83';
+        const width=(troll?34:27)*amount,height=(troll?8:6)*Math.min(1,amount*1.25),left=x+(fighterWidth(type)-width)/2;
+        rect(left,baseline-height,width,height,color);rect(left+3,baseline-height-2,width*.63,2,light);rect(left+width*.68,baseline-height+1,width*.24,2,shade);
+        rect(left+width*.17,baseline-height-1,3,1,shade);rect(left+width*.85,baseline-height-1,2,1,light);
+      }
+      function drawDyingPose(type,x,y,flip,fall,player){
+        const w=fighterWidth(type),bottom=y+130,eased=fall*fall*(3-2*fall),angle=(player?1:-1)*(Math.PI/2)*eased;
+        // The defeated fighter folds down onto the ground at its own position.
+        ctx.save();ctx.translate(x+w/2,bottom);ctx.rotate(angle);ctx.scale(.38,1);
+        drawFighter(type,-w/2,-130,flip,0,false,0);ctx.restore();
+      }
+      function deathAnimationFrame(elapsed){
+        if(elapsed<160)return 0;
+        if(elapsed<370)return 1;
+        if(elapsed<610)return 2;
+        if(elapsed<850)return 3;
+        if(elapsed<1120)return 4;
+        if(elapsed<1450)return 5;
+        return 6;
+      }
+      function drawDissolving(side,elapsed){
+        const player=side==='player',type=player?game.ptype:game.etype,x=game.deathX,y=game.deathY;
+        if(deathSheet.complete&&deathSheet.naturalWidth){
+          const row=type==='troll'?1:0,frame=deathAnimationFrame(elapsed),height=type==='troll'?96:69,width=height*(80/96),center=x+fighterWidth(type)/2,bottom=y+130;
+          ctx.save();ctx.translate(center,bottom);ctx.scale(player?1:-1,1);
+          // The approved seven pictures move from collapse through ground dissolve to the final lump.
+          ctx.drawImage(deathSheet,frame*274,row*411,274,411,-width/2,-height,width,height);
+          ctx.restore();return;
+        }
+        drawDissolvingFallback(side,elapsed);
+      }
+      function drawDissolvingFallback(side,elapsed){
+        const player=side==='player',type=player?game.ptype:game.etype,x=game.deathX,y=game.deathY,flip=!player,w=fighterWidth(type),bottom=y+130,center=x+w/2;
+        const fall=Math.max(0,Math.min(1,(elapsed-90)/610)),dissolve=Math.max(0,Math.min(1,(elapsed-700)/1550)),span=130;
+        if(elapsed<700){drawDyingPose(type,x,y,flip,fall,player)}
+        else if(dissolve<1){
+          const frontier=player?center+span*dissolve:center-span*dissolve;
+          ctx.save();ctx.beginPath();
+          if(player){ctx.moveTo(frontier,0);ctx.lineTo(320,0);ctx.lineTo(320,200);ctx.lineTo(frontier,200)}
+          else{ctx.moveTo(0,0);ctx.lineTo(frontier,0);ctx.lineTo(frontier,200);ctx.lineTo(0,200)}
+          ctx.closePath();ctx.clip();drawDyingPose(type,x,y,flip,1,player);ctx.restore();
+          const glow=(1-dissolve)*.24;ctx.globalAlpha=glow;rect(center-12,bottom-2,24,2,'#e94d27');ctx.globalAlpha=1;
+          if(dissolve>0){const colors=type==='troll'?['#1473d2','#37b5f0','#1359a9']:['#d98b6c','#e9b08c','#b96d56'];for(let i=0;i<7;i++){const phase=((elapsed/280+i*.17)%1),px=frontier+(player?1:-1)*phase*13,py=bottom-5-(i%3)*3;ctx.globalAlpha=1-phase*.72;rect(px,py,2+(i%2),2,colors[i%colors.length]);}ctx.globalAlpha=1;}
+        }
+        drawMeltLump(x,bottom,type,Math.min(1,dissolve*1.12));
+      }
+      function drawReserveSoldier(cx,y,kind,flip=false){
+        if(humanSheet.complete&&humanSheet.naturalWidth){const cell={axe:0,sword:1,morningstar:2}[kind]??1;ctx.save();ctx.translate(cx+(flip?12:-12),y);ctx.scale(flip?-1:1,1);ctx.drawImage(humanSheet,cell*144,0,144,128,0,0,24,22);ctx.restore();return}
+        ctx.save();ctx.translate(cx-11,y);ctx.scale(1.12,1.12);if(flip){ctx.translate(22,0);ctx.scale(-1,1)}
+        // Bright helmet, cheek, tunic, belt and boots keep the human readable at roster size.
+        rect(6,2,8,5,'#d9c29f');rect(5,1,10,3,'#aeb6b5');rect(7,0,7,2,'#cdd1cb');rect(6,6,9,7,'#d85a42');
+        rect(5,6,3,2,'#f07350');rect(9,7,5,3,'#dbb998');rect(6,12,9,2,'#69503a');rect(9,12,3,2,'#e4c357');
+        rect(3,7,3,6,'#e0b98e');rect(15,7,3,5,'#e0b98e');rect(7,14,3,5,'#594738');rect(12,14,3,5,'#594738');
+        rect(6,18,5,2,'#292522');rect(11,18,5,2,'#292522');
+        // Distinct weapon silhouettes: broad axe, straight sword, or chained morningstar.
+        if(kind==='axe'){rect(17,3,2,12,'#68492c');rect(18,2,5,4,'#d6d3c7');rect(19,5,4,3,'#aeb8b5');rect(17,2,2,3,'#f1ead4')}
+        else if(kind==='sword'){rect(17,1,2,13,'#c8d0cb');rect(18,2,2,9,'#eef1e8');rect(15,7,6,2,'#e1d7b0');rect(16,14,4,2,'#765130')}
+        else {rect(17,7,2,8,'#68492c');rect(18,4,3,4,'#bcc3c1');rect(19,3,4,4,'#e1e0d7');rect(20,4,3,3,'#8f9999');rect(16,14,4,2,'#765130')}
+        ctx.restore();
+      }
+      function drawBottom(){
+        // The center-most unit is next to enter; each side's remaining queue closes inward.
+        const y=176;
+        for(let n=0;n<playerQueue.length-game.pIndex;n++){
+          const type=playerQueue[game.pIndex+n],cx=132-n*28;
+          if(type==='troll'){if(trollSheet.complete&&trollSheet.naturalWidth)ctx.drawImage(trollSheet,8,35,82,86,cx-12,y-3,24,25)}else drawReserveSoldier(cx,y,type,false);
+          if(n===0)rect(cx-6,198,12,1,'#dec769');
+        }
+        for(let n=0;n<enemyQueue.length-game.eIndex;n++){
+          const type=enemyQueue[game.eIndex+n],cx=188+n*28;
+          if(type==='troll'){if(trollSheet.complete&&trollSheet.naturalWidth){ctx.save();ctx.translate(cx+12,0);ctx.scale(-1,1);ctx.drawImage(trollSheet,8,35,82,86,0,y-3,24,25);ctx.restore()}}else drawReserveSoldier(cx,y,type,true);
+          if(n===0)rect(cx-6,198,12,1,'#dec769');
+        }
+        poly([[2,186],[14,178],[14,183],[24,183],[24,190],[14,190],[14,195]],'#b6d93f');
+        poly([[318,186],[306,178],[306,183],[296,183],[296,190],[306,190],[306,195]],'#b6d93f');
+        ctx.save();ctx.translate(159,187);ctx.rotate(-.72);rect(-2,-13,4,26,'#9aa4a4');rect(-6,-8,12,3,'#ddd4ac');rect(-2,9,4,7,'#735230');ctx.restore();
+        ctx.save();ctx.translate(161,187);ctx.rotate(.72);rect(-2,-13,4,26,'#a9b4b7');rect(-6,-8,12,3,'#ddd4ac');rect(-2,9,4,7,'#735230');ctx.restore();
+        if(game.done){rect(63,83,194,25,'#10131ddd');ctx.fillStyle='#ffe79b';ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillText(game.eIndex>=enemyQueue.length?'VICTORY':'DEFEAT',160,99)}
+      }
+      function draw(){
+        scenery();
+        for(const corpse of game.corpses)drawMeltLump(corpse.x,corpse.baseline,corpse.type,1);
+        const pSwing=game.playerSwing?Math.min(1,(performance.now()-game.playerSwing)/900):0;
+        const eSwing=game.enemySwing?Math.min(1,(performance.now()-game.enemySwing)/900):0;
+        if(game.phase==='death'){
+          if(game.deadSide==='player')drawFighter(game.etype,game.ex,game.ey,true,game.ejump,game.flash<0,eSwing);else drawFighter(game.ptype,game.px,game.py,false,game.pjump,game.flash>0,pSwing);
+          drawDissolving(game.deadSide,Math.min(2500,performance.now()-game.phaseAt));
+        }else if(game.phase==='finished'){
+          if(game.deadSide==='player')drawFighter(game.etype,game.ex,game.ey,true,game.ejump,game.flash<0,eSwing);
+          else drawFighter(game.ptype,game.px,game.py,false,game.pjump,game.flash>0,pSwing);
+        }else{
+          const bob=game.phase==='entry'?Math.sin((performance.now()-game.phaseAt)/75)*1.5:0;
+          drawFighter(game.ptype,game.px,game.py,false,game.pjump+bob,game.flash>0,pSwing);
+          drawFighter(game.etype,game.ex,game.ey,true,game.ejump-bob,game.flash<0,eSwing);
+        }
+        drawBottom();
+        root.querySelector('#bb-player-hp').style.width=`${Math.max(0,game.php)*10}%`;
+        root.querySelector('#bb-enemy-hp').style.width=`${Math.max(0,game.ehp)*10}%`;
+        root.querySelector('#bb-health').textContent=`${game.php} · ${game.ehp}`;
+        const status=root.querySelector('#bb-status');if(status.textContent!==game.status)status.textContent=game.status;
+        replay.hidden=!game.done;
+      }
+      // Contact is checked against the visible strike pose and a small body hitbox.
+      const playerBodyFront=()=>front(game.ptype,false)??(game.ptype==='troll'?92:68);
+      const enemyBodyFront=()=>front(game.etype,true)??(game.etype==='troll'?30:28);
+      // Gap = distance between the two idle silhouettes' leading edges (weapon tips included); negative means the sprites overlap.
+      // strikeLimit() measures, from the drawn pixels, the largest gap at which the attacker's contact pose touches the rival.
+      const MIN_TOUCH=12; // a graze of a few pixels is not a hit
+      // The vulnerable body is the part of a silhouette made of tall columns; thin protruding weapons are not part of it.
+      function bodyEdge(d,facingRight){
+        const cols=new Int16Array(W);for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(d[(y*W+x)*4+3]>128)cols[x]++;
+        if(facingRight){for(let x=W-1;x>=0;x--)if(cols[x]>=30)return x}else{for(let x=0;x<W;x++)if(cols[x]>=30)return x}
+        return facingRight?W-1:0;
+      }
+      const limitCache={};
+      function strikeLimit(side){
+        const player=side==='player',key=side+game.ptype+game.etype;
+        if(key in limitCache)return limitCache[key];
+        const pF=front(game.ptype,false),eF=front(game.etype,true);
+        if(pF==null||eF==null)return 8;
+        const strikeT=t=>t==='troll'?.68:.70,PX=60,EX=PX+pF-eF;
+        const a=silhouette(0,()=>drawFighter(game.ptype,PX,42,false,0,false,player?strikeT(game.ptype):0));
+        const b=silhouette(1,()=>drawFighter(game.etype,EX,42,true,0,false,player?0:strikeT(game.etype)));
+        let limit=-80;
+        // Defender = the side not striking; only its body columns count.
+        const aEdge=bodyEdge(a,true),bEdge=bodyEdge(b,false);
+        search:for(let gap=12;gap>=-80;gap--){
+          let touch=0;
+          for(let y=0;y<H;y++)for(let x=Math.max(0,gap);x<W;x++){
+            const ai=(y*W+x)*4+3,bx=x-gap,bi=(y*W+bx)*4+3;
+            if(a[ai]>128&&b[bi]>128&&(player?bx>=bEdge:x<=aEdge)&&++touch>=MIN_TOUCH){limit=gap;break search}
+          }
+        }
+        return limitCache[key]=limit;
+      }
+      // Fighters can close until both can land a blow; the rival walks in until both sides can land a blow, then starts swinging.
+      const closestGap=()=>Math.min(strikeLimit('player'),strikeLimit('enemy'))-14;
+      const attackGap=()=>Math.min(strikeLimit('player'),strikeLimit('enemy'))-10;
+      const meleeSpacing=()=>playerBodyFront()-enemyBodyFront()+closestGap();
+      const gapBetween=()=>game.ex+enemyBodyFront()-(game.px+playerBodyFront());
+      function weaponHitsBody(side,now){
+        const player=side==='player',start=player?game.playerSwing:game.enemySwing;
+        const type=player?game.ptype:game.etype;
+        const t=Math.max(0,Math.min(1,(now-start)/900));
+        const frame=type==='troll'?Math.min(7,Math.floor(t*8)):humanAttackFrame(t);
+        // Only the contact pose can hurt: troll frame 5, human frame 4.
+        if(frame!==(type==='troll'?5:4))return false;
+        const pT=game.playerSwing?Math.min(1,(now-game.playerSwing)/900):0,eT=game.enemySwing?Math.min(1,(now-game.enemySwing)/900):0;
+        const a=silhouette(0,()=>drawFighter(game.ptype,game.px,game.py,false,game.pjump,false,pT));
+        const b=silhouette(1,()=>drawFighter(game.etype,game.ex,game.ey,true,game.ejump,false,eT));
+        const aEdge=bodyEdge(a,true),bEdge=bodyEdge(b,false);let touch=0;
+        for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+          const i=(y*W+x)*4+3;
+          if(a[i]>128&&b[i]>128&&(player?x>=bEdge:x<=aEdge)&&++touch>=MIN_TOUCH)return true;
+        }
+        return false;
+      }
+      function beginPlayerSwing(now){if(game.done||game.phase!=='battle'||game.playerSwing||now<game.playerReady)return;game.playerSwing=now;game.playerHitDone=false;game.playerReady=now+1020;game.status=game.ptype==='troll'?'YOU RAISE THE CLUB':'YOU LIFT YOUR WEAPON OVERHEAD'}
+      function beginDeath(side,now){
+        if(game.phase!=='battle')return;
+        game.phase='death';game.deadSide=side;game.phaseAt=now;game.deathX=side==='player'?game.px:game.ex;game.deathY=side==='player'?game.py:game.ey;
+        game.playerSwing=0;game.enemySwing=0;held.clear();
+        const type=side==='player'?game.ptype:game.etype;
+        game.status=`${fighterLabel(type)} FALLS AND DISSOLVES`;
+      }
+      function playerImpact(now){
+        if(game.phase!=='battle'||game.playerHitDone||!game.playerSwing||now-game.playerSwing<600)return;
+        game.playerHitDone=true;
+        if(weaponHitsBody('player',now)){
+          game.ehp=Math.max(0,game.ehp-2);game.flash=5;game.enemyKnock=3;game.enemyKnockAt=now;game.enemyStun=now+630;
+          if(game.enemySwing&&!game.enemyHitDone&&now-game.enemySwing<600)game.enemySwing=0;
+          if(game.ehp===0)beginDeath('enemy',now);else game.status=`HIT! ${fighterLabel(game.etype)} STAGGERS BACK`;
+        }else game.status='MISS! OUT OF BODY RANGE';
+      }
+      function enemyImpact(now){
+        if(game.phase!=='battle'||game.enemyHitDone||!game.enemySwing||now-game.enemySwing<600)return;
+        game.enemyHitDone=true;
+        if(weaponHitsBody('enemy',now)){
+          game.php=Math.max(0,game.php-2);game.flash=-5;game.playerKnock=3;game.playerKnockAt=now;game.playerStun=now+630;
+          if(game.playerSwing&&!game.playerHitDone&&now-game.playerSwing<600)game.playerSwing=0;
+          if(game.php===0)beginDeath('player',now);else game.status=`${fighterLabel(game.etype)} HITS — YOU STAGGER BACK`;
+        }else game.status='THE RIVAL MISSES';
+      }
+      function beginEntry(side,now){
+        const player=side==='player';game.entrySide=side;game.phase='entry';game.phaseAt=now;
+        game.entryFrom=player?-52:324;game.entryTo=player?Math.max(25,Math.min(56,game.ex-meleeSpacing())):Math.min(198,Math.max(194,game.px+meleeSpacing()));
+        if(player){game.pIndex++;game.ptype=playerQueue[game.pIndex];game.php=10;game.px=game.entryFrom;}
+        else{game.eIndex++;game.etype=enemyQueue[game.eIndex];game.ehp=10;game.ex=game.entryFrom;}
+        game.playerSwing=0;game.enemySwing=0;game.playerReady=now+400;game.enemyReady=now+700;
+        game.status=`${fighterLabel(player?game.ptype:game.etype)} ENTERS THE BATTLE`;
+      }
+      function finishDeath(now){
+        const side=game.deadSide,player=side==='player';
+        const index=player?game.pIndex:game.eIndex,queue=player?playerQueue:enemyQueue;
+        if(index+1>=queue.length){game.phase='finished';game.done=true;game.status=player?'DEFEAT — YOUR LINE IS BROKEN':'VICTORY — THE RIVAL LINE IS BROKEN';held.clear();return;}
+        beginEntry(side,now);
+      }
+      function update(now){
+        const dt=Math.min(.04,Math.max(0,(now-game.lastFrame)/1000||0));game.lastFrame=now;
+        if(!game.done){
+          if(game.phase==='death'){
+            if(now-game.phaseAt>=2500){const type=game.deadSide==='player'?game.ptype:game.etype;game.corpses.push({x:game.deathX,baseline:game.deathY+130,type});finishDeath(now);}
+          }else if(game.phase==='entry'){
+            const t=Math.min(1,(now-game.phaseAt)/900),eased=t*t*(3-2*t),x=game.entryFrom+(game.entryTo-game.entryFrom)*eased;
+            if(game.entrySide==='player')game.px=x;else game.ex=x;
+            if(t>=1){game.phase='battle';game.status='REAL-TIME FIGHT';game.entrySide=''}
+          }else if(game.phase==='battle'){
+            const pLocked=(game.playerSwing&&now-game.playerSwing<900)||now<game.playerStun;
+            const eLocked=(game.enemySwing&&now-game.enemySwing<900)||now<game.enemyStun;
+            if(game.playerKnock&&now>=game.playerKnockAt){game.px=Math.max(25,game.px-8);game.playerKnock--;game.playerKnockAt=now+105}
+            if(game.enemyKnock&&now>=game.enemyKnockAt){game.ex=Math.min(198,game.ex+8);game.enemyKnock--;game.enemyKnockAt=now+105}
+            const dir=(held.has('right')?1:0)-(held.has('left')?1:0);
+            if(!pLocked&&!game.playerKnock){game.px=Math.max(25,Math.min(game.ex-meleeSpacing(),game.px+dir*80*dt));game.pjump=held.has('up')?15:0}
+            playerImpact(now);
+            if(game.phase==='battle'){
+              if(game.playerSwing&&now-game.playerSwing>=900)game.playerSwing=0;
+              if(held.has('attack')&&!game.playerSwing&&now>=game.playerReady)beginPlayerSwing(now);
+              if(!eLocked&&!game.enemyKnock){const gap=gapBetween();if(gap>attackGap())game.ex=Math.max(game.px+meleeSpacing(),game.ex-34*dt);else if(now>=game.enemyReady){game.enemySwing=now;game.enemyHitDone=false;game.enemyReady=now+1180;game.status=game.etype==='troll'?'THE RIVAL LIFTS THE CLUB':'THE RIVAL LIFTS A WEAPON OVERHEAD'}}
+              enemyImpact(now);
+              if(game.phase==='battle'&&game.enemySwing&&now-game.enemySwing>=900)game.enemySwing=0;
+              if(game.flash>0)game.flash=Math.max(0,game.flash-dt*25);else if(game.flash<0)game.flash=Math.min(0,game.flash+dt*25);
+            }
+          }
+        }
+        draw();requestAnimationFrame(update);
+      }
+      function press(action,event){if(game.done)return;event.preventDefault();held.add(action);if(action==='attack')beginPlayerSwing(performance.now());if(event.pointerId!==undefined&&event.currentTarget.setPointerCapture)event.currentTarget.setPointerCapture(event.pointerId)}
+      function release(action){held.delete(action)}
+      root.querySelectorAll('[data-action]').forEach(b=>{const action=b.dataset.action;b.addEventListener('pointerdown',e=>press(action,e));for(const name of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(name,()=>release(action))});
+      replay.addEventListener('click',()=>{held.clear();Object.assign(game,{px:56,ex:194,py:42,ey:42,corpses:[],php:10,ehp:10,ptype:'troll',etype:'troll',pIndex:0,eIndex:0,pjump:0,ejump:0,flash:0,done:false,phase:'battle',deadSide:'',phaseAt:0,deathX:0,deathY:42,entrySide:'',entryFrom:0,entryTo:0,status:'REAL-TIME FIGHT',playerSwing:0,enemySwing:0,playerHitDone:false,enemyHitDone:false,playerReady:0,enemyReady:0,playerStun:0,enemyStun:0,playerKnock:0,enemyKnock:0,playerKnockAt:0,enemyKnockAt:0,lastFrame:performance.now()});draw()});
+      const keyMap={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',' ':'attack',Enter:'attack'};
+      root.addEventListener('keydown',e=>{const action=keyMap[e.key];if(action){e.preventDefault();if(!held.has(action)&&action==='attack')beginPlayerSwing(performance.now());held.add(action)}});
+      root.addEventListener('keyup',e=>{const action=keyMap[e.key];if(action)held.delete(action)});
+      window.addEventListener('blur',()=>held.clear());
+      document.addEventListener('visibilitychange',()=>{if(document.hidden)held.clear()});
+      draw();requestAnimationFrame(update);
+    })();
+  </script>
+</div>
+<script src="../assets/sw-register.js"></script>
+</body>
+</html>
