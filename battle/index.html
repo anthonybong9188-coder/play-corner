@@ -502,19 +502,28 @@
         draw(now);requestAnimationFrame(update);
       }
 
-      function press(action,event){if(game.done)return;event.preventDefault();held.add(action);if(action==='attack'){const f=game.lanes.front.L;if(f&&f.ctrl==='player')startSwing(f,performance.now())}try{if(event.pointerId!==undefined&&event.currentTarget.setPointerCapture)event.currentTarget.setPointerCapture(event.pointerId)}catch(e){}}
+      function press(action,event){if(!game||game.done)return;event.preventDefault();held.add(action);if(action==='attack'){const f=game.lanes.front.L;if(f&&f.ctrl==='player')startSwing(f,performance.now())}try{if(event.pointerId!==undefined&&event.currentTarget.setPointerCapture)event.currentTarget.setPointerCapture(event.pointerId)}catch(e){}}
       function release(action){held.delete(action)}
       root.querySelectorAll('[data-action]').forEach(b=>{const action=b.dataset.action;b.addEventListener('pointerdown',e=>press(action,e));for(const name of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(name,()=>release(action))});
       replay.addEventListener('click',()=>{newGame();game.last=performance.now()});
       const keyMap={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',' ':'attack',Enter:'attack'};
-      root.addEventListener('keydown',e=>{const action=keyMap[e.key];if(action){e.preventDefault();if(!held.has(action)&&action==='attack'){const f=game.lanes.front.L;if(f&&f.ctrl==='player')startSwing(f,performance.now())}held.add(action)}});
+      root.addEventListener('keydown',e=>{const action=keyMap[e.key];if(action&&game){e.preventDefault();if(!held.has(action)&&action==='attack'){const f=game.lanes.front.L;if(f&&f.ctrl==='player')startSwing(f,performance.now())}held.add(action)}});
       root.addEventListener('keyup',e=>{const action=keyMap[e.key];if(action)held.delete(action)});
       window.addEventListener('blur',()=>held.clear());
       document.addEventListener('visibilitychange',()=>{if(document.hidden)held.clear()});
-      newGame();
       // expose state for automated testing only
       window.__bb={get game(){return game},attackGap,outReach,gapOf};
-      requestAnimationFrame(update);
+      // Wait for the sprite sheets before the battle starts: reach and spacing are measured from the drawn pixels.
+      const sheets=[trollSheet,humanSheet,humanAttackSheet,deathSheet];
+      const ready=()=>sheets.every(s=>s.complete&&s.naturalWidth);
+      const loadStart=performance.now();
+      (function waitForSheets(){
+        if(ready()||performance.now()-loadStart>12000){newGame();game.last=performance.now();requestAnimationFrame(update);return}
+        ctx.setTransform(DPR,0,0,DPR,0,0);scenery();
+        ctx.fillStyle='rgba(16,19,29,.75)';ctx.fillRect(100,104,120,24);ctx.fillStyle='#ffe79b';ctx.font='bold 11px monospace';ctx.textAlign='center';
+        ctx.fillText('LOADING'+'.'.repeat(1+Math.floor(performance.now()/400)%3),160,120);
+        requestAnimationFrame(waitForSheets);
+      })();
     })();
   </script>
 </div>

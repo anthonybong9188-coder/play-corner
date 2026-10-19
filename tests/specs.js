@@ -265,7 +265,7 @@ module.exports = [
   }},
   { game: 'battle', name: 'swing recovery, one walking speed, no stepping away inside your reach', timeout: 120000, fn: async (page, h) => {
     await page.goto(h.base + 'battle/'); await page.waitForFunction(() => window.__bb && window.__bb.game);
-    await h.sleep(1500); // let the sprite sheets finish loading (reach is measured from the drawn pixels)
+    await h.sleep(300);
     const r = await page.evaluate(() => new Promise((res) => {
       const B = window.__bb, out = { minGap: 1e9, fast: 0, fastMax: 0, retreat: 0, inReachSwings: 0, earlySwings: 0, punishSeen: 0 };
       const btn = document.querySelector('[data-action=attack]'), right = document.querySelector('[data-action=right]');
