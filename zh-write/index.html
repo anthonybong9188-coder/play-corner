@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>汉字 Builder · Play Corner</title>
+<meta name="theme-color" content="#F4F8FC">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/app.css">
+<style>
+  .screen { height: 100dvh; min-height: 0; }
+  .chip .done { color: var(--ok); font-weight: 900; }
+  .chip.on .done { color: #9FE0BE; }
+  .info { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 20px; padding: 8px 12px; }
+  .info .pic { width: 56px; height: 56px; flex-shrink: 0; }
+  .info .pic svg { width: 100%; height: 100%; }
+  .info .txt { flex: 1; min-width: 0; }
+  .info .hz { font-size: 30px; font-weight: 900; line-height: 1; }
+  .info .py { font-size: 16px; }
+  .info .en { font-size: 13px; font-weight: 700; color: var(--ink-3); }
+  .strokes { font-weight: 800; font-size: 14px; color: var(--ink-2); text-align: right; white-space: nowrap; }
+  .board { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .paper { position: relative; background: #FFFFFF; border-radius: 20px; box-shadow: 0 6px 0 var(--card-shadow); touch-action: none; }
+  .paper .grid { position: absolute; inset: 0; pointer-events: none; }
+  .paper .writer { position: absolute; inset: 0; }
+  .paper.done { box-shadow: 0 0 0 5px var(--ok), 0 6px 0 var(--card-shadow); }
+  .stars3 { position: absolute; top: -18px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; pointer-events: none; z-index: 2; }
+  .stars3 svg { width: 36px; height: 36px; opacity: 0; transform: scale(.4); transition: all .3s cubic-bezier(.3,.7,.3,1.4); }
+  .stars3.on svg { opacity: 1; transform: scale(1); }
+  .stars3.on svg:nth-child(2) { transition-delay: .12s; } .stars3.on svg:nth-child(3) { transition-delay: .24s; }
+  .status { min-height: 24px; margin: 0; text-align: center; font-weight: 800; color: var(--ink-2); }
+  .actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .act {
+    appearance: none; border: 0; cursor: pointer; border-radius: 22px; height: 64px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    font-weight: 800; font-size: 13px; color: var(--ink); background: var(--card); box-shadow: 0 5px 0 var(--card-shadow);
+  }
+  .act:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--card-shadow); }
+  .act .zh { font-size: 20px; font-weight: 900; line-height: 1; }
+  .act.next.pulse { background: var(--ok); color: #fff; box-shadow: 0 5px 0 #22804F; animation: nudge 1s ease-in-out infinite; }
+  @keyframes nudge { 50% { transform: translateY(-3px); } }
+</style>
+</head>
+<body>
+<main class="screen">
+  <div class="topbar">
+    <a class="round-btn" href="../" aria-label="Back to games">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <h1><span class="zh">汉字</span> <span style="font-size:20px">Builder</span></h1>
+    <span style="width:52px" aria-hidden="true"></span>
+  </div>
+
+  <div class="chips" id="chips" role="tablist" aria-label="Characters"></div>
+
+  <div class="info">
+    <div class="pic" id="pic"></div>
+    <div class="txt">
+      <div class="hz zh" id="hz"></div>
+      <div class="py" id="py"></div>
+      <div class="en" id="en"></div>
+    </div>
+    <div class="strokes" id="strokes"></div>
+  </div>
+  <p class="voice-note" id="voiceNote"></p>
+
+  <div class="board" id="board">
+    <div class="paper" id="paper">
+      <div class="stars3" id="stars3" aria-hidden="true">
+        <svg viewBox="0 0 100 100"><polygon points="50,6 62,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 38,37" fill="#F5B800"/></svg>
+        <svg viewBox="0 0 100 100"><polygon points="50,6 62,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 38,37" fill="#F5B800"/></svg>
+        <svg viewBox="0 0 100 100"><polygon points="50,6 62,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 38,37" fill="#F5B800"/></svg>
+      </div>
+      <!-- 田字格 practice grid -->
+      <svg class="grid" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <rect x="2" y="2" width="96" height="96" rx="4" fill="none" stroke="#F2B8B8" stroke-width="1"/>
+        <path d="M50 2V98M2 50H98" stroke="#F2B8B8" stroke-width=".6" stroke-dasharray="2 2"/>
+        <path d="M2 2L98 98M98 2L2 98" stroke="#F7D6D6" stroke-width=".4" stroke-dasharray="2 2"/>
+      </svg>
+      <div class="writer" id="writer" role="img"></div>
+    </div>
+  </div>
+
+  <p class="status" id="status" aria-live="polite"></p>
+
+  <div class="actions">
+    <button class="act" type="button" id="watch"><span class="zh">看</span>Watch</button>
+    <button class="act" type="button" id="write"><span class="zh">写</span>Write</button>
+    <button class="act next" type="button" id="next"><span class="zh">下一个</span>Next</button>
+  </div>
+</main>
+
+<div class="start" id="start">
+  <div style="font-size:64px;font-weight:900" class="zh">写汉字</div>
+  <p class="hint" style="font-size:18px;max-width:320px">Watch how each character is written, then trace it with your finger — stroke by stroke, in the right order.</p>
+  <button class="big-btn" type="button" id="go"><span class="zh">开始</span> · Start</button>
+</div>
+
+<script src="../assets/animals.js"></script>
+<script src="../assets/sfx.js"></script>
+<script src="../assets/zh.js"></script>
+<script src="hanzi-writer.min.js"></script>
+<script>
+(function () {
+  var CH = PC.zhVocab.characters.items;            // 日 月 山 水 火 木 人 口 田 雨
+  var $ = function (id) { return document.getElementById(id); };
+  var idx = 0, writer = null, data = {}, done = {}, token = 0, mistakes = 0;
+  try { done = JSON.parse(localStorage.getItem('pc-zhwrite-done') || '{}') || {}; } catch (e) {}
+
+  function status(t) { $('status').textContent = t || ''; }
+  function saveDone() { try { localStorage.setItem('pc-zhwrite-done', JSON.stringify(done)); } catch (e) {} }
+
+  function loadData(id) {
+    if (data[id]) return Promise.resolve(data[id]);
+    return fetch('data/' + id + '.json').then(function (r) { return r.json(); }).then(function (d) { data[id] = d; return d; });
+  }
+
+  CH.forEach(function (c, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.dataset.i = i; b.setAttribute('role', 'tab');
+    b.addEventListener('click', function () { show(i, true); });
+    $('chips').appendChild(b);
+  });
+  function renderChips() {
+    [].forEach.call($('chips').children, function (b, i) {
+      b.innerHTML = '<span class="zh">' + CH[i].hz + '</span>' + (done[CH[i].id] ? '<span class="done">✓</span>' : '');
+      b.classList.toggle('on', i === idx); b.setAttribute('aria-selected', i === idx);
+    });
+    var on = $('chips').children[idx]; if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+
+  function size() {
+    var b = $('board').getBoundingClientRect();
+    return Math.max(180, Math.floor(Math.min(b.width, b.height, 360)));
+  }
+
+  function show(i, auto) {
+    idx = i; var my = ++token; var c = CH[i];
+    renderChips();
+    $('pic').innerHTML = c.pic();
+    $('hz').textContent = c.hz; $('py').textContent = c.py; $('en').textContent = c.en;
+    $('stars3').classList.remove('on'); $('paper').classList.remove('done'); $('next').classList.remove('pulse');
+    var s = size(); $('paper').style.width = s + 'px'; $('paper').style.height = s + 'px';
+    $('writer').innerHTML = '';
+    $('writer').setAttribute('aria-label', 'Writing box for ' + c.hz);
+    status('');
+    loadData(c.id).then(function (d) {
+      if (my !== token) return;
+      $('strokes').textContent = d.strokes.length + ' strokes';
+      writer = HanziWriter.create('writer', c.hz, {
+        width: s, height: s, padding: Math.round(s * 0.07),
+        showOutline: true, showCharacter: false,
+        strokeColor: '#1D2B4F', outlineColor: '#E3E9F1', drawingColor: '#E5484D', drawingWidth: Math.max(14, Math.round(s / 18)),
+        highlightColor: '#2FA86B', strokeAnimationSpeed: 0.9, delayBetweenStrokes: 350,
+        showHintAfterMisses: 2, markStrokeCorrectAfterMisses: 4, leniency: 1.6, highlightOnComplete: true,
+        charDataLoader: function (ch, onComplete) { onComplete(d); }
+      });
+      if (auto) watch();
+    });
+  }
+
+  function watch() {
+    if (!writer) return;
+    var my = token;
+    writer.cancelQuiz();
+    PC.zh.say(CH[idx].hz);
+    status('看 · Watch how it is written');
+    writer.hideCharacter();
+    writer.animateCharacter({ onComplete: function () { if (my === token) setTimeout(function () { if (my === token) write(); }, 500); } });
+  }
+
+  function write() {
+    if (!writer) return;
+    var my = token, total = data[CH[idx].id].strokes.length;
+    mistakes = 0;
+    writer.hideCharacter();
+    status('你来写 · Your turn! Trace stroke 1 of ' + total);
+    writer.quiz({
+      onCorrectStroke: function (s) {
+        if (my !== token) return;
+        PC.sfx.note(523.25 + s.strokeNum * 60, 0.2);
+        if (s.strokesRemaining > 0) status('Good! Now stroke ' + (s.strokeNum + 2) + ' of ' + total);
+      },
+      onMistake: function (s) {
+        if (my !== token) return;
+        mistakes++;
+        PC.sfx.boing();
+        status(s.mistakesOnStroke >= 2 ? 'Follow the green hint' : 'Try again – start at the right place');
+      },
+      onComplete: function (r) {
+        if (my !== token) return;
+        done[CH[idx].id] = true; saveDone(); renderChips();
+        $('paper').classList.add('done'); $('stars3').classList.add('on');
+        PC.sfx.yum();
+        var p = r.totalMistakes === 0 ? '真棒!' : '很好!';
+        setTimeout(function () { PC.zh.say(p + ' ' + CH[idx].hz + '!'); }, 300);
+        status(p + (r.totalMistakes === 0 ? ' · Perfect!' : ' · Well done!'));
+        $('next').classList.add('pulse');
+      }
+    });
+  }
+
+  $('watch').addEventListener('click', function () { PC.sfx.unlock(); watch(); });
+  $('write').addEventListener('click', function () { PC.sfx.unlock(); PC.zh.say(CH[idx].hz); write(); });
+  $('next').addEventListener('click', function () { show((idx + 1) % CH.length, true); });
+  $('go').addEventListener('click', function () { PC.sfx.unlock(); $('start').hidden = true; show(idx, true); });
+  window.addEventListener('resize', function () { if (!$('start').hidden) return; var s = size(); if (Math.abs(s - parseInt($('paper').style.width, 10)) > 30) show(idx, false); });
+  window.__zw = { get writer() { return writer; }, get idx() { return idx; }, get mistakes() { return mistakes; }, chars: CH, data: data, show: show, write: write };
+  show(0, false);
+  PC.zh.voiceNotice($('voiceNote'));
+})();
+</script>
+<script src="../assets/sw-register.js"></script>
+</body>
+</html>

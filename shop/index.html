@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Little Shop · Play Corner</title>
+<meta name="theme-color" content="#F4F8FC">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/app.css">
+<style>
+  .screen { height: 100dvh; min-height: 0; }
+  .ask { display: flex; align-items: center; gap: 10px; background: var(--card); border-radius: 20px; padding: 10px 12px; }
+  .ask-text { flex: 1; min-width: 0; font-family: var(--display); font-weight: 800; font-size: 20px; line-height: 1.15; }
+  .ask-text b { color: var(--go-shadow); }
+  .round { font-size: 13px; font-weight: 800; color: var(--ink-2); text-align: right; white-space: nowrap; }
+
+  .shop { flex: 1; min-height: 0; position: relative; border-radius: 24px; overflow: hidden; background: #FFF3DC;
+    display: grid; grid-template-rows: minmax(0, 1fr) auto; }
+  .awning { position: absolute; left: 0; right: 0; top: 0; height: 26px;
+    background: repeating-linear-gradient(90deg, #E5484D 0 34px, #FFFFFF 34px 68px); border-radius: 0 0 14px 14px; }
+  .front { display: flex; align-items: flex-end; justify-content: space-around; gap: 6px; padding: 34px 10px 0; min-height: 0; }
+  .customer { width: min(40vw, 170px); aspect-ratio: 1; position: relative; }
+  .customer svg { width: 100%; height: 100%; display: block; }
+  .customer.bounce { animation: bounce .6s ease-in-out 2; }
+  .customer.shake { animation: shake .5s ease-in-out; }
+  @keyframes bounce { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-20px); } }
+  @keyframes shake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+  .item { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 8px; }
+  .item .pic { width: 92px; height: 92px; background: #fff; border-radius: 20px; box-shadow: 0 4px 0 #EED6AE; display: flex; align-items: center; justify-content: center; }
+  .item .pic svg { width: 76px; height: 76px; }
+  .tag { position: relative; background: var(--go); color: #fff; font-family: var(--display); font-weight: 800; font-size: 22px;
+    padding: 2px 14px 2px 22px; border-radius: 10px; display: flex; align-items: center; gap: 6px; }
+  .tag::before { content: ''; position: absolute; left: 7px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #FFF3DC; }
+  .tag .mini { width: 20px; height: 20px; }
+
+  .counter { background: #C68A55; border-top: 8px solid #A86F3E; padding: 10px 10px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .dish { width: 100%; min-height: 86px; background: #FFFFFF; border-radius: 44px; box-shadow: inset 0 -6px 0 #E3EDF7;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; position: relative; }
+  .dish-label { font-weight: 800; font-size: 13px; color: #FFF3DC; }
+  .slot { width: 38px; height: 38px; border-radius: 19px; border: 3px dashed #CFDCEA; }
+  .slot.priced { border: 0; background: #FFE9C7; display: flex; align-items: center; justify-content: center; }
+  .slot.priced svg { width: 28px; height: 28px; }
+  .count { position: absolute; right: 12px; top: -18px; background: var(--ink); color: #fff; font-family: var(--display); font-weight: 800; font-size: 22px; min-width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; padding: 0 10px; }
+
+  .coin { appearance: none; border: 0; padding: 0; cursor: pointer; width: 38px; height: 38px; border-radius: 19px; background: transparent; }
+  .coin svg { width: 100%; height: 100%; display: block; pointer-events: none; }
+  .coin.in { animation: drop .25s cubic-bezier(.3,.7,.3,1.4); }
+  @keyframes drop { from { transform: translateY(-30px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .purse { display: flex; align-items: center; gap: 10px; background: var(--card); border-radius: 20px; padding: 8px 12px; }
+  .purse-label { font-weight: 800; font-size: 13px; color: var(--ink-2); width: 44px; line-height: 1.1; }
+  .coins { flex: 1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; justify-items: center; }
+  .coins .coin { width: 46px; height: 46px; border-radius: 23px; }
+  .coins .coin.gone { visibility: hidden; }
+
+  .bubble { position: absolute; top: 34px; left: 50%; transform: translateX(-50%); z-index: 3; background: #fff; border-radius: 20px; padding: 6px 16px;
+    box-shadow: 0 4px 0 var(--card-shadow); font-family: var(--display); font-weight: 800; font-size: 22px; white-space: nowrap; display: none; }
+  .bubble.show { display: block; animation: pop .3s cubic-bezier(.3,.7,.3,1.4); }
+  .heart { position: absolute; width: 30px; height: 30px; pointer-events: none; animation: float 1.2s ease-out forwards; z-index: 4; }
+  @keyframes float { from { transform: translate(0, 0) scale(.5); opacity: 1; } to { transform: translate(var(--dx), -130px) scale(1.2); opacity: 0; } }
+</style>
+</head>
+<body>
+<main class="screen">
+  <div class="topbar">
+    <a class="round-btn" href="../" aria-label="Back to games">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <h1>Little Shop</h1>
+    <button class="round-btn" type="button" id="restart" aria-label="Start over">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
+    </button>
+  </div>
+
+  <div class="ask">
+    <button class="speak-btn" type="button" id="speak" aria-label="Hear it again">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="#1D2B4F"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+    </button>
+    <div class="ask-text" id="askText" aria-live="polite"></div>
+    <div class="round" id="round">Customer 1</div>
+  </div>
+
+  <div class="shop">
+    <div class="awning" aria-hidden="true"></div>
+    <div class="bubble" id="bubble"></div>
+    <div class="front">
+      <div class="customer" id="customer" role="img"></div>
+      <div class="item">
+        <div class="pic" id="itemPic"></div>
+        <div class="tag" id="tag"></div>
+      </div>
+    </div>
+    <div class="counter">
+      <div class="dish-label" id="dishLabel">Put the coins here</div>
+      <div class="dish" id="dish" aria-label="Dish"><div class="count" id="count">0</div></div>
+    </div>
+  </div>
+
+  <div class="purse">
+    <div class="purse-label">Your coins</div>
+    <div class="coins" id="coins"></div>
+  </div>
+</main>
+
+<script src="../assets/animals.js"></script>
+<script src="../assets/sfx.js"></script>
+<script src="../assets/zh.js"></script>
+<script>
+(function () {
+  var COIN = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#F5B800" stroke="#C48F00" stroke-width="3"/><circle cx="20" cy="20" r="12" fill="none" stroke="#FFD43B" stroke-width="2"/><text x="20" y="26" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="17" fill="#8B6A00">1</text></svg>';
+  var BIG5 = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#C9D1DC" stroke="#8A97B1" stroke-width="3"/><text x="20" y="27" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="20" fill="#1D2B4F">5</text></svg>';
+  var V = PC.zhVocab;
+  var ITEMS = [
+    { pic: function () { return V.fruits.items[0].pic(); }, a: 'an apple' },
+    { pic: function () { return PC.food('banana'); }, a: 'a banana' },
+    { pic: function () { return V.fruits.items[2].pic(); }, a: 'an orange' },
+    { pic: function () { return V.fruits.items[3].pic(); }, a: 'a watermelon' },
+    { pic: function () { return V.fruits.items[4].pic(); }, a: 'some grapes' },
+    { pic: function () { return V.fruits.items[5].pic(); }, a: 'a strawberry' },
+    { pic: function () { return PC.food('carrot'); }, a: 'a carrot' },
+    { pic: function () { return PC.food('fish'); }, a: 'a fish' },
+    { pic: function () { return PC.food('corn'); }, a: 'some corn' }
+  ];
+  var NAMES = { bunny: 'Bunny', cat: 'Kitty', dog: 'Doggy', monkey: 'Monkey', frog: 'Froggy', chick: 'Chick' };
+  var WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+  var PURSE = 10;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var dish = $('dish'), coinsEl = $('coins'), customer = $('customer'), bubble = $('bubble');
+
+  // mode: 'slots' (pay, with spaces to fill) · 'pay' (pay, no help) · 'change' (customer paid 5, give the change)
+  var round, who, item, price, need, mode, placed, busy, lastWho, checkTimer, heard = false;
+
+  function say(t) { PC.sfx.say(t); }
+  function plural(n) { return n === 1 ? 'coin' : 'coins'; }
+  function setMood(m) { customer.innerHTML = PC.animal(who, m); }
+
+  function sentence() {
+    if (mode === 'change') return NAMES[who] + ' paid 5 coins. It costs ' + price + '. Give back ' + NAMES[who] + "'s change!";
+    return NAMES[who] + ' wants ' + item.a + '. It costs ' + price + ' ' + plural(price) + '!';
+  }
+
+  function newRound() {
+    round++;
+    busy = false;
+    clearTimeout(checkTimer);
+    var ks = PC.ANIMALS.filter(function (k) { return k !== lastWho; });
+    who = lastWho = ks[Math.floor(Math.random() * ks.length)];
+    item = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+    if (round <= 3) { mode = 'slots'; price = 1 + Math.floor(Math.random() * 5); need = price; }
+    else if (round <= 6) { mode = 'pay'; price = 2 + Math.floor(Math.random() * 7); need = price; }
+    else { mode = 'change'; price = 1 + Math.floor(Math.random() * 4); need = 5 - price; }
+    placed = 0;
+    bubble.classList.remove('show');
+    customer.classList.remove('bounce', 'shake');
+    setMood('idle');
+    customer.setAttribute('aria-label', NAMES[who]);
+    $('itemPic').innerHTML = item.pic();
+    $('tag').innerHTML = price + ' <span class="mini">' + COIN + '</span>';
+    $('round').textContent = 'Customer ' + round;
+    $('askText').innerHTML = mode === 'change'
+      ? NAMES[who] + ' paid <b>5</b>. It costs <b>' + price + '</b>. Give the change!'
+      : NAMES[who] + ' wants ' + item.a + '. It costs <b>' + price + '</b>!';
+    $('dishLabel').textContent = mode === 'change' ? 'Change for ' + NAMES[who] : 'Put the coins here';
+    renderDish();
+    renderPurse();
+    if (heard) say(sentence());
+  }
+
+  function renderDish() {
+    var html = '<div class="count" id="count">' + placed + '</div>';
+    if (mode === 'change') {
+      html += '<div class="slot priced" title="paid with a 5">' + BIG5 + '</div>';
+      for (var i = 0; i < price; i++) html += '<div class="slot priced">' + item.pic() + '</div>';
+    }
+    for (var c = 0; c < placed; c++) html += '<button type="button" class="coin" data-i="' + c + '" aria-label="Take this coin back">' + COIN + '</button>';
+    if (mode !== 'pay') for (var s = placed; s < need; s++) html += '<div class="slot"></div>';
+    dish.innerHTML = html;
+    dish.setAttribute('aria-label', 'Dish with ' + placed + ' ' + plural(placed));
+    [].forEach.call(dish.querySelectorAll('.coin'), function (b) { b.addEventListener('click', takeBack); });
+  }
+
+  function renderPurse() {
+    var html = '';
+    for (var i = 0; i < PURSE; i++) html += '<button type="button" class="coin' + (i < PURSE - placed ? '' : ' gone') + '" aria-label="Coin">' + COIN + '</button>';
+    coinsEl.innerHTML = html;
+    [].forEach.call(coinsEl.querySelectorAll('.coin'), function (b) { b.addEventListener('click', give); });
+  }
+
+  function give(e) {
+    PC.sfx.unlock();
+    if (!heard) { heard = true; }
+    if (busy || e.currentTarget.classList.contains('gone')) return;
+    if (mode !== 'pay' && placed >= need) { customer.classList.remove('shake'); void customer.offsetWidth; customer.classList.add('shake'); say('That is enough!'); return; }
+    placed++;
+    PC.sfx.coin();
+    say(WORDS[placed] || String(placed));
+    renderDish(); renderPurse();
+    var last = dish.querySelectorAll('.coin'); if (last.length) last[last.length - 1].classList.add('in');
+    check();
+  }
+
+  function takeBack() {
+    if (busy || placed <= 0) return;
+    placed--;
+    PC.sfx.pop();
+    renderDish(); renderPurse();
+    check();
+  }
+
+  function check() {
+    clearTimeout(checkTimer);
+    if (placed === need) { checkTimer = setTimeout(done, 650); return; }
+    if (placed > need) {
+      setMood('yuck');
+      customer.classList.remove('shake'); void customer.offsetWidth; customer.classList.add('shake');
+      PC.sfx.oops();
+      checkTimer = setTimeout(function () { say('Oops, too many! Take one back.'); }, 500);
+    } else setMood('idle');
+  }
+
+  function hearts() {
+    var s = document.querySelector('.shop'), r = customer.getBoundingClientRect(), b = s.getBoundingClientRect();
+    for (var i = 0; i < 6; i++) {
+      var h = document.createElement('div'); h.className = 'heart';
+      h.style.left = (r.left - b.left + r.width * (.2 + Math.random() * .6)) + 'px';
+      h.style.top = (r.top - b.top + r.height * .3) + 'px';
+      h.style.setProperty('--dx', (Math.random() * 70 - 35) + 'px');
+      h.style.animationDelay = (i * .08) + 's';
+      h.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z" fill="#E8579B"/></svg>';
+      s.appendChild(h); setTimeout(function (el) { el.remove(); }.bind(null, h), 1500);
+    }
+  }
+
+  function done() {
+    if (placed !== need) return;
+    busy = true;
+    setMood('happy');
+    customer.classList.remove('bounce'); void customer.offsetWidth; customer.classList.add('bounce');
+    PC.sfx.yum(); hearts();
+    bubble.textContent = ['Thank you!', 'Yay, thanks!', 'Just right!', 'Thank you so much!'][round % 4];
+    bubble.classList.add('show');
+    say(bubble.textContent);
+    setTimeout(newRound, 2400);
+  }
+
+  function startOver() { round = 0; lastWho = null; newRound(); }
+
+  $('speak').addEventListener('click', function () { PC.sfx.unlock(); heard = true; say(sentence()); });
+  customer.addEventListener('click', function () { PC.sfx.unlock(); heard = true; say(sentence()); });
+  $('restart').addEventListener('click', startOver);
+  window.__shop = { get state() { return { round: round, mode: mode, price: price, need: need, placed: placed, busy: busy }; } };
+  startOver();
+})();
+</script>
+<script src="../assets/sw-register.js"></script>
+</body>
+</html>

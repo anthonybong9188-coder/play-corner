@@ -64,6 +64,28 @@ module.exports = [
   { id: 'Z5', games: ['zh-say'], file: 'zh-say/index.html', what: 'recording never offered for playback', find: "        $('playback').disabled = false;", repl: '' },
   { id: 'Z6', games: ['zh-say'], file: 'zh-say/index.html', what: 'next word keeps the old recording', find: "    $('playback').disabled = true;\n", repl: '' },
 
+
+  // ---- Little Shop
+  { id: 'SH1', games: ['shop'], file: 'shop/index.html', what: 'sale completes one coin too late', find: 'if (placed === need) { checkTimer = setTimeout(done, 650); return; }', repl: 'if (placed === need + 1) { checkTimer = setTimeout(done, 650); return; }' },
+  { id: 'SH2', games: ['shop'], file: 'shop/index.html', what: 'spaces can be over-filled', find: "if (mode !== 'pay' && placed >= need) {", repl: 'if (false) {' },
+  { id: 'SH3', games: ['shop'], file: 'shop/index.html', what: 'change is the whole 5, not 5 − price', find: 'need = 5 - price;', repl: 'need = 5;' },
+  { id: 'SH4', games: ['shop'], file: 'shop/index.html', what: 'coins cannot be taken back', find: '    placed--;\n', repl: '' },
+  { id: 'SH5', games: ['shop'], file: 'shop/index.html', what: 'coins not counted aloud', find: '    say(WORDS[placed] || String(placed));\n', repl: '' },
+  { id: 'SH6', games: ['shop'], file: 'shop/index.html', what: 'purse not refilled for the next customer', find: '    placed = 0;\n    bubble.classList.remove', repl: '    bubble.classList.remove' },
+  // ---- Memory Lights
+  { id: 'ME1', games: ['memory'], file: 'memory/index.html', what: 'wrong presses not noticed', find: 'if (i !== seq[pos]) {', repl: 'if (false) {' },
+  { id: 'ME2', games: ['memory'], file: 'memory/index.html', what: 'pattern never grows', find: 'seq.push(Math.floor(Math.random() * 4)); renderStats();', repl: 'renderStats();' },
+  { id: 'ME3', games: ['memory'], file: 'memory/index.html', what: 'presses accepted while the pattern is showing', find: '    if (!accepting) return;\n', repl: '' },
+  { id: 'ME4', games: ['memory'], file: 'memory/index.html', what: 'game never ends', find: 'if (lives <= 0) return later(gameOver, 700);', repl: 'if (lives < 0) return later(gameOver, 700);' },
+  { id: 'ME5', games: ['memory'], file: 'memory/index.html', what: 'a brand-new pattern after a mistake', find: "      return later(playSequence, 1100);", repl: "      seq = seq.map(function () { return Math.floor(Math.random() * 4); }); return later(playSequence, 1100);" },
+  { id: 'ME6', games: ['memory'], file: 'memory/index.html', what: 'best streak not recorded', find: 'if (made > best) { best = made;', repl: 'if (made > best + 99) { best = made;' },
+  // ---- 汉字 Builder
+  { id: 'ZW1', games: ['zh-write'], file: 'zh-write/index.html', what: 'wrong-order stroke accepted after one miss', find: 'markStrokeCorrectAfterMisses: 4', repl: 'markStrokeCorrectAfterMisses: 1' },
+  { id: 'ZW2', games: ['zh-write'], file: 'zh-write/index.html', what: 'always says perfect', find: "var p = r.totalMistakes === 0 ? '真棒!' : '很好!';", repl: "var p = '真棒!';" },
+  { id: 'ZW3', games: ['zh-write'], file: 'zh-write/index.html', what: 'finished characters not ticked', find: 'done[CH[idx].id] = true; saveDone();', repl: 'saveDone();' },
+  { id: 'ZW4', games: ['zh-write'], file: 'zh-write/index.html', what: 'never moves from watching to writing', find: 'if (my === token) setTimeout(function () { if (my === token) write(); }, 500);', repl: '' },
+  { id: 'ZW5', games: ['portal'], file: 'sw.js', what: 'stroke data not saved for offline', find: "  './zh-write/data/ri.json',\n", repl: '' },
+
   // ---- portal / offline
   { id: 'S1', games: ['portal'], file: 'sw.js', what: 'offline ignores ?lang=zh pages', find: 'caches.match(req, { ignoreSearch: true })', repl: 'caches.match(req)' },
   { id: 'S3', games: ['portal'], file: 'index.html', what: 'a tile links to a missing page', find: 'href="zh-say/"', repl: 'href="zh-speak/"' }

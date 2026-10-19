@@ -85,6 +85,19 @@ async function penaltyKickWhen(page, want) {
   }), [want, PEN_READ]);
 }
 
+
+// ---------------------------------------------------------------- 汉字 Builder: draw a stroke along its real path
+async function traceStroke(page, k) {
+  const pts = await page.evaluate((k) => {
+    const W = window.__zw, d = W.data[W.chars[W.idx].id], m = document.querySelector('#writer svg g').getScreenCTM();
+    return d.medians[k].map(([x, y]) => { const p = new DOMPoint(x, y).matrixTransform(m); return [p.x, p.y]; });
+  }, k);
+  await page.mouse.move(pts[0][0], pts[0][1]); await page.mouse.down();
+  for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i]; for (let t = 1; t <= 4; t++) await page.mouse.move(x0 + (x1 - x0) * t / 4, y0 + (y1 - y0) * t / 4); }
+  await page.mouse.up(); await page.waitForTimeout(220);
+}
+const zwReady = (page) => page.waitForFunction(() => /Your turn/.test(document.getElementById('status').textContent), null, { timeout: 20000 });
+
 // ---------------------------------------------------------------- specs
 module.exports = [
   // ===== Match the Cards
@@ -472,11 +485,99 @@ module.exports = [
     h.assert((await page.textContent('#hz')) === '小猫' && (await page.locator('#playback').isDisabled()), 'next word resets the recording');
   }},
 
+
+  // ===== Little Shop
+  { game: 'shop', name: 'count coins to the price, no over-filling, take back, then change', timeout: 150000, fn: async (page, h) => {
+    await page.goto(h.base + 'shop/'); await page.waitForSelector('#coins .coin');
+    const st = () => page.evaluate(() => window.__shop.state);
+    const give = () => tap(page, '#coins .coin:not(.gone)');
+    const back = () => page.locator('#dish .coin').last().click();
+    let s = await st();
+    h.assert(s.mode === 'slots' && s.price >= 1 && s.price <= 5 && s.need === s.price, 'first customers ask for 1–5 with spaces to fill');
+    h.assert((await page.textContent('#askText')).includes(String(s.price)), 'the price is shown');
+    // fill to the price, try one extra, take one back, finish
+    for (let k = 1; k <= s.need; k++) { await give(); await h.sleep(60); }
+    await give(); await h.sleep(80);
+    h.assert((await st()).placed === s.need, 'with spaces shown you cannot put in more than the price');
+    h.assert((await h.said()).includes('one'), 'coins are counted aloud');
+    await page.waitForSelector('.bubble.show', { timeout: 2000 });
+    // play on to the "pay" customers and over-pay once
+    let sawOver = false, sawChange = false;
+    for (let guard = 0; guard < 14 && !sawChange; guard++) {
+      await page.waitForFunction((r) => window.__shop.state.round > r && !window.__shop.state.busy, s.round, { timeout: 5000 });
+      s = await st();
+      h.assert((await page.locator('#coins .coin:not(.gone)').count()) === 10, 'a fresh purse of 10 coins for each customer');
+      if (s.mode === 'pay' && !sawOver) {
+        for (let k = 0; k <= s.need; k++) { await give(); await h.sleep(50); }
+        await h.sleep(700);
+        h.assert(!(await page.locator('.bubble.show').count()), 'paying too much must not complete the sale');
+        h.assert((await h.said()).some((t) => /too many/i.test(t)), 'the customer says it is too many');
+        await back(); await h.sleep(60);
+        h.assert((await st()).placed === s.need, 'taking a coin back removes it from the dish');
+        sawOver = true;
+      } else {
+        if (s.mode === 'change') { h.assert(s.need === 5 - s.price && s.need >= 1, 'change = 5 − price'); sawChange = true; }
+        for (let k = 0; k < s.need; k++) { await give(); await h.sleep(50); }
+      }
+      await page.waitForSelector('.bubble.show', { timeout: 2000 });
+    }
+    h.assert(sawOver && sawChange, 'reached the pay and change customers');
+  }},
+
+  // ===== Memory Lights
+  { game: 'memory', name: 'repeat the pattern, it grows; mistakes replay it; three mistakes end the game', timeout: 120000, fn: async (page, h) => {
+    await page.goto(h.base + 'memory/'); await page.click('#go');
+    const st = () => page.evaluate(() => window.__mem.state);
+    const press = (i) => page.locator('.pad').nth(i).evaluate((el) => el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })));
+    const turn = () => page.waitForFunction(() => window.__mem.state.accepting, null, { timeout: 15000 });
+    let s = await st();
+    h.assert(s.seq.length === 1, 'starts with one light');
+    await press((s.seq[0] + 1) % 4); await h.sleep(50);
+    h.assert((await st()).lives === 3, 'presses while it is still showing the pattern are ignored');
+    for (let level = 1; level <= 4; level++) {
+      await turn(); s = await st();
+      h.assert(s.seq.length === level, `level ${level} should show ${level} lights, showed ${s.seq.length}`);
+      for (const i of s.seq) { await press(i); await h.sleep(320); }
+    }
+    await turn(); s = await st();
+    h.assert(s.best >= 4 && (await page.textContent('#best')).trim() === String(s.best), 'best streak is recorded');
+    const before = s.seq.slice();
+    await press((s.seq[0] + 1) % 4); await h.sleep(100);
+    s = await st();
+    h.assert(s.lives === 2, 'a wrong press costs a heart');
+    await turn(); s = await st();
+    h.assert(JSON.stringify(s.seq) === JSON.stringify(before), 'after a mistake the same pattern is shown again');
+    for (let m = 0; m < 2; m++) { await turn(); s = await st(); await press((s.seq[0] + 1) % 4); await h.sleep(100); }
+    await page.waitForSelector('#over.show', { timeout: 3000 });
+    h.assert(/remembered 4 in a row/.test(await page.textContent('#over-text')), 'game over shows the streak: ' + await page.textContent('#over-text'));
+  }},
+
+  // ===== 汉字 Builder
+  { game: 'zh-write', name: 'watch, then trace in stroke order; finished characters get a tick', timeout: 90000, fn: async (page, h) => {
+    await page.goto(h.base + 'zh-write/'); await page.click('#go');
+    await zwReady(page);
+    h.assert((await h.said()).includes('日'), 'the character is spoken');
+    for (let k = 0; k < 4; k++) await traceStroke(page, k);
+    await page.waitForSelector('#paper.done', { timeout: 3000 });
+    h.assert((await page.textContent('#status')).includes('真棒'), 'a perfect trace earns 真棒');
+    h.assert((await page.textContent('.chip[data-i="0"]')).includes('✓'), 'the finished character gets a tick');
+    await page.click('#next', { force: true });
+    await zwReady(page);
+    h.assert((await page.textContent('#hz')) === '月', 'next character is 月');
+    // 月: draw stroke 2 first — must not count, must say try again
+    await traceStroke(page, 1);
+    h.assert(/Try again/.test(await page.textContent('#status')) && !(await page.locator('#paper.done').count()), 'a stroke in the wrong order is refused');
+    h.assert(/stroke 1 of/.test(await page.textContent('#status')) || (await page.evaluate(() => window.__zw.mistakes)) === 1, 'still waiting for stroke 1');
+    for (let k = 0; k < 4; k++) await traceStroke(page, k);
+    await page.waitForSelector('#paper.done', { timeout: 3000 });
+    h.assert((await page.textContent('#status')).includes('很好'), 'with a mistake it says 很好 rather than perfect');
+  }},
+
   // ===== Portal + offline
   { game: 'portal', name: 'every tile opens a working page; Mandarin modes work offline', sw: true, timeout: 60000, fn: async (page, h) => {
     await page.goto(h.base);
     const hrefs = await page.$$eval('a.tile', (as) => as.map((a) => a.getAttribute('href')));
-    h.assert(hrefs.length >= 11, 'expected at least 11 tiles, found ' + hrefs.length);
+    h.assert(hrefs.length >= 14, 'expected at least 14 tiles, found ' + hrefs.length);
     for (const href of hrefs) { const r = await page.request.get(h.base + href); h.assert(r.ok(), href + ' → ' + r.status()); }
     await page.evaluate(() => navigator.serviceWorker.ready);
     await page.reload(); await page.waitForFunction(() => navigator.serviceWorker.controller);
@@ -487,5 +588,7 @@ module.exports = [
     h.assert(/要/.test(await page.textContent('#goalText')), 'Count With Me opens offline in Mandarin');
     await page.goto(h.base + 'match/?set=zh'); await page.waitForSelector('.card', { timeout: 5000 });
     h.assert((await page.locator('.front .hz').count()) === 10, 'Character Match works offline (needs the Mandarin words file)');
+    await page.goto(h.base + 'zh-write/'); await page.click('#go');
+    await page.waitForFunction(() => /strokes/.test(document.getElementById('strokes').textContent), null, { timeout: 8000 });
   }}
 ];
