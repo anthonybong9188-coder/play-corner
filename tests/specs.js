@@ -352,6 +352,27 @@ module.exports = [
     h.assert(tries === 6, 'could not run 6 valid swings');
     h.assert(moved === 0, `rival stepped back ${moved}/6 times while inside your reach`);
   }},
+  { game: 'battle', name: 'a rival rushing in to punish walks, it does not sprint', fn: async (page, h) => {
+    await page.goto(h.base + 'battle/'); await page.waitForFunction(() => window.__bb && window.__bb.game);
+    await h.sleep(300);
+    let fastest = 0;
+    for (let rep = 0; rep < 3; rep++) {
+      await page.waitForFunction(() => { const g = window.__bb.game, L = g.lanes.front.L, R = g.lanes.front.R, n = performance.now();
+        return L && R && L.state === 'fight' && R.state === 'fight' && !R.knock && n >= R.stun && !R.swing; }, null, { timeout: 8000 });
+      const v = await page.evaluate(() => new Promise((res) => {
+        const B = window.__bb, lane = B.game.lanes.front, L = lane.L, R = lane.R, now = performance.now();
+        R.x = Math.min(198, R.x + Math.max(0, 70 - B.gapOf(lane)));       // give it room to run in
+        L.swing = 0; L.ready = now + 2500;                                  // you are still recovering from a swing
+        Object.assign(R.ai, { mode: 'punish', rushAt: now, wait: 0 });
+        const x0 = R.x, t0 = performance.now();
+        const tick = (t) => { if (R.knock || R.swing || R.ai.mode !== 'punish' || t - t0 > 500) return res(Math.abs(R.x - x0) / ((t - t0) / 1000 || 1)); requestAnimationFrame(tick); };
+        requestAnimationFrame(tick);
+      }));
+      fastest = Math.max(fastest, v);
+      await h.sleep(800);
+    }
+    h.assert(fastest <= 50 * 1.15 + 3, `punishing rival moved at ${fastest.toFixed(0)} px/s (walking speed is 50)`);
+  }},
   { game: 'battle', name: 'no teleporting back when a new rival walks on', timeout: 90000, fn: async (page, h) => {
    for (let rep = 0; rep < 4; rep++) {   // fighting moves are random: repeat the situation
     await page.goto(h.base + 'battle/'); await page.waitForFunction(() => window.__bb && window.__bb.game);

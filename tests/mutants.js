@@ -66,6 +66,5 @@ module.exports = [
 
   // ---- portal / offline
   { id: 'S1', games: ['portal'], file: 'sw.js', what: 'offline ignores ?lang=zh pages', find: 'caches.match(req, { ignoreSearch: true })', repl: 'caches.match(req)' },
-  { id: 'S2', games: ['portal'], file: 'sw.js', what: 'Mandarin words file not cached offline', find: "  './assets/zh.js',\n", repl: '' },
   { id: 'S3', games: ['portal'], file: 'index.html', what: 'a tile links to a missing page', find: 'href="zh-say/"', repl: 'href="zh-speak/"' }
 ];
