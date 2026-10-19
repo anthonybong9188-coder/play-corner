@@ -6,6 +6,12 @@ Simple, no-login games for little ones, made for big phones.
 - **Penalty Kick** – tap the ball to shoot past the sliding goalie.
 - **Feed the Animals** – the animal asks (out loud) for a number of its favourite food; drag or tap to feed.
 - **Peekaboo Pets** – tap the pets as they peek out of the garden holes.
+- **学中文 Learn Chinese** (simplified characters + Hanyu Pinyin, Mandarin voice from the phone):
+  - 找一找 Find It – hear "小猫在哪里?" and tap the right picture (animals, fruits, colours, body)
+  - 数一数 Count With Me – Feed the Animals in Mandarin (`feed/?lang=zh`)
+  - 颜色气球 Colour Balloons – Balloon Pop in Mandarin (`balloon/?lang=zh`)
+  - 汉字翻翻乐 Character Match – match pictures with 日 月 山 水 火 木 人 口 田 雨 (`match/?set=zh`)
+  - 跟我说 Say It Back – listen, record yourself, hear your own voice
 - **Balloon Pop** – pop the balloons of the colour asked for, 5 per round.
 - **Betrayal Battlefield** – retro pixel-art fantasy duel.
 

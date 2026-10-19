@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="../assets/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/app.css">
 <style>
   .screen { height: 100dvh; min-height: 0; }
@@ -97,6 +97,7 @@
   <p class="hint" id="hint">Tap the balloons to pop them!</p>
 </main>
 
+<script src="../assets/zh.js"></script>
 <script>
 (function () {
   // ---- Tuning ----
@@ -107,12 +108,22 @@
   var MAX_ON_SCREEN = 7;
 
   var COLORS = [
-    { name: 'red',    fill: '#E5484D', dark: '#B8323A' },
-    { name: 'blue',   fill: '#2F6FED', dark: '#1F4FB8' },
-    { name: 'yellow', fill: '#F5B800', dark: '#C48F00' },
-    { name: 'green',  fill: '#2FA86B', dark: '#22804F' },
-    { name: 'purple', fill: '#8B5CF6', dark: '#6A3FD0' }
+    { name: 'red',    fill: '#E5484D', dark: '#B8323A', hz: '红色', py: 'hóng sè' },
+    { name: 'blue',   fill: '#2F6FED', dark: '#1F4FB8', hz: '蓝色', py: 'lán sè' },
+    { name: 'yellow', fill: '#F5B800', dark: '#C48F00', hz: '黄色', py: 'huáng sè' },
+    { name: 'green',  fill: '#2FA86B', dark: '#22804F', hz: '绿色', py: 'lǜ sè' },
+    { name: 'purple', fill: '#8B5CF6', dark: '#6A3FD0', hz: '紫色', py: 'zǐ sè' }
   ];
+  // Mandarin mode (颜色气球 Colour Balloons): balloon/?lang=zh
+  var ZH = /[?&]lang=zh/.test(location.search), heard = false;
+  var ZHF = "font-family:'Noto Sans SC','PingFang SC',sans-serif;font-weight:900";
+  if (ZH) {
+    document.title = '颜色气球 Colour Balloons · Play Corner';
+    document.documentElement.lang = 'zh-Hans';
+    document.querySelector('.topbar h1').innerHTML = '<span style="' + ZHF + '">颜色气球</span>';
+    document.getElementById('hint').innerHTML = '<span style="' + ZHF + '">点一点气球!</span> diǎn yi diǎn qì qiú!';
+  }
+  function zhAsk() { var c = COLORS[target]; PC.zh.say('请你点' + c.hz + '的气球!'); }
 
   var sky = document.getElementById('sky');
   var goalText = document.getElementById('goalText');
@@ -140,6 +151,11 @@
 
   function renderGoal() {
     var c = COLORS[target];
+    if (ZH) {
+      goalText.innerHTML = miniBalloon(c, 28) +
+        '<span><span style="' + ZHF + ';font-size:21px;white-space:nowrap">请你点<span style="color:' + c.dark + '">' + c.hz + '</span>的气球!</span>' +
+        '<span style="display:block;font-family:var(--body);font-size:13px;font-weight:700;color:var(--ink-2)">qǐng nǐ diǎn ' + c.py + ' de qì qiú</span></span>';
+    } else
     goalText.innerHTML = miniBalloon(c, 28) +
       '<span>Pop ' + PER_ROUND + ' <span class="goal-word" style="color:' + c.dark + '">' + c.name + '</span> balloons!</span>';
     roundEl.textContent = 'Round ' + round;
@@ -158,6 +174,7 @@
     popped = 0;
     sinceTarget = 0;
     renderGoal();
+    if (ZH && heard) zhAsk();
   }
 
   function startOver() {
@@ -244,7 +261,9 @@
     if (b.popped) return;
     var now = performance.now();
     if (now < pausedUntil) return;
+    if (ZH && !heard) { heard = true; if (b.color !== target) { zhAsk(); } }
     if (b.color === target) {
+      if (ZH) PC.zh.say(COLORS[b.color].hz + '!');
       b.popped = true;
       b.el.remove();
       burst(b);
@@ -255,6 +274,7 @@
       if (popped >= PER_ROUND) roundDone(now);
     } else {
       // not the one we want: a little wiggle, no penalty
+      if (ZH) PC.zh.say('这是' + COLORS[b.color].hz + '。');
       b.el.classList.remove('nope');
       void b.el.offsetWidth;
       b.el.classList.add('nope');
@@ -263,7 +283,8 @@
 
   function roundDone(now) {
     pausedUntil = now + 1800;
-    cheer.textContent = ['Great popping!', 'Super!', 'Well done!', 'Amazing!'][(round - 1) % 4];
+    cheer.textContent = ZH ? ['真棒!', '太好了!', '好厉害!', '你真棒!'][(round - 1) % 4] : ['Great popping!', 'Super!', 'Well done!', 'Amazing!'][(round - 1) % 4];
+    if (ZH) { cheer.style.fontFamily = "'Noto Sans SC','PingFang SC',sans-serif"; PC.zh.say(cheer.textContent); }
     cheer.classList.add('show');
     // float the rest away quickly
     balloons.forEach(function (b) { b.speed *= 4; });

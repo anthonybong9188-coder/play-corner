@@ -147,3 +147,32 @@ button { font: inherit; color: inherit; }
 @keyframes pop { 0% { transform: scale(.7); } 100% { transform: scale(1); } }
 
 :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+/* ---- Mandarin games ---- */
+.zh { font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Source Han Sans SC', sans-serif; }
+.py { font-family: var(--body); font-weight: 700; color: var(--ink-2); }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  appearance: none; border: 0; cursor: pointer; flex-shrink: 0;
+  min-height: 44px; padding: 6px 14px; border-radius: 22px;
+  background: var(--card); box-shadow: 0 3px 0 var(--card-shadow);
+  display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 16px; color: var(--ink);
+}
+.chip .zh { font-size: 18px; }
+.chip .py { font-size: 12px; }
+.chip.on { background: var(--ink); color: #fff; box-shadow: 0 3px 0 #0F1A33; }
+.chip.on .py { color: #CFDCEA; }
+.speak-btn {
+  appearance: none; border: 0; cursor: pointer; flex-shrink: 0;
+  width: 52px; height: 52px; border-radius: 26px; background: var(--sky-soft);
+  display: flex; align-items: center; justify-content: center;
+}
+.speak-btn:active { transform: scale(.94); }
+.voice-note { display: none; margin: 0; padding: 8px 12px; border-radius: 12px; background: #FFF4D6; color: #6B4E00; font-size: 13px; font-weight: 700; }
+.start {
+  position: fixed; inset: 0; z-index: 30; background: rgba(244, 248, 252, .96);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; text-align: center;
+}
+.start[hidden] { display: none; }
+.start .big-btn { max-width: 320px; }

@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="../assets/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/app.css">
 <style>
   .screen { height: 100dvh; min-height: 0; }
@@ -26,6 +26,10 @@
   .speak:active { transform: scale(.94); }
   .goal-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
   .goal-text { font-family: var(--display); font-weight: 800; font-size: 22px; line-height: 1.1; }
+  .goal-text.zh { font-family: 'Noto Sans SC', 'PingFang SC', sans-serif; font-weight: 900; font-size: 26px; }
+  .goal-py { font-size: 14px; display: none; }
+  .count-big { position: absolute; top: 4%; right: 6%; text-align: center; line-height: 1; font-size: 64px; font-weight: 900; color: var(--go); display: none; text-shadow: 0 4px 0 #F5D3A1; z-index: 3; }
+  .count-big.show { display: block; animation: pop .3s cubic-bezier(.3,.7,.3,1.4); }
   .pips { display: flex; gap: 4px; height: 34px; }
   .pip { width: 34px; height: 34px; opacity: .22; filter: grayscale(1); transition: opacity .2s, transform .2s; }
   .pip.on { opacity: 1; filter: none; transform: scale(1.12); }
@@ -85,12 +89,14 @@
     </button>
     <div class="goal-main">
       <div class="goal-text" id="goalText" aria-live="polite"></div>
+      <div class="goal-py py" id="goalPy"></div>
       <div class="pips" id="pips" role="img"></div>
     </div>
   </div>
 
   <div class="stage" id="stage">
     <div class="bubble" id="bubble"></div>
+    <div class="count-big zh" id="countBig"></div>
     <div class="animal" id="animal" role="img"></div>
   </div>
 
@@ -99,15 +105,24 @@
 
 <script src="../assets/animals.js"></script>
 <script src="../assets/sfx.js"></script>
+<script src="../assets/zh.js"></script>
 <script>
 (function () {
+  // Mandarin mode (数一数 Count With Me): feed/?lang=zh
+  var ZH = /[?&]lang=zh/.test(location.search);
   var MENU = {
-    bunny:  { food: 'carrot', one: 'carrot', many: 'carrots', name: 'Bunny' },
-    monkey: { food: 'banana', one: 'banana', many: 'bananas', name: 'Monkey' },
-    dog:    { food: 'bone',   one: 'bone',   many: 'bones',   name: 'Doggy' },
-    cat:    { food: 'fish',   one: 'fish',   many: 'fish',    name: 'Kitty' },
-    chick:  { food: 'corn',   one: 'corn',   many: 'corns',   name: 'Chick' }
+    bunny:  { food: 'carrot', one: 'carrot', many: 'carrots', name: 'Bunny',  zn: '小兔', zp: 'xiǎo tù', zf: '萝卜', zfp: 'luó bo',    zm: '根', zmp: 'gēn' },
+    monkey: { food: 'banana', one: 'banana', many: 'bananas', name: 'Monkey', zn: '猴子', zp: 'hóu zi',  zf: '香蕉', zfp: 'xiāng jiāo', zm: '根', zmp: 'gēn' },
+    dog:    { food: 'bone',   one: 'bone',   many: 'bones',   name: 'Doggy',  zn: '小狗', zp: 'xiǎo gǒu', zf: '骨头', zfp: 'gǔ tou',    zm: '根', zmp: 'gēn' },
+    cat:    { food: 'fish',   one: 'fish',   many: 'fish',    name: 'Kitty',  zn: '小猫', zp: 'xiǎo māo', zf: '鱼',   zfp: 'yú',        zm: '条', zmp: 'tiáo' },
+    chick:  { food: 'corn',   one: 'corn',   many: 'corns',   name: 'Chick',  zn: '小鸡', zp: 'xiǎo jī',  zf: '玉米', zfp: 'yù mǐ',     zm: '根', zmp: 'gēn' }
   };
+  var say = function (t) { (ZH ? PC.zh.say : PC.sfx.say)(t); };
+  if (ZH) {
+    document.title = '数一数 Count With Me · Play Corner';
+    document.documentElement.lang = 'zh-Hans';
+    document.querySelector('.topbar h1').innerHTML = '<span class="zh">数一数</span> <span style="font-size:18px">Count</span>';
+  }
   var NAMES = Object.keys(MENU), FOODS = NAMES.map(function (k) { return MENU[k].food; });
   var SLOTS = 6;
 
@@ -125,11 +140,17 @@
 
   function sentence() {
     var a = MENU[who];
+    if (ZH) return a.zn + '要' + PC.zhNumbers[need].amt + a.zm + a.zf + '!';
     return a.name + ' wants ' + need + ' ' + (need === 1 ? a.one : a.many) + '!';
+  }
+  function pinyin() {
+    var a = MENU[who];
+    return a.zp + ' yào ' + PC.zhNumbers[need].apy + ' ' + a.zmp + ' ' + a.zfp + '!';
   }
 
   function renderGoal() {
     goalText.textContent = sentence();
+    if (ZH) { goalText.classList.add('zh'); $('goalPy').textContent = pinyin(); $('goalPy').style.display = 'block'; }
     var html = '';
     for (var i = 0; i < need; i++) html += '<div class="pip' + (i < fed ? ' on' : '') + '">' + PC.food(MENU[who].food) + '</div>';
     pips.innerHTML = html;
@@ -182,11 +203,12 @@
     fed = 0;
     busy = false;
     bubble.classList.remove('show');
+    $('countBig').classList.remove('show');
     animalEl.classList.remove('bounce', 'shake');
     setMood('idle');
     renderGoal();
     fillTray();
-    if (spokenOnce) PC.sfx.say(sentence());
+    if (spokenOnce) say(sentence());
   }
 
   // ---- dragging (or just tapping) food ----
@@ -202,7 +224,7 @@
   function grab(e, i, btn) {
     e.preventDefault();
     PC.sfx.unlock();
-    if (!spokenOnce) { spokenOnce = true; PC.sfx.say(sentence()); }
+    if (!spokenOnce) { spokenOnce = true; say(sentence()); }
     if (busy || !slots[i]) return;
     var food = slots[i];
     var ghost = document.createElement('div');
@@ -265,6 +287,11 @@
         PC.sfx.chomp();
         setMood('chew');
         fed++;
+        if (ZH) {
+          var n = PC.zhNumbers[fed], cb = $('countBig');
+          cb.innerHTML = n.count + '<small style="display:block;font-family:var(--body);font-size:18px;font-weight:800;color:var(--ink-2);text-align:center;text-shadow:none">' + n.cpy + '</small>'; cb.classList.remove('show'); void cb.offsetWidth; cb.classList.add('show');
+          PC.zh.say(n.count + '!');
+        }
         refillSlot(i);
         renderTray();
         renderGoal();
@@ -280,7 +307,8 @@
         setMood('yuck', 900);
         animalEl.classList.remove('shake'); void animalEl.offsetWidth; animalEl.classList.add('shake');
         var a = MENU[who];
-        PC.sfx.say('Yuck! ' + a.name + ' wants ' + a.many + '!');
+        if (ZH) PC.zh.say('不对! ' + a.zn + '要' + a.zf + '!');
+        else PC.sfx.say('Yuck! ' + a.name + ' wants ' + a.many + '!');
         return fly(ghost, { x: m.x, y: m.y - 10 }, home, 380);
       }).then(function () {
         ghost.remove(); btn.classList.remove('lifted');
@@ -308,19 +336,20 @@
     setMood('happy');
     PC.sfx.yum();
     hearts();
-    bubble.textContent = ['Yum! Thank you!', 'So yummy!', 'All full!', 'Yay! Thank you!'][round % 4];
+    bubble.textContent = ZH ? ['好吃! 谢谢你!', '真好吃!', '吃饱了!', '谢谢你!'][round % 4] : ['Yum! Thank you!', 'So yummy!', 'All full!', 'Yay! Thank you!'][round % 4];
+    if (ZH) bubble.style.fontFamily = "'Noto Sans SC', 'PingFang SC', sans-serif";
     bubble.classList.add('show');
     animalEl.classList.remove('bounce'); void animalEl.offsetWidth; animalEl.classList.add('bounce');
-    PC.sfx.say(bubble.textContent);
+    say(bubble.textContent);
     setTimeout(function () { newRound(); }, 2600);
   }
 
-  $('speak').addEventListener('click', function () { PC.sfx.unlock(); spokenOnce = true; PC.sfx.say(sentence()); });
+  $('speak').addEventListener('click', function () { PC.sfx.unlock(); spokenOnce = true; say(sentence()); });
   $('restart').addEventListener('click', function () { if (!busy) { spokenOnce = true; newRound(); } });
   animalEl.addEventListener('pointerdown', function () {
     PC.sfx.unlock();
     if (busy) return;
-    spokenOnce = true; PC.sfx.boing(); PC.sfx.say(sentence());
+    spokenOnce = true; PC.sfx.boing(); say(sentence());
     setMood('happy', 600);
   });
 

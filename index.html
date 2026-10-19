@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&family=Noto+Sans+SC:wght@700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/app.css">
 <style>
   .brand { display: flex; align-items: center; gap: 12px; padding-top: 8px; }
@@ -43,6 +43,17 @@
     display: flex; align-items: center; justify-content: center; gap: 10px;
     color: var(--ink-3); font-weight: 800; font-size: 16px;
   }
+  .section { display: flex; align-items: baseline; gap: 10px; margin-top: 8px; }
+  .section h2 { margin: 0; font-family: 'Noto Sans SC', 'PingFang SC', sans-serif; font-weight: 900; font-size: 30px; }
+  .section span { font-weight: 800; color: var(--ink-2); font-size: 17px; }
+  .zh-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .zh-grid .tile { padding: 12px; gap: 10px; border-radius: 24px; }
+  .zh-grid .tile:last-child { grid-column: 1 / -1; }
+  .zh-grid .tile-art { height: 104px; border-radius: 16px; gap: 6px; }
+  .zh-grid .tile-art svg { height: 84px; width: auto; }
+  .zh-grid .tile-name { font-family: 'Noto Sans SC', 'PingFang SC', sans-serif; font-weight: 900; font-size: 22px; }
+  .zh-grid .tile-sub { font-size: 14px; }
+  .art-hz { font-family: 'Noto Sans SC', 'PingFang SC', sans-serif; font-weight: 900; font-size: 40px; color: #B8323A; }
   .foot { margin-top: auto; text-align: center; font-size: 14px; font-weight: 700; color: var(--ink-3); }
 </style>
 </head>
@@ -170,6 +181,31 @@
     </div>
   </a>
 
+  <div class="section"><h2>学中文</h2><span>Learn Chinese</span></div>
+  <div class="zh-grid">
+    <a class="tile" href="zh-find/" aria-label="Play Find It, in Mandarin">
+      <div class="tile-art" style="background:#DDF0FC" id="zart-find"></div>
+      <div><div class="tile-name">找一找</div><div class="tile-sub">Find It · listen &amp; tap</div></div>
+    </a>
+    <a class="tile" href="feed/?lang=zh" aria-label="Play Count With Me, in Mandarin">
+      <div class="tile-art" style="background:#FFE9C7" id="zart-count"></div>
+      <div><div class="tile-name">数一数</div><div class="tile-sub">Count With Me</div></div>
+    </a>
+    <a class="tile" href="balloon/?lang=zh" aria-label="Play Colour Balloons, in Mandarin">
+      <div class="tile-art" style="background:#CDEBFB" id="zart-balloon"></div>
+      <div><div class="tile-name">颜色气球</div><div class="tile-sub">Colour Balloons</div></div>
+    </a>
+    <a class="tile" href="match/?set=zh" aria-label="Play Character Match, in Mandarin">
+      <div class="tile-art" style="background:#FDECEC" id="zart-match"></div>
+      <div><div class="tile-name">汉字翻翻乐</div><div class="tile-sub">Character Match</div></div>
+    </a>
+    <a class="tile" href="zh-say/" aria-label="Play Say It Back, in Mandarin">
+      <div class="tile-art" style="background:#E6F6EC" id="zart-say"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div><div class="tile-name">跟我说</div><div class="tile-sub">Say It Back · hear your own voice</div></div>
+      <div class="play"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="#fff"/></svg></div></div>
+    </a>
+  </div>
+
   <a class="tile" href="battle/" aria-label="Play Betrayal Battlefield">
     <div class="tile-art" style="background:#101010">
       <img src="battle/thumb.jpg" alt="" width="640" height="320" style="width:100%;height:100%;object-fit:cover;image-rendering:pixelated">
@@ -191,11 +227,21 @@
   <div class="foot">No sign-in needed · Add to your home screen to play offline</div>
 </main>
 <script src="assets/animals.js"></script>
+<script src="assets/zh.js"></script>
 <script>
   (function () {
     if (!window.PC) return;
     document.getElementById('art-feed-animal').innerHTML = PC.animal('bunny', 'open');
     document.getElementById('art-feed-food').innerHTML = PC.food('carrot');
+    if (PC.zhVocab) {
+      var V = PC.zhVocab, g = function (id) { return document.getElementById(id); };
+      var balloon = function (c) { return '<svg viewBox="0 0 84 120" aria-hidden="true"><path d="M42 92C38 104 48 110 42 120" fill="none" stroke="#7A8AA6" stroke-width="2"/><ellipse cx="42" cy="46" rx="36" ry="42" fill="' + c + '"/><ellipse cx="28" cy="28" rx="7" ry="12" fill="#fff" opacity=".45" transform="rotate(-25 28 28)"/></svg>'; };
+      g('zart-find').innerHTML = PC.animal('cat', 'open') + '<span class="art-hz" style="color:#2F6FED">?</span>';
+      g('zart-count').innerHTML = PC.animal('bunny', 'happy') + '<span class="art-hz" style="font-size:30px;color:#F28C28">一二三</span>';
+      g('zart-balloon').innerHTML = balloon('#E5484D') + balloon('#F5B800') + balloon('#2F6FED');
+      g('zart-match').innerHTML = V.characters.items[0].pic() + '<span class="art-hz">日</span>';
+      g('zart-say').innerHTML = PC.animal('chick', 'open') + '<svg viewBox="0 0 24 24" aria-hidden="true" style="height:56px"><rect x="9" y="3" width="6" height="11" rx="3" fill="#FF7A59"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" fill="none" stroke="#FF7A59" stroke-width="2.4" stroke-linecap="round"/></svg><span class="art-hz" style="font-size:30px;color:#22804F">你好!</span>';
+    }
     var peek = document.getElementById('art-peek'), pets = [['cat', 'open', 64], ['dog', 'happy', 0], ['frog', 'open', 40]];
     peek.innerHTML = pets.map(function (p) {
       return '<div style="position:relative;width:78px;height:96px">' +

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>跟我说 Say It Back · Play Corner</title>
+<meta name="theme-color" content="#F4F8FC">
+<script>if (location.protocol === 'http:' && !/^(localhost|127\.|192\.168\.)/.test(location.hostname)) location.replace('https:' + location.href.slice(5));</script>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/app.css">
+<style>
+  .screen { height: 100dvh; min-height: 0; }
+  .word {
+    flex: 1; min-height: 0; position: relative;
+    background: var(--card); border-radius: 28px; box-shadow: 0 6px 0 var(--card-shadow);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 16px 56px;
+  }
+  .word .pic { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; }
+  .word .pic svg { height: 100%; width: auto; max-width: 100%; max-height: 230px; }
+  .word .hz { font-size: 64px; font-weight: 900; line-height: 1; color: var(--ink); }
+  .word .pyt { font-size: 22px; }
+  .word .en { font-size: 14px; font-weight: 700; color: var(--ink-3); }
+  .word.bump { animation: pop .35s cubic-bezier(.3,.7,.3,1.4); }
+  .nav {
+    appearance: none; border: 0; cursor: pointer; position: absolute; top: 50%; transform: translateY(-50%);
+    width: 48px; height: 72px; border-radius: 16px; background: var(--sky-soft);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav.prev { left: 6px; } .nav.next { right: 6px; }
+  .nav.pulse { animation: nudge 1s ease-in-out infinite; }
+  @keyframes nudge { 50% { transform: translateY(-50%) translateX(4px); background: #CDE8FA; } }
+  .stars3 { position: absolute; top: 12px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; pointer-events: none; }
+  .stars3 svg { width: 34px; height: 34px; opacity: 0; transform: scale(.4); transition: all .3s cubic-bezier(.3,.7,.3,1.4); }
+  .stars3.on svg { opacity: 1; transform: scale(1); }
+  .stars3.on svg:nth-child(2) { transition-delay: .12s; } .stars3.on svg:nth-child(3) { transition-delay: .24s; }
+
+  .actions { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 12px; align-items: center; }
+  .act {
+    appearance: none; border: 0; cursor: pointer; border-radius: 24px; height: 74px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    font-weight: 800; font-size: 13px; color: var(--ink);
+    background: var(--card); box-shadow: 0 5px 0 var(--card-shadow);
+  }
+  .act:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--card-shadow); }
+  .act:disabled { opacity: .4; }
+  .mic { height: 96px; border-radius: 48px; background: var(--go); box-shadow: 0 6px 0 var(--go-shadow); color: #fff; font-size: 15px; position: relative; }
+  .mic:active { box-shadow: 0 2px 0 var(--go-shadow); }
+  .mic.rec { background: #E5484D; animation: breathe 1s ease-in-out infinite; }
+  @keyframes breathe { 50% { box-shadow: 0 0 0 12px rgba(229,72,77,.25), 0 6px 0 var(--go-shadow); } }
+  .mic .ring { position: absolute; inset: -6px; border-radius: 54px; }
+  .status { min-height: 22px; text-align: center; font-weight: 800; color: var(--ink-2); margin: 0; }
+</style>
+</head>
+<body>
+<main class="screen">
+  <div class="topbar">
+    <a class="round-btn" href="../" aria-label="Back to games">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <h1><span class="zh">跟我说</span> <span style="font-size:18px">Say It</span></h1>
+    <span style="width:52px" aria-hidden="true"></span>
+  </div>
+
+  <div class="chips" id="chips" role="tablist" aria-label="Topic"></div>
+  <p class="voice-note" id="voiceNote"></p>
+
+  <div class="word" id="word">
+    <div class="stars3" id="stars3" aria-hidden="true">
+      <svg viewBox="0 0 100 100"><polygon points="50,6 62,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 38,37" fill="#F5B800"/></svg>
+      <svg viewBox="0 0 100 100"><polygon points="50,6 62,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 38,37" fill="#F5B800"/></svg>
+      <svg viewBox="0 0 100 100"><polygon points="50,6 62,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 38,37" fill="#F5B800"/></svg>
+    </div>
+    <div class="pic" id="pic"></div>
+    <div class="hz zh" id="hz"></div>
+    <div class="pyt py" id="py"></div>
+    <div class="en" id="en"></div>
+    <button class="nav prev" type="button" id="prev" aria-label="Previous word"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="nav next" type="button" id="next" aria-label="Next word"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+
+  <p class="status" id="status" aria-live="polite"></p>
+
+  <div class="actions">
+    <button class="act" type="button" id="listen">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="#1D2B4F"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+      <span><span class="zh">听</span> Listen</span>
+    </button>
+    <button class="act mic" type="button" id="mic">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="#fff"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      <span id="micLabel"><span class="zh">说</span> My turn</span>
+    </button>
+    <button class="act" type="button" id="playback" disabled>
+      <svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#2FA86B"/><path d="M10 8v8l6-4z" fill="#fff"/></svg>
+      <span>My voice</span>
+    </button>
+  </div>
+</main>
+
+<div class="start" id="start">
+  <div style="font-size:64px;font-weight:900" class="zh">跟我说</div>
+  <p class="hint" style="font-size:18px;max-width:320px">Listen to the word, then press the big button and say it back. You'll hear your own voice!</p>
+  <button class="big-btn" type="button" id="go"><span class="zh">开始</span> · Start</button>
+</div>
+
+<script src="../assets/animals.js"></script>
+<script src="../assets/sfx.js"></script>
+<script src="../assets/zh.js"></script>
+<script>
+(function () {
+  var CATS = ['animals', 'fruits', 'colours', 'body', 'characters'];
+  var REC_MS = 2600;
+  var $ = function (id) { return document.getElementById(id); };
+  var cat = 'animals', idx = 0, stream = null, rec = null, lastUrl = null, recording = false, micBroken = false;
+
+  CATS.forEach(function (c) {
+    var v = PC.zhVocab[c];
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.dataset.cat = c; b.setAttribute('role', 'tab');
+    b.innerHTML = '<span class="zh">' + v.hz + '</span><span class="py">' + v.py + '</span>';
+    b.addEventListener('click', function () { cat = c; idx = 0; show(true); });
+    $('chips').appendChild(b);
+  });
+
+  function item() { return PC.zhVocab[cat].items[idx]; }
+  function status(t) { $('status').textContent = t || ''; }
+
+  function show(speak) {
+    var it = item();
+    [].forEach.call($('chips').children, function (b) { b.classList.toggle('on', b.dataset.cat === cat); b.setAttribute('aria-selected', b.dataset.cat === cat); });
+    $('pic').innerHTML = it.pic();
+    $('hz').textContent = it.hz;
+    $('py').textContent = it.py;
+    $('en').textContent = it.en;
+    $('stars3').classList.remove('on');
+    $('next').classList.remove('pulse');
+    $('playback').disabled = true;
+    if (lastUrl) { URL.revokeObjectURL(lastUrl); lastUrl = null; }
+    var w = $('word'); w.classList.remove('bump'); void w.offsetWidth; w.classList.add('bump');
+    status('');
+    if (speak) listen();
+  }
+
+  function listen() { status('跟我说 · Say it with me!'); PC.zh.say(item().hz, { rate: .72 }); }
+
+  function step(d) {
+    var n = PC.zhVocab[cat].items.length;
+    idx = (idx + d + n) % n;
+    show(true);
+  }
+
+  function praise() {
+    $('stars3').classList.add('on');
+    PC.sfx.yum();
+    var p = ['很好!', '真棒!', '说得好!'][Math.floor(Math.random() * 3)];
+    setTimeout(function () { PC.zh.say(p); status(p + ' · Great saying!'); }, 250);
+    $('next').classList.add('pulse');
+  }
+
+  function playMine(then) {
+    if (!lastUrl) return;
+    var a = new Audio(lastUrl);
+    a.onended = function () { if (then) then(); };
+    a.onerror = function () { if (then) then(); };
+    a.play().catch(function () { if (then) then(); });
+  }
+
+  function startRec() {
+    if (recording) return;
+    try { speechSynthesis.cancel(); } catch (e) {}
+    if (micBroken || !navigator.mediaDevices || !window.MediaRecorder) {
+      status('Say it out loud!');
+      setTimeout(praise, 1800);
+      return;
+    }
+    var go = function (s) {
+      stream = s;
+      var chunks = [];
+      try { rec = new MediaRecorder(stream); } catch (e) { micBroken = true; return startRec(); }
+      rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+      rec.onstop = function () {
+        recording = false;
+        $('mic').classList.remove('rec');
+        $('micLabel').innerHTML = '<span class="zh">说</span> My turn';
+        if (!chunks.length) { status('I didn\'t hear anything – try again!'); return; }
+        lastUrl = URL.createObjectURL(new Blob(chunks, { type: rec.mimeType || 'audio/webm' }));
+        $('playback').disabled = false;
+        status('Listen to you!');
+        playMine(praise);
+      };
+      recording = true;
+      $('mic').classList.add('rec');
+      $('micLabel').textContent = 'Listening…';
+      status('说吧! · Say it now!');
+      rec.start();
+      setTimeout(function () { if (rec && rec.state === 'recording') rec.stop(); }, REC_MS);
+    };
+    if (stream) return go(stream);
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }).then(go).catch(function () {
+      micBroken = true;
+      status('Microphone is off – just say it out loud!');
+      setTimeout(praise, 1800);
+    });
+  }
+
+  $('listen').addEventListener('click', function () { PC.sfx.unlock(); listen(); });
+  $('mic').addEventListener('click', function () { PC.sfx.unlock(); startRec(); });
+  $('playback').addEventListener('click', function () { playMine(); });
+  $('prev').addEventListener('click', function () { step(-1); });
+  $('next').addEventListener('click', function () { step(1); });
+  $('word').addEventListener('click', function (e) { if (e.target.closest('.nav')) return; listen(); });
+  $('go').addEventListener('click', function () { PC.sfx.unlock(); $('start').hidden = true; show(true); });
+  show(false);
+  PC.zh.voiceNotice($('voiceNote'));
+})();
+</script>
+<script src="../assets/sw-register.js"></script>
+</body>
+</html>
