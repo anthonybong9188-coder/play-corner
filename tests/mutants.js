@@ -50,6 +50,7 @@ module.exports = [
   { id: 'X5', games: ['battle'], file: 'battle/index.html', what: 'fallen fighters never replaced', find: 'if(!army.length){lane[side]=null;return}', repl: 'if(true){lane[side]=null;return}' },
   { id: 'X6', games: ['battle'], file: 'battle/index.html', what: 'game only ends when both armies are gone', find: "if((l===0&&!dyingOf('L'))||(r===0&&!dyingOf('R'))){", repl: "if((l===0&&!dyingOf('L'))&&(r===0&&!dyingOf('R'))){" },
   { id: 'X7', games: ['battle'], file: 'battle/index.html', what: 'player walks faster than everyone', find: 'moveTo(lane,L,L.x+dir*SPEED*dt);', repl: 'moveTo(lane,L,L.x+dir*1.6*SPEED*dt);' },
+  { id: 'X9', games: ['battle'], file: 'battle/index.html', what: 'fighter snaps back when a new rival walks on', find: 'if(x>lim)x=Math.max(lim,Math.min(x,f.x)-step)', repl: 'if(x>lim)x=lim' },
   { id: 'X8', games: ['battle'], file: 'battle/index.html', what: 'back row controlled by the player too', find: "ctrl:(lane==='front'&&side==='L')?'player':'ai'", repl: "ctrl:(side==='L')?'player':'ai'" },
 
   // ---- 找一找 / 跟我说 / voice

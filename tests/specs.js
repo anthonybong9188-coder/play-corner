@@ -314,24 +314,41 @@ module.exports = [
   }},
   { game: 'battle', name: 'a rival inside your reach does not back away when you swing', fn: async (page, h) => {
     await page.goto(h.base + 'battle/'); await page.waitForFunction(() => window.__bb && window.__bb.game);
-    let moved = 0;
-    for (let t = 0; t < 6; t++) {
+    let moved = 0, tries = 0, guard = 0;
+    for (let t = 0; t < 6 && guard++ < 30; t++) {
       await page.waitForFunction(() => { const g = window.__bb.game, L = g.lanes.front.L, R = g.lanes.front.R, n = performance.now();
-        return L && R && L.state === 'fight' && R.state === 'fight' && n >= L.ready && n >= R.stun && !R.knock && !R.swing && !L.swing; }, null, { timeout: 8000 });
+        return L && R && L.state === 'fight' && R.state === 'fight' && n >= L.ready && n >= L.stun && !L.knock && n >= R.stun && !R.knock && !R.swing && !L.swing; }, null, { timeout: 8000 });
       const dx = await page.evaluate(() => new Promise((res) => {
         const B = window.__bb, g = B.game, lane = g.lanes.front, L = lane.L, R = lane.R;
         R.x += B.attackGap(L.type, R.type) - 2 - B.gapOf(lane);          // put the rival just inside reach
         const btn = document.querySelector('[data-action=attack]');
         btn.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); btn.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        if (!L.swing) return res(-1);                                   // your swing did not start: not a valid try
         Object.assign(R.ai, { mode: 'back', until: performance.now() + 5000, seen: L.swing, smart: false }); // it was backing off
         const x0 = R.x, t0 = performance.now(); let worst = 0;
         const tick = () => { if (!R.knock) worst = Math.max(worst, R.x - x0); if (performance.now() - t0 > 520) return res(worst); requestAnimationFrame(tick); };
         requestAnimationFrame(tick);
       }));
-      if (dx > 0.5) moved++;
+      if (dx === -1) { t--; await h.sleep(300); continue; }
+      if (dx > 0.5) moved++; tries++;
       await h.sleep(1600);
     }
+    h.assert(tries === 6, 'could not run 6 valid swings');
     h.assert(moved === 0, `rival stepped back ${moved}/6 times while inside your reach`);
+  }},
+  { game: 'battle', name: 'no teleporting back when a new rival walks on', fn: async (page, h) => {
+    await page.goto(h.base + 'battle/'); await page.waitForFunction(() => window.__bb && window.__bb.game);
+    await h.sleep(300);
+    const worst = await page.evaluate(() => new Promise((res) => {
+      const g = window.__bb.game, lane = g.lanes.back, L = lane.L;
+      lane.R.state = 'dying'; lane.R.deathAt = performance.now() - 2490;   // the rival falls…
+      L.x = 190; L.ai.mode = 'approach'; L.ai.willHold = false;          // …while our fighter stands far forward
+      let prev = L.x, pk = 0, worst = 0; const t0 = performance.now();
+      const tick = (now) => { if (!L.knock && !pk && L.state === 'fight') worst = Math.max(worst, Math.abs(L.x - prev)); pk = L.knock; prev = L.x;
+        if (now - t0 > 4000) return res(worst); requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    }));
+    h.assert(worst <= 2.5, `fighter jumped ${worst.toFixed(1)}px in one frame when the new rival arrived`);
   }},
   { game: 'battle', name: 'fallen fighters are replaced from the army; game ends when an army is gone', fn: async (page, h) => {
     await page.goto(h.base + 'battle/'); await page.waitForFunction(() => window.__bb && window.__bb.game);

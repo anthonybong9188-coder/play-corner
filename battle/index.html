@@ -302,11 +302,20 @@
         return true;
       }
       // Keep each fighter on the field and out of the other's body.
+      // If the two are already too close (a new rival just walked on), step back at walking speed — never snap.
       function moveTo(lane,f,x){
-        const o=f.side==='L'?lane.R:lane.L;
-        if(f.side==='L'){x=Math.max(25,Math.min(198,x));if(alive(o))x=Math.min(x,o.x-spacing(f.type,o.type))}
-        else{x=Math.min(198,Math.max(25,x));if(alive(o))x=Math.max(x,o.x+spacing(o.type,f.type))}
+        const o=f.side==='L'?lane.R:lane.L,step=SPEED*(game.dt||0);
+        if(f.side==='L'){x=Math.max(25,Math.min(198,x));if(alive(o)){const lim=o.x-spacing(f.type,o.type);if(x>lim)x=Math.max(lim,Math.min(x,f.x)-step)}}
+        else{x=Math.min(198,Math.max(25,x));if(alive(o)){const lim=o.x+spacing(o.type,f.type);if(x<lim)x=Math.min(lim,Math.max(x,f.x)+step)}}
         f.x=x;
+      }
+      // Each frame, ease apart two fighters that ended up overlapping.
+      function separate(lane){
+        const L=lane.L,R=lane.R;
+        if(!alive(L)||!alive(R))return;
+        if(L.x<=R.x-spacing(L.type,R.type)+.01)return;
+        if(L.state==='fight'&&!L.knock)moveTo(lane,L,L.x);
+        if(R.state==='fight'&&!R.knock)moveTo(lane,R,R.x);
       }
       const toward=(f,amt)=>f.side==='L'?f.x+amt:f.x-amt;
 
@@ -427,6 +436,7 @@
           if(held.has('attack'))startSwing(L,now);
         }else if(L)think(lane,L,R,now,dt);
         if(R)think(lane,R,L,now,dt);
+        separate(lane);
         impact(lane,L,R,now);impact(lane,R,L,now);
       }
 
@@ -486,7 +496,7 @@
       }
 
       function update(now){
-        const dt=Math.min(.04,Math.max(0,(now-game.last)/1000||0));game.last=now;
+        const dt=Math.min(.04,Math.max(0,(now-game.last)/1000||0));game.last=now;game.dt=dt;
         if(!game.done){
           updateLane(game.lanes.back,now,dt);
           updateLane(game.lanes.front,now,dt);
