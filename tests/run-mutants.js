@@ -14,8 +14,9 @@ function copySite(dst) {
   const pick = process.argv.slice(2);
   const list = pick.length ? MUTANTS.filter((m) => pick.includes(m.id)) : MUTANTS;
   // every planted bug must hit exactly one spot in the current code
-  for (const m of list) {
-    const n = fs.readFileSync(path.join(ROOT, m.file), 'utf8').split(m.find).length - 1;
+  const edits = (m) => m.edits || [{ find: m.find, repl: m.repl }];
+  for (const m of list) for (const e of edits(m)) {
+    const n = fs.readFileSync(path.join(ROOT, m.file), 'utf8').split(e.find).length - 1;
     if (n !== 1) { console.error(`${m.id}: pattern found ${n}x in ${m.file} — fix the mutant`); process.exit(2); }
   }
   const browser = await launch();
@@ -24,7 +25,9 @@ function copySite(dst) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mut-'));
     copySite(dir);
     const f = path.join(dir, m.file);
-    fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace(m.find, m.repl));
+    let src = fs.readFileSync(f, 'utf8');
+    for (const e of edits(m)) src = src.replace(e.find, e.repl);
+    fs.writeFileSync(f, src);
     const { server, base } = await serve(dir);
     const specs = SPECS.filter((s) => m.games.includes(s.game));
     const res = await runSpecs(browser, base, specs, () => {}, dir);

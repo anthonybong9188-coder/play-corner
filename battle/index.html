@@ -305,8 +305,8 @@
       // If the two are already too close (a new rival just walked on), step back at walking speed — never snap.
       function moveTo(lane,f,x){
         const o=f.side==='L'?lane.R:lane.L,step=SPEED*(game.dt||0);
-        if(f.side==='L'){x=Math.max(25,Math.min(198,x));if(alive(o)){const lim=o.x-spacing(f.type,o.type);if(x>lim)x=Math.max(lim,Math.min(x,f.x)-step)}}
-        else{x=Math.min(198,Math.max(25,x));if(alive(o)){const lim=o.x+spacing(o.type,f.type);if(x<lim)x=Math.min(lim,Math.max(x,f.x)+step)}}
+        if(f.side==='L'){x=Math.max(25,Math.min(198,x));if(alive(o)){const lim=o.x-spacing(f.type,o.type);if(x>lim)x=Math.max(lim,Math.min(x,f.x)-step)}x=Math.max(25,x)}
+        else{x=Math.min(198,Math.max(25,x));if(alive(o)){const lim=o.x+spacing(o.type,f.type);if(x<lim)x=Math.min(lim,Math.max(x,f.x)+step)}x=Math.min(198,x)}
         f.x=x;
       }
       // Each frame, ease apart two fighters that ended up overlapping.

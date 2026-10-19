@@ -50,7 +50,10 @@ module.exports = [
   { id: 'X5', games: ['battle'], file: 'battle/index.html', what: 'fallen fighters never replaced', find: 'if(!army.length){lane[side]=null;return}', repl: 'if(true){lane[side]=null;return}' },
   { id: 'X6', games: ['battle'], file: 'battle/index.html', what: 'game only ends when both armies are gone', find: "if((l===0&&!dyingOf('L'))||(r===0&&!dyingOf('R'))){", repl: "if((l===0&&!dyingOf('L'))&&(r===0&&!dyingOf('R'))){" },
   { id: 'X7', games: ['battle'], file: 'battle/index.html', what: 'player walks faster than everyone', find: 'moveTo(lane,L,L.x+dir*SPEED*dt);', repl: 'moveTo(lane,L,L.x+dir*1.6*SPEED*dt);' },
-  { id: 'X9', games: ['battle'], file: 'battle/index.html', what: 'fighter snaps back when a new rival walks on', find: 'if(x>lim)x=Math.max(lim,Math.min(x,f.x)-step)', repl: 'if(x>lim)x=lim' },
+  { id: 'X9', games: ['battle'], file: 'battle/index.html', what: 'both fixes removed: old movement code and no easing apart (the original glitch)',
+    edits: [{ find: '        separate(lane);\n', repl: '' }, {
+    find: "if(f.side==='L'){x=Math.max(25,Math.min(198,x));if(alive(o)){const lim=o.x-spacing(f.type,o.type);if(x>lim)x=Math.max(lim,Math.min(x,f.x)-step)}x=Math.max(25,x)}\n        else{x=Math.min(198,Math.max(25,x));if(alive(o)){const lim=o.x+spacing(o.type,f.type);if(x<lim)x=Math.min(lim,Math.max(x,f.x)+step)}x=Math.min(198,x)}",
+    repl: "if(f.side==='L'){x=Math.max(25,Math.min(198,x));if(alive(o))x=Math.min(x,o.x-spacing(f.type,o.type))}\n        else{x=Math.min(198,Math.max(25,x));if(alive(o))x=Math.max(x,o.x+spacing(o.type,f.type))}" }] },
   { id: 'X8', games: ['battle'], file: 'battle/index.html', what: 'back row controlled by the player too', find: "ctrl:(lane==='front'&&side==='L')?'player':'ai'", repl: "ctrl:(side==='L')?'player':'ai'" },
 
   // ---- 找一找 / 跟我说 / voice

@@ -352,19 +352,44 @@ module.exports = [
     h.assert(tries === 6, 'could not run 6 valid swings');
     h.assert(moved === 0, `rival stepped back ${moved}/6 times while inside your reach`);
   }},
-  { game: 'battle', name: 'no teleporting back when a new rival walks on', fn: async (page, h) => {
+  { game: 'battle', name: 'no teleporting back when a new rival walks on', timeout: 90000, fn: async (page, h) => {
+   for (let rep = 0; rep < 4; rep++) {   // fighting moves are random: repeat the situation
     await page.goto(h.base + 'battle/'); await page.waitForFunction(() => window.__bb && window.__bb.game);
     await h.sleep(300);
     const worst = await page.evaluate(() => new Promise((res) => {
       const g = window.__bb.game, lane = g.lanes.back, L = lane.L;
+      L.type = 'troll'; g.army.R.unshift('sword');                          // widest pairing
       lane.R.state = 'dying'; lane.R.deathAt = performance.now() - 2490;   // the rival falls…
       L.x = 190; L.ai.mode = 'approach'; L.ai.willHold = false;          // …while our fighter stands far forward
-      let prev = L.x, pk = 0, worst = 0; const t0 = performance.now();
+      let prev = L.x, pk = 0, worst = 0, maxR = 0; const t0 = performance.now();
       const tick = (now) => { if (!L.knock && !pk && L.state === 'fight') worst = Math.max(worst, Math.abs(L.x - prev)); pk = L.knock; prev = L.x;
-        if (now - t0 > 4000) return res(worst); requestAnimationFrame(tick); };
+        if (lane.R && lane.R.state === 'fight') maxR = Math.max(maxR, lane.R.x);
+        if (now - t0 > 4500) return res({ worst, maxR }); requestAnimationFrame(tick); };
       requestAnimationFrame(tick);
     }));
-    h.assert(worst <= 2.5, `fighter jumped ${worst.toFixed(1)}px in one frame when the new rival arrived`);
+    h.assert(worst.worst <= 2.5, `fighter jumped ${worst.worst.toFixed(1)}px in one frame when the new rival arrived`);
+    h.assert(worst.maxR <= 198.5, `new rival was pushed off the battlefield (x=${worst.maxR.toFixed(0)}, edge is 198)`);
+   }
+  }},
+  { game: 'battle', name: 'you stand far forward and idle: new rival stays on the field, you ease back', fn: async (page, h) => {
+    await page.goto(h.base + 'battle/'); await page.waitForFunction(() => window.__bb && window.__bb.game);
+    await h.sleep(300);
+    const r = await page.evaluate(() => new Promise((res) => {
+      const g = window.__bb.game, lane = g.lanes.front, L = lane.L;
+      L.type = 'troll'; g.army.R.unshift('troll');
+      lane.R.state = 'dying'; lane.R.deathAt = performance.now() - 2490;
+      L.x = 190;                                                           // you stand far forward and do nothing
+      let prev = L.x, pk = 0, worst = 0, maxR = 0; const t0 = performance.now();
+      const tick = (now) => { if (!L.knock && !pk) worst = Math.max(worst, Math.abs(L.x - prev)); pk = L.knock; prev = L.x;
+        if (lane.R && lane.R.state === 'fight') maxR = Math.max(maxR, lane.R.x);
+        if (now - t0 > 5000) return res({ worst, maxR, endL: L.x, gap: window.__bb.gapOf(lane), atk: window.__bb.attackGap(L.type, lane.R.type) });
+        requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    }));
+    h.assert(r.maxR <= 198.5, `new rival was pushed off the battlefield (x=${r.maxR.toFixed(0)})`);
+    h.assert(r.worst <= 2.5, `you jumped ${r.worst.toFixed(1)}px in one frame`);
+    h.assert(r.endL < 185, 'you should have been eased back to make room');
+    h.assert(r.gap >= r.atk - 6, 'the two fighters should not be left overlapping');
   }},
   { game: 'battle', name: 'fallen fighters are replaced from the army; game ends when an army is gone', fn: async (page, h) => {
     await page.goto(h.base + 'battle/'); await page.waitForFunction(() => window.__bb && window.__bb.game);
