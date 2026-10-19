@@ -214,6 +214,22 @@ module.exports = [
       await h.sleep(150);
     }
   }},
+  { game: 'feed', name: 'worst case: wants 5 with unhelpful refills — the tray never runs out', timeout: 90000, fn: async (page, h) => {
+    await page.goto(h.base + 'feed/'); await page.waitForSelector('.food');
+    const FOOD = { Bunny: 'carrot', Monkey: 'banana', Doggy: 'bone', Kitty: 'fish', Chick: 'corn' };
+    let goal = '';
+    for (let i = 0; i < 200; i++) { goal = await page.textContent('#goalText'); if (/wants 5 /.test(goal) && i > 2) break; await page.click('#restart'); await h.sleep(40); }
+    h.assert(/wants 5 /.test(goal), 'could not get an animal that wants 5');
+    const want = FOOD[goal.split(' ')[0]];
+    // from now on every "random" refill comes out unhelpful
+    await page.evaluate(() => { const seq = [0.4, 0.6, 0.8, 0.95, 0.45]; let i = 0; Math.random = () => seq[i++ % seq.length]; });
+    for (let k = 1; k <= 5; k++) {
+      const ls = await page.$$eval('.food', (bs) => bs.map((b) => b.getAttribute('aria-label')));
+      h.assert(ls.includes(want), `bite ${k}: the tray has no ${want} left`);
+      await tap(page, '.food', ls.indexOf(want)); await h.sleep(1000);
+    }
+    await page.waitForSelector('#bubble.show', { timeout: 1500 });
+  }},
   { game: 'feed-zh', name: 'Mandarin sentence uses 两 and the right measure word; counts aloud', timeout: 60000, fn: async (page, h) => {
     await page.goto(h.base + 'feed/?lang=zh'); await page.waitForSelector('.food');
     let sawTwo = false, sawCat = false;
