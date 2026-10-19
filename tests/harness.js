@@ -44,7 +44,7 @@ async function launch() {
   return chromium.launch({ args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--autoplay-policy=no-user-gesture-required'] });
 }
 
-async function runSpecs(browser, base, specs, log = () => {}) {
+async function runSpecs(browser, base, specs, log = () => {}, root) {
   const results = [];
   for (const spec of specs) {
     const t0 = Date.now();
@@ -54,18 +54,22 @@ async function runSpecs(browser, base, specs, log = () => {}) {
     });
     if (spec.voices) await ctx.addInitScript((v) => { window.__fakeVoices = v; }, spec.voices);
     await ctx.addInitScript(speechStub);
+    let own = null, b = base;
+    if (spec.sw && root) { own = await serve(root); b = own.base; }
     const page = await ctx.newPage();
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message));
     let ok = true, err = '';
     try {
       await Promise.race([
-        spec.fn(page, { base, ctx, sleep, assert, said: () => page.evaluate(() => window.__said.map((s) => s.text)) }),
+        spec.fn(page, { base: b, ctx, sleep, assert, said: () => page.evaluate(() => window.__said.map((s) => s.text)),
+          serverDown: async () => { if (!own) throw new Error('no own server'); own.server.closeAllConnections(); await new Promise((r) => own.server.close(r)); } }),
         sleep(spec.timeout || 90000).then(() => { throw new Error('timed out'); })
       ]);
       if (errors.length) throw new Error('page error: ' + errors[0]);
     } catch (e) { ok = false; err = (e && e.message || String(e)).split('\n')[0].slice(0, 200); }
     await ctx.close().catch(() => {});
+    if (own) { try { own.server.closeAllConnections(); own.server.close(); } catch (e) {} }
     const r = { game: spec.game, name: spec.name, ok, err, secs: ((Date.now() - t0) / 1000).toFixed(1) };
     results.push(r); log(r);
   }

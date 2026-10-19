@@ -44,6 +44,7 @@ async function playMatch(page, h, zh) {
   };
 
   for (let i = 0; i < n; i += 2) await tryPair(i, i + 1);
+  h.assert(matchedBy.size < 6, 'the deck should be shuffled (too many neighbours already match)');
   const all = Object.values(labels);
   const counts = {}; all.forEach((l) => { counts[l] = (counts[l] || 0) + 1; });
   assert(Object.keys(counts).length === 10, 'there should be 10 different pictures, found ' + Object.keys(counts).length);
@@ -178,6 +179,11 @@ module.exports = [
 
   // ===== Feed the Animals
   { game: 'feed', name: 'right food counts, wrong food is refused, rounds advance', timeout: 150000, fn: async (page, h) => {
+    for (let i = 0; i < 15; i++) {
+      await page.goto(h.base + 'feed/'); await page.waitForSelector('.food');
+      const n = +((await page.textContent('#goalText')).match(/wants (\d)/) || [0, 0])[1];
+      h.assert(n >= 1 && n <= 3, 'the first animal asks for 1–3, asked for ' + n);
+    }
     await page.goto(h.base + 'feed/'); await page.waitForSelector('.food');
     const FOOD = { Bunny: 'carrot', Monkey: 'banana', Doggy: 'bone', Kitty: 'fish', Chick: 'corn' };
     let prevName = '';
@@ -210,16 +216,17 @@ module.exports = [
   }},
   { game: 'feed-zh', name: 'Mandarin sentence uses 两 and the right measure word; counts aloud', timeout: 60000, fn: async (page, h) => {
     await page.goto(h.base + 'feed/?lang=zh'); await page.waitForSelector('.food');
-    let sawTwo = false;
-    for (let i = 0; i < 60 && !sawTwo; i++) {
+    let sawTwo = false, sawCat = false;
+    for (let i = 0; i < 120 && !(sawTwo && sawCat); i++) {
       const s = await page.textContent('#goalText');
       h.assert(/^(小兔|猴子|小狗|小猫|小鸡)要(一|两|三|四|五)(根|条)(萝卜|香蕉|骨头|鱼|玉米)!$/.test(s), 'sentence shape: ' + s);
       h.assert(s.startsWith('小猫') ? s.includes('条鱼') : s.includes('根'), 'measure word: 条 for fish, 根 for the rest — ' + s);
       h.assert(!/二(根|条)/.test(s), 'two of something is 两, not 二 — ' + s);
       if (s.includes('两')) sawTwo = true;
-      else { await page.click('#restart'); await h.sleep(60); }
+      if (s.startsWith('小猫')) sawCat = true;
+      if (!(sawTwo && sawCat)) { await page.click('#restart'); await h.sleep(60); }
     }
-    h.assert(sawTwo, 'never saw a request for two');
+    h.assert(sawTwo && sawCat, 'never saw a request for two / the kitten');
     h.assert((await page.textContent('#goalPy')).includes(' yào '), 'pinyin line shown');
     const FOOD = { '萝卜': 'carrot', '香蕉': 'banana', '骨头': 'bone', '鱼': 'fish', '玉米': 'corn' };
     const s = await page.textContent('#goalText'); const want = FOOD[Object.keys(FOOD).find((k) => s.includes(k))];
@@ -305,6 +312,27 @@ module.exports = [
     h.assert(r.inReachSwings >= 4, 'test needs some in-reach swings, got ' + r.inReachSwings);
     h.assert(r.retreat === 0, `rival stepped away ${r.retreat}x while inside your reach as you swung`);
   }},
+  { game: 'battle', name: 'a rival inside your reach does not back away when you swing', fn: async (page, h) => {
+    await page.goto(h.base + 'battle/'); await page.waitForFunction(() => window.__bb && window.__bb.game);
+    let moved = 0;
+    for (let t = 0; t < 6; t++) {
+      await page.waitForFunction(() => { const g = window.__bb.game, L = g.lanes.front.L, R = g.lanes.front.R, n = performance.now();
+        return L && R && L.state === 'fight' && R.state === 'fight' && n >= L.ready && n >= R.stun && !R.knock && !R.swing && !L.swing; }, null, { timeout: 8000 });
+      const dx = await page.evaluate(() => new Promise((res) => {
+        const B = window.__bb, g = B.game, lane = g.lanes.front, L = lane.L, R = lane.R;
+        R.x += B.attackGap(L.type, R.type) - 2 - B.gapOf(lane);          // put the rival just inside reach
+        const btn = document.querySelector('[data-action=attack]');
+        btn.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); btn.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        Object.assign(R.ai, { mode: 'back', until: performance.now() + 5000, seen: L.swing, smart: false }); // it was backing off
+        const x0 = R.x, t0 = performance.now(); let worst = 0;
+        const tick = () => { if (!R.knock) worst = Math.max(worst, R.x - x0); if (performance.now() - t0 > 520) return res(worst); requestAnimationFrame(tick); };
+        requestAnimationFrame(tick);
+      }));
+      if (dx > 0.5) moved++;
+      await h.sleep(1600);
+    }
+    h.assert(moved === 0, `rival stepped back ${moved}/6 times while inside your reach`);
+  }},
   { game: 'battle', name: 'fallen fighters are replaced from the army; game ends when an army is gone', fn: async (page, h) => {
     await page.goto(h.base + 'battle/'); await page.waitForFunction(() => window.__bb && window.__bb.game);
     await h.sleep(300);
@@ -374,11 +402,11 @@ module.exports = [
     await page.evaluate(() => navigator.serviceWorker.ready);
     await page.reload(); await page.waitForFunction(() => navigator.serviceWorker.controller);
     await h.sleep(1500);
-    await h.ctx.setOffline(true);
+    await h.serverDown();
     await page.goto(h.base + 'feed/?lang=zh');
     await page.waitForSelector('#goalText', { timeout: 5000 });
     h.assert(/要/.test(await page.textContent('#goalText')), 'Count With Me opens offline in Mandarin');
     await page.goto(h.base + 'match/?set=zh'); await page.waitForSelector('.card', { timeout: 5000 });
-    await h.ctx.setOffline(false);
+    h.assert((await page.locator('.front .hz').count()) === 10, 'Character Match works offline (needs the Mandarin words file)');
   }}
 ];

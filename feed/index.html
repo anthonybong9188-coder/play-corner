@@ -188,6 +188,7 @@
 
   function refillSlot(i) {
     var want = MENU[who].food, left = need - fed;
+    slots[i] = null; // the food just eaten is gone – don't count it
     var count = slots.filter(function (f) { return f === want; }).length;
     slots[i] = count < Math.min(2, left) ? want : (Math.random() < .35 ? want : randomFood(true));
   }

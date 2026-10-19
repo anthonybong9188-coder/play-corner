@@ -27,7 +27,7 @@ function copySite(dst) {
     fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace(m.find, m.repl));
     const { server, base } = await serve(dir);
     const specs = SPECS.filter((s) => m.games.includes(s.game));
-    const res = await runSpecs(browser, base, specs);
+    const res = await runSpecs(browser, base, specs, () => {}, dir);
     server.close(); fs.rmSync(dir, { recursive: true, force: true });
     const caught = res.find((r) => !r.ok);
     const row = { id: m.id, what: m.what, killed: !!caught, by: caught ? `${caught.name} → ${caught.err}` : '' };
