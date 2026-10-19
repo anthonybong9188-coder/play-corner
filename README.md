@@ -4,6 +4,8 @@ Simple, no-login games for little ones, made for big phones.
 
 - **Match the Cards** – flip two cards to find matching shapes (4 × 5 board).
 - **Penalty Kick** – tap the ball to shoot past the sliding goalie.
+- **Feed the Animals** – the animal asks (out loud) for a number of its favourite food; drag or tap to feed.
+- **Peekaboo Pets** – tap the pets as they peek out of the garden holes.
 - **Balloon Pop** – pop the balloons of the colour asked for, 5 per round.
 - **Betrayal Battlefield** – retro pixel-art fantasy duel.
 

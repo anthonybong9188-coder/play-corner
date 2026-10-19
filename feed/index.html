@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Feed the Animals · Play Corner</title>
+<meta name="theme-color" content="#F4F8FC">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/app.css">
+<style>
+  .screen { height: 100dvh; min-height: 0; }
+  .goal {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border-radius: 20px; padding: 10px 12px;
+  }
+  .speak {
+    appearance: none; border: 0; cursor: pointer; flex-shrink: 0;
+    width: 48px; height: 48px; border-radius: 24px; background: var(--sky-soft);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .speak:active { transform: scale(.94); }
+  .goal-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .goal-text { font-family: var(--display); font-weight: 800; font-size: 22px; line-height: 1.1; }
+  .pips { display: flex; gap: 4px; height: 34px; }
+  .pip { width: 34px; height: 34px; opacity: .22; filter: grayscale(1); transition: opacity .2s, transform .2s; }
+  .pip.on { opacity: 1; filter: none; transform: scale(1.12); }
+  .pip svg { width: 100%; height: 100%; display: block; }
+
+  .stage { flex: 1; min-height: 0; position: relative; display: flex; align-items: center; justify-content: center; }
+  .stage::before { content: ''; position: absolute; left: 8%; right: 8%; bottom: 6%; height: 16%; border-radius: 50%; background: #E3EDF7; }
+  .animal { position: relative; width: min(74vw, 300px); aspect-ratio: 1; transition: transform .15s; }
+  .animal svg { width: 100%; height: 100%; display: block; }
+  .animal.hover { transform: scale(1.06); }
+  .animal.shake { animation: shake .5s ease-in-out; }
+  .animal.bounce { animation: bounce .6s ease-in-out 2; }
+  @keyframes shake { 0%,100% { transform: rotate(0); } 20% { transform: rotate(-9deg); } 40% { transform: rotate(8deg); } 60% { transform: rotate(-6deg); } 80% { transform: rotate(4deg); } }
+  @keyframes bounce { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-26px) scale(1.04); } 70% { transform: translateY(0) scale(.98, 1.02); } }
+
+  .heart { position: absolute; width: 34px; height: 34px; pointer-events: none; animation: float 1.2s ease-out forwards; }
+  @keyframes float { from { transform: translate(0, 0) scale(.5); opacity: 1; } to { transform: translate(var(--dx), -150px) scale(1.2); opacity: 0; } }
+
+  .bubble {
+    position: absolute; top: 4%; left: 50%; transform: translateX(-50%);
+    background: #fff; border-radius: 22px; padding: 6px 18px; box-shadow: 0 4px 0 var(--card-shadow);
+    font-family: var(--display); font-weight: 800; font-size: 26px; white-space: nowrap; display: none; z-index: 3;
+  }
+  .bubble.show { display: block; animation: pop .3s cubic-bezier(.3,.7,.3,1.4); }
+
+  .tray {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;
+    background: #FFE9C7; border-radius: 24px; padding: 12px; box-shadow: inset 0 -6px 0 #F5D3A1;
+  }
+  .food {
+    appearance: none; border: 0; padding: 6px; cursor: grab; touch-action: none;
+    height: 86px; border-radius: 18px; background: #FFF7EA; box-shadow: 0 4px 0 #EED6AE;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .food svg { width: 74px; height: 74px; display: block; pointer-events: none; }
+  .food.lifted svg { opacity: .2; }
+  .food.empty svg { opacity: 0; }
+  .ghost { position: fixed; width: 92px; height: 92px; margin: -46px 0 0 -46px; pointer-events: none; z-index: 50; filter: drop-shadow(0 8px 6px rgba(0,0,0,.18)); }
+  .ghost svg { width: 100%; height: 100%; display: block; }
+</style>
+</head>
+<body>
+<main class="screen">
+  <div class="topbar">
+    <a class="round-btn" href="../" aria-label="Back to games">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <h1>Feed the Animals</h1>
+    <button class="round-btn" type="button" id="restart" aria-label="Next animal">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
+    </button>
+  </div>
+
+  <div class="goal">
+    <button class="speak" type="button" id="speak" aria-label="Hear it again">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="#1D2B4F"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+    </button>
+    <div class="goal-main">
+      <div class="goal-text" id="goalText" aria-live="polite"></div>
+      <div class="pips" id="pips" role="img"></div>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="bubble" id="bubble"></div>
+    <div class="animal" id="animal" role="img"></div>
+  </div>
+
+  <div class="tray" id="tray" aria-label="Food"></div>
+</main>
+
+<script src="../assets/animals.js"></script>
+<script src="../assets/sfx.js"></script>
+<script>
+(function () {
+  var MENU = {
+    bunny:  { food: 'carrot', one: 'carrot', many: 'carrots', name: 'Bunny' },
+    monkey: { food: 'banana', one: 'banana', many: 'bananas', name: 'Monkey' },
+    dog:    { food: 'bone',   one: 'bone',   many: 'bones',   name: 'Doggy' },
+    cat:    { food: 'fish',   one: 'fish',   many: 'fish',    name: 'Kitty' },
+    chick:  { food: 'corn',   one: 'corn',   many: 'corns',   name: 'Chick' }
+  };
+  var NAMES = Object.keys(MENU), FOODS = NAMES.map(function (k) { return MENU[k].food; });
+  var SLOTS = 6;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var animalEl = $('animal'), tray = $('tray'), pips = $('pips'), goalText = $('goalText'), bubble = $('bubble'), stage = $('stage');
+
+  var who, need, fed, round = 0, slots = [], busy = false, mood = 'idle', moodTimer, spokenOnce = false, lastWho;
+
+  function setMood(m, ms) {
+    clearTimeout(moodTimer);
+    mood = m;
+    animalEl.innerHTML = PC.animal(who, m);
+    if (ms) moodTimer = setTimeout(function () { setMood('idle'); }, ms);
+  }
+
+  function sentence() {
+    var a = MENU[who];
+    return a.name + ' wants ' + need + ' ' + (need === 1 ? a.one : a.many) + '!';
+  }
+
+  function renderGoal() {
+    goalText.textContent = sentence();
+    var html = '';
+    for (var i = 0; i < need; i++) html += '<div class="pip' + (i < fed ? ' on' : '') + '">' + PC.food(MENU[who].food) + '</div>';
+    pips.innerHTML = html;
+    pips.setAttribute('aria-label', fed + ' of ' + need + ' fed');
+    animalEl.setAttribute('aria-label', MENU[who].name);
+  }
+
+  function randomFood(excludeWanted) {
+    var f;
+    do { f = FOODS[Math.floor(Math.random() * FOODS.length)]; } while (excludeWanted && f === MENU[who].food);
+    return f;
+  }
+
+  function fillTray() {
+    // a few of the right food, the rest are other animals' snacks
+    var want = MENU[who].food, k = Math.min(3, need) + (Math.random() < .5 ? 0 : 1);
+    slots = [];
+    for (var i = 0; i < SLOTS; i++) slots.push(i < k ? want : randomFood(true));
+    slots.sort(function () { return Math.random() - .5; });
+    renderTray();
+  }
+
+  function renderTray() {
+    tray.innerHTML = '';
+    slots.forEach(function (f, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'food' + (f ? '' : ' empty');
+      b.setAttribute('aria-label', f || 'empty');
+      b.innerHTML = f ? PC.food(f) : PC.food('carrot');
+      b.addEventListener('pointerdown', function (e) { grab(e, i, b); });
+      tray.appendChild(b);
+    });
+  }
+
+  function refillSlot(i) {
+    var want = MENU[who].food, left = need - fed;
+    var count = slots.filter(function (f) { return f === want; }).length;
+    slots[i] = count < Math.min(2, left) ? want : (Math.random() < .35 ? want : randomFood(true));
+  }
+
+  function newRound(sameAnimal) {
+    round++;
+    if (!sameAnimal) {
+      var w; do { w = NAMES[Math.floor(Math.random() * NAMES.length)]; } while (w === lastWho);
+      lastWho = who = w;
+    }
+    var maxN = round < 3 ? 3 : 5;
+    need = 1 + Math.floor(Math.random() * maxN);
+    fed = 0;
+    busy = false;
+    bubble.classList.remove('show');
+    animalEl.classList.remove('bounce', 'shake');
+    setMood('idle');
+    renderGoal();
+    fillTray();
+    if (spokenOnce) PC.sfx.say(sentence());
+  }
+
+  // ---- dragging (or just tapping) food ----
+  function mouthPoint() {
+    var r = animalEl.getBoundingClientRect();
+    return { x: r.left + r.width * .5, y: r.top + r.height * .68 };
+  }
+  function overAnimal(x, y) {
+    var r = animalEl.getBoundingClientRect(), pad = 20;
+    return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
+  }
+
+  function grab(e, i, btn) {
+    e.preventDefault();
+    PC.sfx.unlock();
+    if (!spokenOnce) { spokenOnce = true; PC.sfx.say(sentence()); }
+    if (busy || !slots[i]) return;
+    var food = slots[i];
+    var ghost = document.createElement('div');
+    ghost.className = 'ghost';
+    ghost.innerHTML = PC.food(food);
+    document.body.appendChild(ghost);
+    var r = btn.getBoundingClientRect();
+    var home = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    var sx = e.clientX, sy = e.clientY, moved = false;
+    var place = function (x, y) { ghost.style.left = x + 'px'; ghost.style.top = y + 'px'; };
+    place(home.x, home.y);
+    btn.classList.add('lifted');
+    try { btn.setPointerCapture(e.pointerId); } catch (err) {}
+
+    function move(ev) {
+      if (Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) > 10) moved = true;
+      if (!moved) return;
+      place(ev.clientX, ev.clientY - 30);
+      var over = overAnimal(ev.clientX, ev.clientY - 30);
+      animalEl.classList.toggle('hover', over);
+      if (over && mood === 'idle') setMood('open');
+      else if (!over && mood === 'open') setMood('idle');
+    }
+    function up(ev) {
+      btn.removeEventListener('pointermove', move);
+      btn.removeEventListener('pointerup', up);
+      btn.removeEventListener('pointercancel', up);
+      animalEl.classList.remove('hover');
+      var x = moved ? ev.clientX : home.x, y = moved ? ev.clientY - 30 : home.y;
+      if (!moved || overAnimal(x, y)) give(food, i, btn, ghost, { x: x, y: y }, home);
+      else flyBack(ghost, { x: x, y: y }, home, btn);
+    }
+    btn.addEventListener('pointermove', move);
+    btn.addEventListener('pointerup', up);
+    btn.addEventListener('pointercancel', up);
+  }
+
+  function fly(ghost, from, to, ms, scale) {
+    ghost.style.left = '0px'; ghost.style.top = '0px';
+    var a = ghost.animate([
+      { transform: 'translate(' + from.x + 'px,' + from.y + 'px) scale(1)' },
+      { transform: 'translate(' + to.x + 'px,' + to.y + 'px) scale(' + (scale || 1) + ')' }
+    ], { duration: ms, easing: 'cubic-bezier(.3,.7,.4,1)', fill: 'forwards' });
+    return new Promise(function (res) { a.onfinish = res; });
+  }
+
+  function flyBack(ghost, from, home, btn) {
+    if (mood === 'open') setMood('idle');
+    fly(ghost, from, home, 260).then(function () { ghost.remove(); btn.classList.remove('lifted'); });
+  }
+
+  function give(food, i, btn, ghost, from, home) {
+    busy = true;
+    setMood('open');
+    var m = mouthPoint();
+    var right = food === MENU[who].food;
+    if (right) {
+      fly(ghost, from, m, 320, .35).then(function () {
+        ghost.remove();
+        PC.sfx.chomp();
+        setMood('chew');
+        fed++;
+        refillSlot(i);
+        renderTray();
+        renderGoal();
+        setTimeout(function () {
+          if (fed >= need) return allDone();
+          setMood('idle');
+          busy = false;
+        }, 520);
+      });
+    } else {
+      fly(ghost, from, { x: m.x, y: m.y - 10 }, 300, .7).then(function () {
+        PC.sfx.yuck();
+        setMood('yuck', 900);
+        animalEl.classList.remove('shake'); void animalEl.offsetWidth; animalEl.classList.add('shake');
+        var a = MENU[who];
+        PC.sfx.say('Yuck! ' + a.name + ' wants ' + a.many + '!');
+        return fly(ghost, { x: m.x, y: m.y - 10 }, home, 380);
+      }).then(function () {
+        ghost.remove(); btn.classList.remove('lifted');
+        busy = false;
+      });
+    }
+  }
+
+  function hearts() {
+    var r = animalEl.getBoundingClientRect(), s = stage.getBoundingClientRect();
+    for (var i = 0; i < 7; i++) {
+      var h = document.createElement('div');
+      h.className = 'heart';
+      h.style.left = (r.left - s.left + r.width * (.2 + Math.random() * .6)) + 'px';
+      h.style.top = (r.top - s.top + r.height * .25) + 'px';
+      h.style.setProperty('--dx', (Math.random() * 80 - 40) + 'px');
+      h.style.animationDelay = (i * 0.09) + 's';
+      h.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z" fill="' + ['#E8579B', '#E5484D', '#F28B9B'][i % 3] + '"/></svg>';
+      stage.appendChild(h);
+      setTimeout(function (el) { el.remove(); }.bind(null, h), 1500);
+    }
+  }
+
+  function allDone() {
+    setMood('happy');
+    PC.sfx.yum();
+    hearts();
+    bubble.textContent = ['Yum! Thank you!', 'So yummy!', 'All full!', 'Yay! Thank you!'][round % 4];
+    bubble.classList.add('show');
+    animalEl.classList.remove('bounce'); void animalEl.offsetWidth; animalEl.classList.add('bounce');
+    PC.sfx.say(bubble.textContent);
+    setTimeout(function () { newRound(); }, 2600);
+  }
+
+  $('speak').addEventListener('click', function () { PC.sfx.unlock(); spokenOnce = true; PC.sfx.say(sentence()); });
+  $('restart').addEventListener('click', function () { if (!busy) { spokenOnce = true; newRound(); } });
+  animalEl.addEventListener('pointerdown', function () {
+    PC.sfx.unlock();
+    if (busy) return;
+    spokenOnce = true; PC.sfx.boing(); PC.sfx.say(sentence());
+    setMood('happy', 600);
+  });
+
+  newRound();
+})();
+</script>
+<script src="../assets/sw-register.js"></script>
+</body>
+</html>
