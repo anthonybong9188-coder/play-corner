@@ -14,7 +14,6 @@ Simple, no-login games for little ones, made for big phones.
   - 汉字 Builder – watch each character's stroke order, then trace it (stroke data: Make Me a Hanzi / hanzi-writer, see zh-write/LICENSE-*)
   - 跟我说 Say It Back – listen, record yourself, hear your own voice
 - **Little Shop** – customers buy things; count out the coins (later: give change).
-- **Memory Lights** – watch the animals light up, then repeat the pattern.
 - **Balloon Pop** – pop the balloons of the colour asked for, 5 per round.
 - **Betrayal Battlefield** – retro pixel-art fantasy duel.
 

@@ -28,6 +28,30 @@
     field: svg('<rect x="10" y="10" width="80" height="80" rx="6" fill="#7CC24A" stroke="#4E8F2A" stroke-width="5"/><path d="M50 10V90M10 50H90" stroke="#4E8F2A" stroke-width="5"/><g stroke="#3E7A1E" stroke-width="3" stroke-linecap="round"><path d="M22 22v12M30 20v14M38 22v12M62 22v12M70 20v14M78 22v12M22 62v12M30 60v14M38 62v12M62 62v12M70 60v14M78 62v12"/></g>'),
     rain: svg('<path d="M24 54A16 16 0 0 1 26 22A22 22 0 0 1 68 18A18 18 0 0 1 78 54Z" fill="#B9C6D9"/><g fill="#2F6FED"><path d="M30 64q-6 10 0 14q6 -4 0 -14z"/><path d="M50 70q-6 10 0 14q6 -4 0 -14z"/><path d="M70 64q-6 10 0 14q6 -4 0 -14z"/><path d="M40 82q-5 8 0 11q5 -3 0 -11z"/><path d="M60 82q-5 8 0 11q5 -3 0 -11z"/></g>')
   };
+
+  // ---------- more pictures for 汉字 Builder ----------
+  function dots(n) {        // ten-frame: up to 5 per row
+    var b = '<rect x="6" y="22" width="88" height="56" rx="10" fill="#FFF3DC" stroke="#F2C97A" stroke-width="2"/>';
+    for (var i = 0; i < n; i++) { var r = Math.floor(i / 5), c = i % 5; b += '<circle cx="' + (18 + c * 16) + '" cy="' + (38 + r * 24) + '" r="6.5" fill="#E5484D"/>'; }
+    return svg(b);
+  }
+  var EX = {
+    cow: svg('<path d="M18 30Q8 18 14 10Q22 18 30 26Z" fill="#E9E1D3"/><path d="M82 30Q92 18 86 10Q78 18 70 26Z" fill="#E9E1D3"/><ellipse cx="14" cy="42" rx="12" ry="7" fill="#F2F2F2" stroke="#1D2B4F" stroke-width="2"/><ellipse cx="86" cy="42" rx="12" ry="7" fill="#F2F2F2" stroke="#1D2B4F" stroke-width="2"/><ellipse cx="50" cy="48" rx="32" ry="34" fill="#FFFFFF" stroke="#1D2B4F" stroke-width="2.5"/><path d="M28 30Q36 22 46 30Q40 44 28 40Z" fill="#1D2B4F"/><circle cx="38" cy="46" r="4" fill="#1D2B4F"/><circle cx="62" cy="46" r="4" fill="#1D2B4F"/><ellipse cx="50" cy="70" rx="22" ry="14" fill="#F7B6C2"/><ellipse cx="42" cy="70" rx="3.5" ry="4.5" fill="#B9656F"/><ellipse cx="58" cy="70" rx="3.5" ry="4.5" fill="#B9656F"/>'),
+    sheep: svg('<g fill="#F4F1EA" stroke="#C9C1B2" stroke-width="2"><circle cx="30" cy="34" r="14"/><circle cx="50" cy="26" r="15"/><circle cx="70" cy="34" r="14"/><circle cx="24" cy="54" r="13"/><circle cx="76" cy="54" r="13"/><circle cx="34" cy="72" r="13"/><circle cx="66" cy="72" r="13"/><circle cx="50" cy="76" r="13"/></g><ellipse cx="50" cy="56" rx="19" ry="23" fill="#3E3A39"/><ellipse cx="26" cy="50" rx="10" ry="5" fill="#3E3A39" transform="rotate(-20 26 50)"/><ellipse cx="74" cy="50" rx="10" ry="5" fill="#3E3A39" transform="rotate(20 74 50)"/><circle cx="43" cy="52" r="3.5" fill="#fff"/><circle cx="57" cy="52" r="3.5" fill="#fff"/><path d="M45 66Q50 70 55 66" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>'),
+    horse: svg('<path d="M30 20L36 6L44 20Z" fill="#8B5A2B"/><path d="M70 20L64 6L56 20Z" fill="#8B5A2B"/><path d="M28 24Q50 8 72 24L72 62Q72 92 50 94Q28 92 28 62Z" fill="#B97A43"/><path d="M40 14Q50 6 60 14L56 40L44 40Z" fill="#4A2E1A"/><ellipse cx="50" cy="78" rx="18" ry="14" fill="#E3B888"/><circle cx="38" cy="44" r="4.5" fill="#1D2B4F"/><circle cx="62" cy="44" r="4.5" fill="#1D2B4F"/><ellipse cx="44" cy="78" rx="3" ry="4" fill="#6E4630"/><ellipse cx="56" cy="78" rx="3" ry="4" fill="#6E4630"/>'),
+    bird: svg('<path d="M20 52Q40 20 70 38L90 30L84 46Q86 76 54 80Q26 82 20 52Z" fill="#5AA9E6"/><path d="M34 56Q50 44 66 58Q52 74 34 56Z" fill="#3E8ED0"/><circle cx="72" cy="44" r="4" fill="#1D2B4F"/><path d="M84 40L96 44L84 48Z" fill="#F5B800"/><path d="M44 80L40 92M56 80L58 92" stroke="#F28C28" stroke-width="3" stroke-linecap="round"/>'),
+    bug: svg('<g fill="#7CC24A" stroke="#4E8F2A" stroke-width="2"><circle cx="22" cy="64" r="12"/><circle cx="40" cy="58" r="13"/><circle cx="58" cy="62" r="13"/></g><circle cx="76" cy="50" r="15" fill="#9BD86A" stroke="#4E8F2A" stroke-width="2"/><circle cx="72" cy="46" r="3" fill="#1D2B4F"/><circle cx="82" cy="46" r="3" fill="#1D2B4F"/><path d="M72 56Q77 60 82 56" fill="none" stroke="#1D2B4F" stroke-width="2" stroke-linecap="round"/><path d="M70 36L64 24M82 36L88 24" stroke="#4E8F2A" stroke-width="2.5" stroke-linecap="round"/><circle cx="64" cy="22" r="3" fill="#E5484D"/><circle cx="88" cy="22" r="3" fill="#E5484D"/>'),
+    big: svg('<circle cx="40" cy="54" r="34" fill="#2F6FED"/><circle cx="84" cy="78" r="9" fill="#C9D1DC"/><ellipse cx="28" cy="40" rx="7" ry="11" fill="#fff" opacity=".3"/>'),
+    small: svg('<circle cx="34" cy="54" r="30" fill="#C9D1DC"/><circle cx="80" cy="76" r="11" fill="#2F6FED"/>'),
+    up: svg('<rect x="22" y="56" width="56" height="34" rx="6" fill="#C68A55"/><circle cx="50" cy="30" r="14" fill="#E5484D"/><path d="M84 46V14M76 22L84 12L92 22" fill="none" stroke="#2FA86B" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>'),
+    down: svg('<rect x="22" y="12" width="56" height="34" rx="6" fill="#C68A55"/><circle cx="50" cy="72" r="14" fill="#E5484D"/><path d="M84 56V88M76 80L84 90L92 80" fill="none" stroke="#2FA86B" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>'),
+    middle: svg('<rect x="10" y="14" width="80" height="72" rx="10" fill="none" stroke="#C68A55" stroke-width="6"/><path d="M50 14V86" stroke="#E3C29F" stroke-width="3" stroke-dasharray="5 5"/><circle cx="50" cy="50" r="14" fill="#E5484D"/>'),
+    sky: svg('<rect x="6" y="10" width="88" height="80" rx="12" fill="#A9D8F5"/><circle cx="72" cy="32" r="12" fill="#FFD43B"/><g fill="#fff"><ellipse cx="34" cy="58" rx="18" ry="10"/><ellipse cx="48" cy="52" rx="14" ry="11"/><ellipse cx="58" cy="60" rx="14" ry="8"/></g>'),
+    cloud: svg('<g fill="#DCE6F2" stroke="#B9C6D9" stroke-width="2"><ellipse cx="34" cy="58" rx="22" ry="16"/><ellipse cx="56" cy="44" rx="22" ry="20"/><ellipse cx="72" cy="60" rx="18" ry="14"/></g><rect x="22" y="58" width="58" height="16" fill="#DCE6F2"/>'),
+    earth: svg('<path d="M6 86Q50 40 94 86Z" fill="#9C6B43"/><g fill="#7E5333"><circle cx="40" cy="74" r="3"/><circle cx="60" cy="70" r="2.5"/><circle cx="52" cy="80" r="2"/></g><path d="M50 58V36" stroke="#2FA86B" stroke-width="4" stroke-linecap="round"/><path d="M50 44Q38 32 32 40Q42 48 50 44ZM50 40Q62 28 68 36Q58 44 50 40Z" fill="#4CC07E"/>'),
+    stone: svg('<path d="M10 82Q12 56 34 54Q52 50 60 66Q66 82 50 86Z" fill="#8A97B1"/><path d="M46 84Q50 60 70 58Q90 58 92 76Q92 88 74 88Z" fill="#A9B4C6"/><path d="M22 66Q30 60 36 62" fill="none" stroke="#C9D1DC" stroke-width="3" stroke-linecap="round"/>'),
+    door: svg('<rect x="24" y="8" width="52" height="86" rx="6" fill="#B97A43" stroke="#8B5A2B" stroke-width="3"/><rect x="32" y="16" width="36" height="30" rx="4" fill="#A86F3E"/><rect x="32" y="54" width="36" height="32" rx="4" fill="#A86F3E"/><circle cx="66" cy="52" r="4" fill="#F5B800"/>')
+  };
   function blob(color) {
     return svg('<path d="M50 8C66 8 70 22 82 26C94 30 94 50 88 60C82 72 92 84 78 90C64 96 56 86 46 90C34 94 18 92 14 78C10 66 20 60 14 48C8 34 18 22 30 18C38 14 40 8 50 8Z" fill="' + color + '"/><ellipse cx="36" cy="34" rx="8" ry="12" fill="#fff" opacity=".3" transform="rotate(30 36 34)"/>');
   }
@@ -82,6 +106,40 @@
       { id: 'yu', hz: '雨', py: 'yǔ', en: 'rain', pic: K('rain') }
     ]}
   };
+
+  // ---------- 汉字 Builder: 40 characters in 4 groups (picture words are shared with Character Match) ----------
+  var X = function (k) { return function () { return EX[k]; }; }, D = function (n) { return function () { return dots(n); }; };
+  var NUMS = [['一', 'yī', 'one'], ['二', 'èr', 'two'], ['三', 'sān', 'three'], ['四', 'sì', 'four'], ['五', 'wǔ', 'five'],
+              ['六', 'liù', 'six'], ['七', 'qī', 'seven'], ['八', 'bā', 'eight'], ['九', 'jiǔ', 'nine'], ['十', 'shí', 'ten']];
+  PC.zhWriteGroups = [
+    { hz: '图画字', en: 'Pictures', items: PC.zhVocab.characters.items },
+    { hz: '数字', en: 'Numbers', items: NUMS.map(function (n, i) { return { id: 'n' + (i + 1), hz: n[0], py: n[1], en: n[2], pic: D(i + 1) }; }) },
+    { hz: '身体·动物', en: 'Body & animals', items: [
+      { id: 'mu-eye', hz: '目', py: 'mù', en: 'eye', pic: K('eye') },
+      { id: 'er-ear', hz: '耳', py: 'ěr', en: 'ear', pic: K('ear') },
+      { id: 'shou', hz: '手', py: 'shǒu', en: 'hand', pic: K('hand') },
+      { id: 'zu', hz: '足', py: 'zú', en: 'foot', pic: K('foot') },
+      { id: 'niu', hz: '牛', py: 'niú', en: 'cow', pic: X('cow') },
+      { id: 'yang', hz: '羊', py: 'yáng', en: 'sheep', pic: X('sheep') },
+      { id: 'ma', hz: '马', py: 'mǎ', en: 'horse', pic: X('horse') },
+      { id: 'niao', hz: '鸟', py: 'niǎo', en: 'bird', pic: X('bird') },
+      { id: 'yu-fish', hz: '鱼', py: 'yú', en: 'fish', pic: F('fish') },
+      { id: 'chong', hz: '虫', py: 'chóng', en: 'bug', pic: X('bug') }
+    ]},
+    { hz: '大小·天地', en: 'Everyday', items: [
+      { id: 'da', hz: '大', py: 'dà', en: 'big', pic: X('big') },
+      { id: 'xiao', hz: '小', py: 'xiǎo', en: 'small', pic: X('small') },
+      { id: 'shang', hz: '上', py: 'shàng', en: 'up / on top', pic: X('up') },
+      { id: 'xia', hz: '下', py: 'xià', en: 'down / below', pic: X('down') },
+      { id: 'zhong', hz: '中', py: 'zhōng', en: 'middle', pic: X('middle') },
+      { id: 'tian-sky', hz: '天', py: 'tiān', en: 'sky', pic: X('sky') },
+      { id: 'yun', hz: '云', py: 'yún', en: 'cloud', pic: X('cloud') },
+      { id: 'tu', hz: '土', py: 'tǔ', en: 'earth', pic: X('earth') },
+      { id: 'shi-stone', hz: '石', py: 'shí', en: 'stone', pic: X('stone') },
+      { id: 'men', hz: '门', py: 'mén', en: 'door', pic: X('door') }
+    ]}
+  ];
+
   // counting: 一二三… (counting aloud) and 两 for "two of something"
   PC.zhNumbers = [
     null,

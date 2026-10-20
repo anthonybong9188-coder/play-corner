@@ -15,6 +15,11 @@
 <style>
   .screen { height: 100dvh; min-height: 0; }
   .chip .done { color: var(--ok); font-weight: 900; }
+  .groups .chip { min-height: 38px; padding: 4px 12px; background: #EEF2F8; box-shadow: none; }
+  .groups .chip .zh { font-size: 15px; } .groups .chip .py { font-size: 11px; }
+  .groups .chip.on { background: var(--go); color: #fff; } .groups .chip.on .py { color: #FFE3D9; }
+  .groups .chip .cnt { font-size: 11px; font-weight: 800; color: var(--ink-3); }
+  .groups .chip.on .cnt { color: #FFE3D9; }
   .chip.on .done { color: #9FE0BE; }
   .info { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 20px; padding: 8px 12px; }
   .info .pic { width: 56px; height: 56px; flex-shrink: 0; }
@@ -56,6 +61,7 @@
     <span style="width:52px" aria-hidden="true"></span>
   </div>
 
+  <div class="chips groups" id="groups" role="tablist" aria-label="Groups"></div>
   <div class="chips" id="chips" role="tablist" aria-label="Characters"></div>
 
   <div class="info">
@@ -107,7 +113,8 @@
 <script src="hanzi-writer.min.js"></script>
 <script>
 (function () {
-  var CH = PC.zhVocab.characters.items;            // 日 月 山 水 火 木 人 口 田 雨
+  var GROUPS = PC.zhWriteGroups;                   // 4 groups × 10 characters
+  var gi = 0, CH = GROUPS[0].items;
   var $ = function (id) { return document.getElementById(id); };
   var idx = 0, writer = null, data = {}, done = {}, token = 0, mistakes = 0;
   try { done = JSON.parse(localStorage.getItem('pc-zhwrite-done') || '{}') || {}; } catch (e) {}
@@ -120,13 +127,31 @@
     return fetch('data/' + id + '.json').then(function (r) { return r.json(); }).then(function (d) { data[id] = d; return d; });
   }
 
-  CH.forEach(function (c, i) {
+  GROUPS.forEach(function (g, i) {
     var b = document.createElement('button');
-    b.type = 'button'; b.className = 'chip'; b.dataset.i = i; b.setAttribute('role', 'tab');
-    b.addEventListener('click', function () { show(i, true); });
-    $('chips').appendChild(b);
+    b.type = 'button'; b.className = 'chip'; b.dataset.g = i; b.setAttribute('role', 'tab');
+    b.addEventListener('click', function () { setGroup(i); show(0, true); });
+    $('groups').appendChild(b);
   });
+  function setGroup(i) {
+    gi = i; CH = GROUPS[i].items;
+    $('chips').innerHTML = '';
+    CH.forEach(function (c, k) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.dataset.i = k; b.setAttribute('role', 'tab');
+      b.addEventListener('click', function () { show(k, true); });
+      $('chips').appendChild(b);
+    });
+  }
+  function renderGroups() {
+    [].forEach.call($('groups').children, function (b, i) {
+      var g = GROUPS[i], n = g.items.filter(function (c) { return done[c.id]; }).length;
+      b.innerHTML = '<span class="zh">' + g.hz + '</span><span class="py">' + g.en + '</span><span class="cnt">' + n + '/' + g.items.length + '</span>';
+      b.classList.toggle('on', i === gi); b.setAttribute('aria-selected', i === gi);
+    });
+  }
   function renderChips() {
+    renderGroups();
     [].forEach.call($('chips').children, function (b, i) {
       b.innerHTML = '<span class="zh">' + CH[i].hz + '</span>' + (done[CH[i].id] ? '<span class="done">✓</span>' : '');
       b.classList.toggle('on', i === idx); b.setAttribute('aria-selected', i === idx);
@@ -207,10 +232,14 @@
 
   $('watch').addEventListener('click', function () { PC.sfx.unlock(); watch(); });
   $('write').addEventListener('click', function () { PC.sfx.unlock(); PC.zh.say(CH[idx].hz); write(); });
-  $('next').addEventListener('click', function () { show((idx + 1) % CH.length, true); });
+  $('next').addEventListener('click', function () {
+    if (idx + 1 < CH.length) return show(idx + 1, true);
+    setGroup((gi + 1) % GROUPS.length); show(0, true);          // end of a group: on to the next group
+  });
   $('go').addEventListener('click', function () { PC.sfx.unlock(); $('start').hidden = true; show(idx, true); });
   window.addEventListener('resize', function () { if (!$('start').hidden) return; var s = size(); if (Math.abs(s - parseInt($('paper').style.width, 10)) > 30) show(idx, false); });
-  window.__zw = { get writer() { return writer; }, get idx() { return idx; }, get mistakes() { return mistakes; }, chars: CH, data: data, show: show, write: write };
+  window.__zw = { get writer() { return writer; }, get idx() { return idx; }, get gi() { return gi; }, get mistakes() { return mistakes; }, get chars() { return CH; }, groups: GROUPS, data: data, show: show, write: write, setGroup: setGroup, loadData: loadData };
+  setGroup(0);
   show(0, false);
   PC.zh.voiceNotice($('voiceNote'));
 })();

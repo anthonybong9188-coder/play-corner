@@ -524,34 +524,6 @@ module.exports = [
     h.assert(sawOver && sawChange, 'reached the pay and change customers');
   }},
 
-  // ===== Memory Lights
-  { game: 'memory', name: 'repeat the pattern, it grows; mistakes replay it; three mistakes end the game', timeout: 120000, fn: async (page, h) => {
-    await page.goto(h.base + 'memory/'); await page.click('#go');
-    const st = () => page.evaluate(() => window.__mem.state);
-    const press = (i) => page.locator('.pad').nth(i).evaluate((el) => el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })));
-    const turn = () => page.waitForFunction(() => window.__mem.state.accepting, null, { timeout: 15000 });
-    let s = await st();
-    h.assert(s.seq.length === 1, 'starts with one light');
-    await press((s.seq[0] + 1) % 4); await h.sleep(50);
-    h.assert((await st()).lives === 3, 'presses while it is still showing the pattern are ignored');
-    for (let level = 1; level <= 4; level++) {
-      await turn(); s = await st();
-      h.assert(s.seq.length === level, `level ${level} should show ${level} lights, showed ${s.seq.length}`);
-      for (const i of s.seq) { await press(i); await h.sleep(320); }
-    }
-    await turn(); s = await st();
-    h.assert(s.best >= 4 && (await page.textContent('#best')).trim() === String(s.best), 'best streak is recorded');
-    const before = s.seq.slice();
-    await press((s.seq[0] + 1) % 4); await h.sleep(100);
-    s = await st();
-    h.assert(s.lives === 2, 'a wrong press costs a heart');
-    await turn(); s = await st();
-    h.assert(JSON.stringify(s.seq) === JSON.stringify(before), 'after a mistake the same pattern is shown again');
-    for (let m = 0; m < 2; m++) { await turn(); s = await st(); await press((s.seq[0] + 1) % 4); await h.sleep(100); }
-    await page.waitForSelector('#over.show', { timeout: 3000 });
-    h.assert(/remembered 4 in a row/.test(await page.textContent('#over-text')), 'game over shows the streak: ' + await page.textContent('#over-text'));
-  }},
-
   // ===== 汉字 Builder
   { game: 'zh-write', name: 'watch, then trace in stroke order; finished characters get a tick', timeout: 90000, fn: async (page, h) => {
     await page.goto(h.base + 'zh-write/'); await page.click('#go');
@@ -573,11 +545,38 @@ module.exports = [
     h.assert((await page.textContent('#status')).includes('很好'), 'with a mistake it says 很好 rather than perfect');
   }},
 
+  { game: 'zh-write', name: 'all 40 characters load the right stroke data; groups and Next work', timeout: 90000, fn: async (page, h) => {
+    await page.goto(h.base + 'zh-write/'); await page.click('#go'); await zwReady(page);
+    // fingerprint from the original stroke data: "<strokes>:<x>,<y> of where the first stroke starts>"
+    const EXPECT = { 日: '4:284,684', 月: '4:339,773', 山: '3:472,748', 水: '4:473,814', 火: '4:216,534', 木: '4:228,534', 人: '2:483,736', 口: '3:229,584', 田: '5:168,630', 雨: '8:312,695', 一: '1:121,393', 二: '2:293,587', 三: '3:316,655', 四: '5:132,606', 五: '4:304,694', 六: '4:441,756', 七: '2:101,340', 八: '2:331,470', 九: '2:402,808', 十: '2:109,442', 目: '5:281,723', 耳: '6:224,757', 手: '4:696,777', 足: '7:322,757', 牛: '4:314,694', 羊: '6:345,813', 马: '3:289,716', 鸟: '5:425,861', 鱼: '8:442,848', 虫: '6:233,528', 大: '3:210,458', 小: '3:484,773', 上: '3:446,781', 下: '3:113,682', 中: '4:194,598', 天: '4:326,698', 云: '4:342,641', 土: '3:283,438', 石: '5:265,665', 门: '3:304,770' };
+    const got = await page.evaluate(async () => {
+      const out = {};
+      for (const g of window.__zw.groups) for (const c of g.items) {
+        try { const r = await fetch('data/' + c.id + '.json'); if (!r.ok) { out[c.hz] = 'missing ' + c.id; continue; }
+          const d = await r.json(); out[c.hz] = d.strokes.length + ':' + d.medians[0][0][0] + ',' + d.medians[0][0][1]; } catch (e) { out[c.hz] = 'error'; }
+      }
+      return out;
+    });
+    h.assert(Object.keys(got).length === 40, 'there should be 40 characters, found ' + Object.keys(got).length);
+    for (const [hz, f] of Object.entries(EXPECT)) h.assert(got[hz] === f, `${hz}: stroke data does not match this character (expected ${f}, got ${got[hz]})`);
+    // numbers group: trace 一
+    await page.click('#groups .chip[data-g="1"]'); await zwReady(page);
+    h.assert((await page.textContent('#hz')) === '一', 'numbers start at 一');
+    await traceStroke(page, 0);
+    await page.waitForSelector('#paper.done', { timeout: 3000 });
+    h.assert((await page.textContent('#groups .chip[data-g="1"]')).includes('1/10'), 'the group shows how many are done');
+    // the last character of a group leads on to the next group
+    await page.click('#chips .chip[data-i="9"]'); await zwReady(page);
+    h.assert((await page.textContent('#hz')) === '十', 'tenth number is 十');
+    await page.click('#next', { force: true }); await zwReady(page);
+    h.assert((await page.textContent('#hz')) === '目' && (await page.evaluate(() => window.__zw.gi)) === 2, 'after 十 comes the next group, starting with 目');
+  }},
+
   // ===== Portal + offline
   { game: 'portal', name: 'every tile opens a working page; Mandarin modes work offline', sw: true, timeout: 60000, fn: async (page, h) => {
     await page.goto(h.base);
     const hrefs = await page.$$eval('a.tile', (as) => as.map((a) => a.getAttribute('href')));
-    h.assert(hrefs.length >= 14, 'expected at least 14 tiles, found ' + hrefs.length);
+    h.assert(hrefs.length >= 13, 'expected at least 13 tiles, found ' + hrefs.length);
     for (const href of hrefs) { const r = await page.request.get(h.base + href); h.assert(r.ok(), href + ' → ' + r.status()); }
     await page.evaluate(() => navigator.serviceWorker.ready);
     await page.reload(); await page.waitForFunction(() => navigator.serviceWorker.controller);

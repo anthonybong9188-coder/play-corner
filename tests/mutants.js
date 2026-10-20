@@ -72,18 +72,14 @@ module.exports = [
   { id: 'SH4', games: ['shop'], file: 'shop/index.html', what: 'coins cannot be taken back', find: '    placed--;\n', repl: '' },
   { id: 'SH5', games: ['shop'], file: 'shop/index.html', what: 'coins not counted aloud', find: '    say(WORDS[placed] || String(placed));\n', repl: '' },
   { id: 'SH6', games: ['shop'], file: 'shop/index.html', what: 'purse not refilled for the next customer', find: '    placed = 0;\n    bubble.classList.remove', repl: '    bubble.classList.remove' },
-  // ---- Memory Lights
-  { id: 'ME1', games: ['memory'], file: 'memory/index.html', what: 'wrong presses not noticed', find: 'if (i !== seq[pos]) {', repl: 'if (false) {' },
-  { id: 'ME2', games: ['memory'], file: 'memory/index.html', what: 'pattern never grows', find: 'seq.push(Math.floor(Math.random() * 4)); renderStats();', repl: 'renderStats();' },
-  { id: 'ME3', games: ['memory'], file: 'memory/index.html', what: 'presses accepted while the pattern is showing', find: '    if (!accepting) return;\n', repl: '' },
-  { id: 'ME4', games: ['memory'], file: 'memory/index.html', what: 'game never ends', find: 'if (lives <= 0) return later(gameOver, 700);', repl: 'if (lives < 0) return later(gameOver, 700);' },
-  { id: 'ME5', games: ['memory'], file: 'memory/index.html', what: 'a brand-new pattern after a mistake', find: "      return later(playSequence, 1100);", repl: "      seq = seq.map(function () { return Math.floor(Math.random() * 4); }); return later(playSequence, 1100);" },
-  { id: 'ME6', games: ['memory'], file: 'memory/index.html', what: 'best streak not recorded', find: 'if (made > best) { best = made;', repl: 'if (made > best + 99) { best = made;' },
   // ---- 汉字 Builder
   { id: 'ZW1', games: ['zh-write'], file: 'zh-write/index.html', what: 'wrong-order stroke accepted after one miss', find: 'markStrokeCorrectAfterMisses: 4', repl: 'markStrokeCorrectAfterMisses: 1' },
   { id: 'ZW2', games: ['zh-write'], file: 'zh-write/index.html', what: 'always says perfect', find: "var p = r.totalMistakes === 0 ? '真棒!' : '很好!';", repl: "var p = '真棒!';" },
   { id: 'ZW3', games: ['zh-write'], file: 'zh-write/index.html', what: 'finished characters not ticked', find: 'done[CH[idx].id] = true; saveDone();', repl: 'saveDone();' },
   { id: 'ZW4', games: ['zh-write'], file: 'zh-write/index.html', what: 'never moves from watching to writing', find: 'if (my === token) setTimeout(function () { if (my === token) write(); }, 500);', repl: '' },
+  { id: 'ZW6', games: ['zh-write'], file: 'assets/zh.js', what: 'a character points at stroke data that does not exist', find: "{ id: 'niu', hz: '牛'", repl: "{ id: 'niu2', hz: '牛'" },
+  { id: 'ZW7', games: ['zh-write'], file: 'zh-write/index.html', what: 'Next at the end of a group starts the same group again', find: 'setGroup((gi + 1) % GROUPS.length); show(0, true);', repl: 'show(0, true);' },
+  { id: 'ZW8', games: ['zh-write'], file: 'assets/zh.js', what: 'two characters swapped onto each other\'s stroke data', find: "{ id: 'da', hz: '大'", repl: "{ id: 'xiao', hz: '大'" },
   { id: 'ZW5', games: ['portal'], file: 'sw.js', what: 'stroke data not saved for offline', find: "  './zh-write/data/ri.json',\n", repl: '' },
 
   // ---- portal / offline
