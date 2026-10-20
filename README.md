@@ -6,6 +6,7 @@ Simple, no-login games for little ones, made for big phones.
 - **Penalty Kick** – tap the ball to shoot past the sliding goalie.
 - **Feed the Animals** – the animal asks (out loud) for a number of its favourite food; drag or tap to feed.
 - **Peekaboo Pets** – tap the pets as they peek out of the garden holes.
+- **Sky Hero** – slide one finger to fly; your plane shoots by itself. Pop the slow planes coming down and don't let them bump you.
 - **学中文 Learn Chinese** (simplified characters + Hanyu Pinyin, Mandarin voice from the phone):
   - 找一找 Find It – hear "小猫在哪里?" and tap the right picture (animals, fruits, colours, body)
   - 数一数 Count With Me – Feed the Animals in Mandarin (`feed/?lang=zh`)

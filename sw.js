@@ -1,7 +1,7 @@
 // Play Corner offline support.
 // Pages: network first (so new deploys show up straight away), cache as fallback when offline.
 // Everything else: serve from cache, refresh in the background.
-var CACHE = 'play-corner-v9';
+var CACHE = 'play-corner-v10';
 var CORE = [
   './',
   './index.html',
@@ -13,6 +13,8 @@ var CORE = [
   './feed/index.html',
   './peekaboo/',
   './peekaboo/index.html',
+  './sky/',
+  './sky/index.html',
   './assets/animals.js',
   './assets/sfx.js',
   './assets/zh.js',

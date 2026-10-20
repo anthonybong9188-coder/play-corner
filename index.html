@@ -191,6 +191,17 @@
     </div>
   </a>
 
+  <a class="tile" href="sky/" aria-label="Play Sky Hero">
+    <div class="tile-art" style="background:linear-gradient(#7CC6F2,#CDEBFB)" id="art-sky"></div>
+    <div class="tile-foot">
+      <div>
+        <div class="tile-name">Sky Hero</div>
+        <div class="tile-sub">Fly, pop the planes, dodge them</div>
+      </div>
+      <div class="play"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="#fff"/></svg></div>
+    </div>
+  </a>
+
   <div class="section"><h2>学中文</h2><span>Learn Chinese</span></div>
   <div class="zh-grid">
     <a class="tile" href="zh-find/" aria-label="Play Find It, in Mandarin">
@@ -259,6 +270,14 @@
     var coin = '<svg viewBox="0 0 40 40" aria-hidden="true" style="height:40px"><circle cx="20" cy="20" r="18" fill="#F5B800" stroke="#C48F00" stroke-width="3"/><text x="20" y="26" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="17" fill="#8B6A00">1</text></svg>';
     document.getElementById('art-shop').innerHTML = '<div style="width:112px;height:112px">' + PC.animal('chick', 'happy') + '</div>' +
       '<div style="width:70px;height:70px">' + (PC.zhVocab ? PC.zhVocab.fruits.items[0].pic() : '') + '</div><div style="display:flex;flex-direction:column;gap:2px">' + coin + coin + coin + '</div>';
+    var pl = function (b, d, enemy, h) {
+      var g = '<rect x="5" y="42" width="90" height="19" rx="9.5" fill="' + d + '"/><rect x="30" y="80" width="40" height="12" rx="6" fill="' + d + '"/><ellipse cx="50" cy="52" rx="15" ry="40" fill="' + b + '"/><ellipse cx="50" cy="36" rx="8" ry="10" fill="#BFEAFF" stroke="' + d + '" stroke-width="2.5"/><circle cx="50" cy="13" r="6" fill="#F5B800"/>';
+      return '<svg viewBox="0 0 100 100" aria-hidden="true" style="height:' + h + 'px">' + (enemy ? '<g transform="rotate(180 50 50)">' + g + '</g><circle cx="27" cy="51" r="8" fill="#fff"/><circle cx="73" cy="51" r="8" fill="#fff"/><circle cx="28" cy="54" r="4" fill="#1D2B4F"/><circle cx="72" cy="54" r="4" fill="#1D2B4F"/>' : g) + '</svg>';
+    };
+    document.getElementById('art-sky').innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:0">' +
+      '<div style="display:flex;gap:40px">' + pl('#E5484D', '#B8323A', true, 52) + pl('#8B5CF6', '#6A3FD0', true, 52) + '</div>' +
+      '<svg width="10" height="22" viewBox="0 0 10 22" aria-hidden="true"><ellipse cx="5" cy="11" rx="4" ry="9" fill="#FFD23F"/></svg>' +
+      pl('#4A8BFF', '#1F4FB8', false, 60) + '</div>';
     var peek = document.getElementById('art-peek'), pets = [['cat', 'open', 64], ['dog', 'happy', 0], ['frog', 'open', 40]];
     peek.innerHTML = pets.map(function (p) {
       return '<div style="position:relative;width:78px;height:96px">' +

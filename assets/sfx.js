@@ -49,6 +49,8 @@
     pop: function () { noise(0.05, 0.25); tone('sine', 600, 300, 0, 0.08, 0.1); },
     coin: function () { tone('square', 1320, 0, 0, 0.05, 0.06); tone('sine', 1760, 0, 0.04, 0.22, 0.16); buzz(12); },
     note: function (f, dur) { tone('triangle', f, 0, 0, dur || 0.4, 0.28); },
+    pew: function () { tone('triangle', 1100, 700, 0, 0.07, 0.035); },
+    puff: function () { noise(0.18, 0.22); tone('sine', 520, 180, 0, 0.2, 0.12); tone('triangle', 880, 1320, 0.05, 0.12, 0.08); buzz(15); },
     oops: function () { tone('sawtooth', 200, 110, 0, 0.4, 0.12); buzz([40, 40, 40]); },
     tada: function () { [523, 659, 784].forEach(function (f, i) { tone('triangle', f, 0, i * 0.12, 0.3, 0.2); }); tone('triangle', 1047, 0, 0.36, 0.6, 0.22); buzz([30, 60, 30, 60, 60]); },
     say: function (text) {

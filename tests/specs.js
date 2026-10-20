@@ -526,6 +526,7 @@ module.exports = [
 
   // ===== 汉字 Builder
   { game: 'zh-write', name: 'watch, then trace in stroke order; finished characters get a tick', timeout: 90000, fn: async (page, h) => {
+    await page.goto(h.base + 'sky/'); await page.waitForSelector('#go', { timeout: 5000 });
     await page.goto(h.base + 'zh-write/'); await page.click('#go');
     await zwReady(page);
     h.assert((await h.said()).includes('日'), 'the character is spoken');
@@ -546,6 +547,7 @@ module.exports = [
   }},
 
   { game: 'zh-write', name: 'all 40 characters load the right stroke data; groups and Next work', timeout: 90000, fn: async (page, h) => {
+    await page.goto(h.base + 'sky/'); await page.waitForSelector('#go', { timeout: 5000 });
     await page.goto(h.base + 'zh-write/'); await page.click('#go'); await zwReady(page);
     // fingerprint from the original stroke data: "<strokes>:<x>,<y> of where the first stroke starts>"
     const EXPECT = { 日: '4:284,684', 月: '4:339,773', 山: '3:472,748', 水: '4:473,814', 火: '4:216,534', 木: '4:228,534', 人: '2:483,736', 口: '3:229,584', 田: '5:168,630', 雨: '8:312,695', 一: '1:121,393', 二: '2:293,587', 三: '3:316,655', 四: '5:132,606', 五: '4:304,694', 六: '4:441,756', 七: '2:101,340', 八: '2:331,470', 九: '2:402,808', 十: '2:109,442', 目: '5:281,723', 耳: '6:224,757', 手: '4:696,777', 足: '7:322,757', 牛: '4:314,694', 羊: '6:345,813', 马: '3:289,716', 鸟: '5:425,861', 鱼: '8:442,848', 虫: '6:233,528', 大: '3:210,458', 小: '3:484,773', 上: '3:446,781', 下: '3:113,682', 中: '4:194,598', 天: '4:326,698', 云: '4:342,641', 土: '3:283,438', 石: '5:265,665', 门: '3:304,770' };
@@ -573,6 +575,76 @@ module.exports = [
   }},
 
   // ===== Portal + offline
+  // ---------------------------------------------------------------- Sky Hero
+  { game: 'sky', name: 'auto-fires; finger moves the plane left/right only; enemies drift down slowly; shots pop them', fn: async (page, h) => {
+    await page.goto(h.base + 'sky/'); await page.click('#go');
+    const S = (f) => page.evaluate(f);
+    await S(() => __sky.clear());
+    const finger = (type, x) => page.evaluate(([type, x]) => { const f = document.getElementById('field'), r = f.getBoundingClientRect();
+      f.dispatchEvent(new PointerEvent(type, { bubbles: true, clientX: r.left + x, clientY: r.top + r.height - 40, pointerId: 1, pointerType: 'touch', buttons: 1 })); }, [type, x]);
+    const y0 = await S(() => __sky.me.y);
+    await h.sleep(1000);
+    const shots = await S(() => __sky.bullets.length);
+    h.assert(shots >= 2, 'the plane fires by itself (bullets in the air: ' + shots + ')');
+    await finger('pointerdown', 80); await h.sleep(600);
+    let me = await S(() => ({ x: __sky.me.x, y: __sky.me.y }));
+    h.assert(Math.abs(me.x - 80) < 4, 'plane goes to the finger (x=' + me.x + ')');
+    await finger('pointermove', 320); await h.sleep(600);
+    me = await S(() => ({ x: __sky.me.x, y: __sky.me.y }));
+    h.assert(Math.abs(me.x - 320) < 4, 'plane follows the sliding finger (x=' + me.x + ')');
+    h.assert(me.y === y0, 'plane only moves left and right');
+    await finger('pointermove', -50); await h.sleep(500);
+    h.assert((await S(() => __sky.me.x)) >= 30, 'plane stays on the screen');
+    await finger('pointermove', 320); await h.sleep(500);
+    // measure speed on one away from the guns, then pop one straight above
+    await S(() => { __sky.clear(); window.__e = __sky.spawn({ x: 120, y: 40, sway: 0, noBomb: true }); });
+    const a = await S(() => __e.y); await h.sleep(1000); const b = await S(() => __e.y);
+    await S(() => { __sky.clear(); window.__e = __sky.spawn({ x: 320, y: 40, sway: 0, noBomb: true }); });
+    h.assert(b - a > 20 && b - a < 55, 'level 1 enemy comes down slowly (' + (b - a).toFixed(0) + ' px in 1 s)');
+    await page.waitForFunction(() => __sky.score === 1, null, { timeout: 8000 });
+    h.assert(!(await S(() => __sky.enemies.includes(__e))), 'popped enemy is gone');
+    h.assert((await S(() => { __sky.setScore(200); return __sky.speedNow(); })) <= 80, 'even at high levels enemies stay slow');
+  }},
+  { game: 'sky', name: 'a bump costs one heart then 2 s safe; fly-pasts are free; no hearts ends; Fly again resets', fn: async (page, h) => {
+    await page.goto(h.base + 'sky/'); await page.click('#go');
+    const S = (f) => page.evaluate(f);
+    await S(() => __sky.clear());
+    const bump = () => S(() => __sky.spawn({ x: __sky.me.x, y: __sky.me.y, sway: 0, noBomb: true }));
+    await bump(); await h.sleep(200);
+    h.assert((await S(() => __sky.lives)) === 2, 'a bump costs one heart');
+    h.assert((await page.locator('#hearts .full').count()) === 2, 'two hearts shown');
+    await bump(); await h.sleep(200);
+    h.assert((await S(() => __sky.lives)) === 2, 'no second loss straight after a bump');
+    await S(() => __sky.clear());
+    await S(() => __sky.spawn({ x: __sky.W - 40 > __sky.me.x + 120 ? __sky.W - 40 : 40, y: __sky.H - 10, sway: 0, noBomb: true }));
+    await h.sleep(2300);
+    h.assert((await S(() => __sky.lives)) === 2, 'a plane flying past the bottom costs nothing');
+    await bump(); await h.sleep(200);
+    h.assert((await S(() => __sky.lives)) === 1, 'after the safe time a bump hurts again');
+    await h.sleep(2200); await bump();
+    await page.waitForSelector('#overScreen:not([hidden])', { timeout: 3000 });
+    h.assert((await page.textContent('#finalScore')) === String(await S(() => __sky.score)), 'end screen shows the score');
+    await S(() => __sky.setScore(7));
+    await page.click('#again');
+    const st = await S(() => ({ l: __sky.lives, s: __sky.score, st: __sky.state }));
+    h.assert(st.l === 3 && st.s === 0 && st.st === 'play', 'Fly again starts fresh: ' + JSON.stringify(st));
+    h.assert(await page.locator('#overScreen').isHidden(), 'end screen closes');
+  }},
+  { game: 'sky', name: 'level up every 10; big planes take 3 hits and give 3', fn: async (page, h) => {
+    await page.goto(h.base + 'sky/'); await page.click('#go');
+    const S = (f) => page.evaluate(f);
+    await S(() => { __sky.clear(); __sky.setScore(9); __sky.spawn({ x: __sky.me.x, y: 60, sway: 0, noBomb: true, big: false }); });
+    await page.waitForFunction(() => __sky.score === 10, null, { timeout: 8000 });
+    h.assert((await S(() => __sky.level)) === 2, 'level 2 at 10 points');
+    await page.waitForSelector('#banner.show', { timeout: 1000 });
+    h.assert(/Level 2/.test(await page.textContent('#banner')), 'Level 2 banner');
+    await S(() => { window.__big = __sky.spawn({ x: __sky.me.x, y: 40, sway: 0, noBomb: true, big: true }); });
+    await page.waitForFunction(() => __big.hp < 3, null, { timeout: 8000 });
+    h.assert((await S(() => __big.hp)) === 2 && (await S(() => __sky.score)) === 10, 'one hit is not enough for a big plane');
+    await page.waitForFunction(() => __big.dead, null, { timeout: 8000 });
+    h.assert((await S(() => __sky.score)) === 13, 'a big plane gives 3 points');
+  }},
+
   { game: 'portal', name: 'every tile opens a working page; Mandarin modes work offline', sw: true, timeout: 60000, fn: async (page, h) => {
     await page.goto(h.base);
     const hrefs = await page.$$eval('a.tile', (as) => as.map((a) => a.getAttribute('href')));
@@ -587,6 +659,7 @@ module.exports = [
     h.assert(/要/.test(await page.textContent('#goalText')), 'Count With Me opens offline in Mandarin');
     await page.goto(h.base + 'match/?set=zh'); await page.waitForSelector('.card', { timeout: 5000 });
     h.assert((await page.locator('.front .hz').count()) === 10, 'Character Match works offline (needs the Mandarin words file)');
+    await page.goto(h.base + 'sky/'); await page.waitForSelector('#go', { timeout: 5000 });
     await page.goto(h.base + 'zh-write/'); await page.click('#go');
     await page.waitForFunction(() => /strokes/.test(document.getElementById('strokes').textContent), null, { timeout: 8000 });
   }}

@@ -82,6 +82,20 @@ module.exports = [
   { id: 'ZW8', games: ['zh-write'], file: 'assets/zh.js', what: 'two characters swapped onto each other\'s stroke data', find: "{ id: 'da', hz: '大'", repl: "{ id: 'xiao', hz: '大'" },
   { id: 'ZW5', games: ['portal'], file: 'sw.js', what: 'stroke data not saved for offline', find: "  './zh-write/data/ri.json',\n", repl: '' },
 
+  // ---- Sky Hero
+  { id: 'SK1', games: ['sky'], file: 'sky/index.html', what: 'plane never fires', find: 'if (t - lastShot >= FIRE_MS / 1000) {', repl: 'if (false) {' },
+  { id: 'SK2', games: ['sky'], file: 'sky/index.html', what: 'plane also moves up and down with the finger', find: 'me.tx = clamp(ev.clientX - r.left, 36, W - 36);', repl: 'me.tx = clamp(ev.clientX - r.left, 36, W - 36); me.y = ev.clientY - r.top;' },
+  { id: 'SK3', games: ['sky'], file: 'sky/index.html', what: 'enemies come down fast', find: 'var ENEMY_SPEED = 42;', repl: 'var ENEMY_SPEED = 140;' },
+  { id: 'SK4', games: ['sky'], file: 'sky/index.html', what: 'no safe time after a bump', find: 'lives--; safeUntil = t + SAFE_MS / 1000;', repl: 'lives--; safeUntil = t;' },
+  { id: 'SK5', games: ['sky'], file: 'sky/index.html', what: 'shots pass through enemies', find: 'b.gone = true; hit(e); return;', repl: 'b.gone = true; return;' },
+  { id: 'SK6', games: ['sky'], file: 'sky/index.html', what: 'big plane pops in one hit', find: 'hp: big ? 3 : 1', repl: 'hp: 1' },
+  { id: 'SK7', games: ['sky'], file: 'sky/index.html', what: 'game never ends', find: "if (lives <= 0) { state = 'ending';", repl: "if (lives < 0) { state = 'ending';" },
+  { id: 'SK8', games: ['sky'], file: 'sky/index.html', what: 'a plane flying past costs a heart', find: '    enemies = enemies.filter(function (e) { return !e.dead && e.y < H + 60; });', repl: '    enemies.forEach(function (e) { if (e.y >= H + 60) hurt(); });\n    enemies = enemies.filter(function (e) { return !e.dead && e.y < H + 60; });' },
+  { id: 'SK9', games: ['sky'], file: 'sky/index.html', what: 'Fly again keeps the old score', find: 'lives = LIVES; score = 0; level = 1;\n    me =', repl: 'lives = LIVES; level = 1;\n    me =' },
+  { id: 'SK10', games: ['sky'], file: 'sky/index.html', what: 'no speed limit at high levels', find: 'return Math.min(MAX_SPEED, ENEMY_SPEED + SPEED_STEP * (level - 1));', repl: 'return ENEMY_SPEED + SPEED_STEP * (level - 1);' },
+  { id: 'SK11', games: ['sky'], file: 'sky/index.html', what: 'never levels up', find: 'var lv = 1 + Math.floor(score / PER_LEVEL);', repl: 'var lv = 1;' },
+  { id: 'SK12', games: ['portal'], file: 'sw.js', what: 'Sky Hero not saved for offline', find: "  './sky/',\n", repl: '' },
+
   // ---- portal / offline
   { id: 'S1', games: ['portal'], file: 'sw.js', what: 'offline ignores ?lang=zh pages', find: 'caches.match(req, { ignoreSearch: true })', repl: 'caches.match(req)' },
   { id: 'S3', games: ['portal'], file: 'index.html', what: 'a tile links to a missing page', find: 'href="zh-say/"', repl: 'href="zh-speak/"' }

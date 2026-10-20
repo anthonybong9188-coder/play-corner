@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sky Hero · Play Corner</title>
+<meta name="theme-color" content="#F4F8FC">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/app.css">
+<style>
+  .screen { height: 100dvh; min-height: 0; }
+  .field {
+    flex: 1; min-height: 0; position: relative; overflow: hidden; border-radius: 24px;
+    background: #8FD0F5; touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+  .field canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .hud {
+    position: absolute; left: 10px; right: 10px; top: 10px; z-index: 2; pointer-events: none;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .pill {
+    display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,.85);
+    border-radius: 18px; padding: 4px 10px; font-family: var(--display); font-weight: 800; font-size: 22px; line-height: 1.2;
+  }
+  .hearts svg { display: block; }
+  .hearts .lost { opacity: .22; }
+  .banner {
+    position: absolute; left: 50%; top: 34%; transform: translate(-50%, -50%); z-index: 3; pointer-events: none;
+    background: var(--ok); color: #fff; border-radius: 28px; box-shadow: 0 6px 0 #22804F;
+    padding: 6px 28px; font-family: var(--display); font-weight: 800; font-size: 40px; white-space: nowrap; display: none;
+  }
+  .banner.show { display: block; animation: bpop .4s cubic-bezier(.3,.7,.3,1.4); }
+  @keyframes bpop { from { transform: translate(-50%, -50%) scale(.6); } to { transform: translate(-50%, -50%) scale(1); } }
+  .start h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 36px; line-height: 1.1; }
+  .start p { margin: 0; font-size: 18px; font-weight: 700; color: var(--ink-2); max-width: 300px; }
+  .start .finger { width: 210px; height: 120px; }
+  .big-score { font-family: var(--display); font-weight: 800; font-size: 56px; line-height: 1; display: flex; align-items: center; gap: 8px; }
+</style>
+</head>
+<body>
+<main class="screen">
+  <div class="topbar">
+    <a class="round-btn" href="../" aria-label="Back to games">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <h1>Sky Hero</h1>
+    <button class="round-btn" type="button" id="restart" aria-label="Start over">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
+    </button>
+  </div>
+
+  <div class="field" id="field">
+    <canvas id="cv"></canvas>
+    <div class="hud">
+      <div class="pill hearts" id="hearts" role="img" aria-label="3 hearts"></div>
+      <div class="pill" id="levelPill">Level <span id="level">1</span></div>
+      <div class="pill" aria-label="Score"><svg width="24" height="24" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 62,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 38,37" fill="#F5B800"/></svg><span id="score">0</span></div>
+    </div>
+    <div class="banner" id="banner">Level 2!</div>
+  </div>
+  <p class="hint">Slide to fly · it shoots by itself</p>
+</main>
+
+<div class="start" id="startScreen">
+  <h2>Sky Hero</h2>
+  <svg class="finger" viewBox="0 0 210 120" aria-hidden="true" id="startArt"></svg>
+  <p>Slide your finger left and right. Pop the planes, and don't let them bump you!</p>
+  <button class="big-btn" type="button" id="go">Fly!</button>
+</div>
+
+<div class="start" id="overScreen" hidden>
+  <h2 id="overTitle">Great flying!</h2>
+  <div class="big-score"><svg width="52" height="52" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 62,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 38,37" fill="#F5B800"/></svg><span id="finalScore">0</span></div>
+  <p id="overText">planes popped</p>
+  <button class="big-btn" type="button" id="again">Fly again</button>
+</div>
+
+<script src="../assets/sfx.js"></script>
+<script>
+(function () {
+  // ---- Tuning (kept slow and gentle for little hands) ----
+  var LIVES = 3;
+  var FIRE_MS = 300;           // auto fire: one shot every 0.3 s
+  var BULLET_SPEED = 560;      // px per second, straight up
+  var PLANE_SPEED = 1100;      // how fast my plane catches up with the finger (px/s)
+  var ENEMY_SPEED = 42;        // px per second in level 1 (crosses the screen in ~15 s)
+  var SPEED_STEP = 5;          // each level is a little faster…
+  var MAX_SPEED = 75;          // …but never faster than this
+  var SPAWN_S = 1.9;           // a new enemy about every 2 s in level 1
+  var PER_LEVEL = 10;          // points to the next level
+  var SAFE_MS = 2000;          // after a bump you blink and can't be hurt for 2 s
+  var BUMP = 34;               // how close an enemy must get to bump you (small = forgiving)
+
+  var field = document.getElementById('field'), cv = document.getElementById('cv'), cx = cv.getContext('2d');
+  var $ = function (id) { return document.getElementById(id); };
+  var sfx = window.PC && PC.sfx ? PC.sfx : { unlock: function () {}, pew: function () {}, puff: function () {}, oops: function () {}, tada: function () {}, coin: function () {}, say: function () {} };
+
+  // ---- Pictures (SVG drawn into images, so it all works offline) ----
+  var COLORS = [['#E5484D', '#B8323A'], ['#F28C28', '#C46A12'], ['#8B5CF6', '#6A3FD0'], ['#2FA86B', '#22804F'], ['#E8579B', '#B83A76']];
+  function planeSvg(body, dark, enemy) {
+    var g = '<rect x="5" y="42" width="90" height="19" rx="9.5" fill="' + dark + '"/>' +
+      '<rect x="5" y="42" width="90" height="9" rx="4.5" fill="' + body + '"/>' +
+      '<rect x="30" y="80" width="40" height="12" rx="6" fill="' + dark + '"/>' +
+      '<ellipse cx="50" cy="52" rx="15" ry="40" fill="' + body + '"/>' +
+      '<ellipse cx="45" cy="50" rx="4" ry="26" fill="#fff" opacity=".25"/>' +
+      '<ellipse cx="50" cy="36" rx="8" ry="10" fill="#BFEAFF" stroke="' + dark + '" stroke-width="2.5"/>' +
+      '<circle cx="50" cy="13" r="6" fill="#F5B800"/>';
+    if (!enemy) g += '<circle cx="20" cy="51" r="5" fill="#fff"/><circle cx="80" cy="51" r="5" fill="#fff"/><circle cx="20" cy="51" r="2.6" fill="#E5484D"/><circle cx="80" cy="51" r="2.6" fill="#E5484D"/>';
+    var face = enemy ? '<g><circle cx="27" cy="51" r="8" fill="#fff"/><circle cx="73" cy="51" r="8" fill="#fff"/>' +
+      '<circle cx="28" cy="54" r="4" fill="#1D2B4F"/><circle cx="72" cy="54" r="4" fill="#1D2B4F"/>' +
+      '<path d="M19 40l15 6M81 40l-15 6" stroke="#1D2B4F" stroke-width="3" stroke-linecap="round"/>' +
+      '<path d="M43 72q7 5 14 0" fill="none" stroke="#1D2B4F" stroke-width="3" stroke-linecap="round"/></g>' : '';
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+      (enemy ? '<g transform="rotate(180 50 50)">' + g + '</g>' + face : g) + '</svg>';
+  }
+  function img(svg) { var i = new Image(); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); return i; }
+  var ME = img(planeSvg('#4A8BFF', '#1F4FB8', false));
+  var FOES = COLORS.map(function (c) { return img(planeSvg(c[0], c[1], true)); });
+  var HEART = 'M50 88C20 66 6 50 6 32 6 18 17 8 30 8c9 0 16 5 20 12 4-7 11-12 20-12 13 0 24 10 24 24 0 18-14 34-44 56z';
+  var HEART_IMG = img('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="' + HEART + '" fill="#E8579B" stroke="#fff" stroke-width="6"/></svg>');
+  var STAR_IMG = img('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon points="50,6 62,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 38,37" fill="#F5B800" stroke="#fff" stroke-width="6" stroke-linejoin="round"/></svg>');
+  $('startArt').innerHTML = '<image href="data:image/svg+xml;charset=utf-8,' + encodeURIComponent(planeSvg('#4A8BFF', '#1F4FB8', false)) + '" x="73" y="4" width="64" height="64"/>' +
+    '<path d="M40 92H170" stroke="#A9C3DB" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 12"/>' +
+    '<path d="M54 80l-14 12 14 12M156 80l14 12-14 12" fill="none" stroke="#FF7A59" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<g transform="translate(92 74)"><path d="M10 46V12a7 7 0 0 1 14 0v22l14 3c6 1 9 6 8 12l-3 19H14z" fill="#FFD9B8" stroke="#C98B5B" stroke-width="3" stroke-linejoin="round"/></g>';
+
+  // ---- World ----
+  var W = 0, H = 0, DPR = 1;
+  var state = 'ready', lives, score, level, me, enemies, bullets, drops, bits, clouds;
+  var t = 0, lastShot = 0, nextSpawn = 0, nextDrop = 0, safeUntil = 0, powerUntil = 0, pauseUntil = 0, keys = {};
+
+  function resize() {
+    var r = field.getBoundingClientRect();
+    DPR = Math.min(3, window.devicePixelRatio || 1);
+    W = r.width; H = r.height;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    if (me) { me.y = H - 95; me.x = clamp(me.x, 40, W - 40); me.tx = clamp(me.tx, 40, W - 40); }
+  }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+
+  function speedNow() { return Math.min(MAX_SPEED, ENEMY_SPEED + SPEED_STEP * (level - 1)); }
+  function spawnGap() { return Math.max(0.95, SPAWN_S - 0.12 * (level - 1)); }
+  function maxEnemies() { return Math.min(7, 3 + Math.floor(level / 2)); }
+
+  function spawn(o) {
+    o = o || {};
+    var big = o.big != null ? o.big : (level >= 2 && Math.random() < 0.18);
+    var e = {
+      x: o.x != null ? o.x : rnd(44, W - 44), y: o.y != null ? o.y : -50,
+      vy: o.vy != null ? o.vy : speedNow() * (big ? 0.8 : rnd(0.85, 1.15)),
+      sway: o.sway != null ? o.sway : rnd(0, 26), phase: rnd(0, 6.3), size: big ? 1.45 : 1,
+      hp: big ? 3 : 1, pic: Math.floor(Math.random() * FOES.length), flash: 0,
+      bombAt: level >= 3 && !o.noBomb ? t + rnd(1.5, 4) : Infinity
+    };
+    e.x0 = e.x; enemies.push(e); return e;
+  }
+
+  function startOver() {
+    resize();
+    lives = LIVES; score = 0; level = 1;
+    me = { x: W / 2, tx: W / 2, y: H - 95 };
+    enemies = []; bullets = []; drops = []; bits = [];
+    clouds = clouds || [0, 1, 2, 3, 4].map(function (i) { return { x: rnd(0, 1), y: i / 5, s: rnd(0.6, 1.2) }; });
+    lastShot = t; nextSpawn = t + 0.8; nextDrop = t + rnd(10, 16); safeUntil = 0; powerUntil = 0; pauseUntil = 0;
+    $('overScreen').hidden = true; $('banner').classList.remove('show');
+    state = 'play'; hud();
+  }
+
+  function hud() {
+    var h = '';
+    for (var i = 0; i < LIVES; i++) h += '<svg width="24" height="24" viewBox="0 0 100 100" class="' + (i < lives ? 'full' : 'lost') + '" aria-hidden="true"><path d="' + HEART + '" fill="#E8579B"/></svg>';
+    $('hearts').innerHTML = h; $('hearts').setAttribute('aria-label', lives + ' hearts');
+    $('score').textContent = score; $('level').textContent = level;
+  }
+
+  function burst(x, y, color, n, big) {
+    for (var i = 0; i < n; i++) {
+      var a = Math.random() * Math.PI * 2, v = rnd(60, big ? 260 : 180);
+      bits.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.7, max: 0.7, r: rnd(4, 8), c: i % 3 ? color : '#F5B800', star: i % 4 === 0 });
+    }
+  }
+
+  function addScore(n, x, y) {
+    score += n;
+    bits.push({ x: x, y: y, vx: 0, vy: -60, life: 0.8, max: 0.8, text: '+' + n });
+    var lv = 1 + Math.floor(score / PER_LEVEL);
+    if (lv > level) {
+      level = lv; sfx.tada();
+      var b = $('banner'); b.textContent = 'Level ' + level + '!'; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+      sfx.say('Level ' + level + '!');
+      setTimeout(function () { b.classList.remove('show'); }, 1600);
+      pauseUntil = t + 1.2;  // a short breather
+    }
+    hud();
+  }
+
+  function hit(e) {
+    e.hp--; e.flash = 0.12;
+    if (e.hp > 0) { sfx.coin(); return; }
+    e.dead = true; sfx.puff();
+    burst(e.x, e.y, COLORS[e.pic][0], e.size > 1 ? 22 : 14, e.size > 1);
+    addScore(e.size > 1 ? 3 : 1, e.x, e.y - 30);
+  }
+
+  function hurt() {
+    if (t < safeUntil || state !== 'play') return false;
+    lives--; safeUntil = t + SAFE_MS / 1000; sfx.oops(); hud();
+    burst(me.x, me.y, '#4A8BFF', 10);
+    if (lives <= 0) { state = 'ending'; setTimeout(gameOver, 900); }
+    return true;
+  }
+
+  function gameOver() {
+    state = 'over';
+    $('finalScore').textContent = score;
+    $('overTitle').textContent = score >= 30 ? 'Super pilot!' : score >= 10 ? 'Great flying!' : 'Good try!';
+    $('overText').textContent = score === 1 ? 'plane popped' : 'planes popped';
+    $('overScreen').hidden = false;
+    sfx.say($('overTitle').textContent);
+  }
+
+  // ---- Update ----
+  function step(dt) {
+    // clouds drift down so it feels like flying forward
+    clouds.forEach(function (c) { c.y += dt * 0.06 * c.s; if (c.y > 1.15) { c.y = -0.15; c.x = rnd(0, 1); } });
+    bits.forEach(function (b) { b.x += b.vx * dt; b.y += b.vy * dt; b.vx *= 0.96; b.vy *= 0.96; b.life -= dt; });
+    bits = bits.filter(function (b) { return b.life > 0; });
+    if (state !== 'play' && state !== 'ending') return;
+
+    // my plane glides toward the finger, only left and right
+    if (keys.left) me.tx = me.x - 200; if (keys.right) me.tx = me.x + 200;
+    me.tx = clamp(me.tx, 36, W - 36);
+    var d = me.tx - me.x, mv = PLANE_SPEED * dt;
+    me.x += Math.abs(d) <= mv ? d : Math.sign(d) * mv;
+    me.tilt = clamp(d / 60, -1, 1);
+
+    if (state !== 'play') return;
+
+    // auto fire
+    if (t - lastShot >= FIRE_MS / 1000) {
+      lastShot = t;
+      if (t < powerUntil) { bullets.push({ x: me.x - 16, y: me.y - 30 }, { x: me.x + 16, y: me.y - 30 }); }
+      else bullets.push({ x: me.x, y: me.y - 40 });
+      sfx.pew();
+    }
+    bullets.forEach(function (b) { b.y -= BULLET_SPEED * dt; });
+
+    // new enemies from the top
+    if (t >= nextSpawn && t >= pauseUntil && enemies.length < maxEnemies()) {
+      spawn(); nextSpawn = t + spawnGap() * rnd(0.8, 1.2);
+    }
+    // a heart or a star now and then
+    if (t >= nextDrop) {
+      drops.push({ kind: lives < LIVES && Math.random() < 0.6 ? 'heart' : 'star', x: rnd(50, W - 50), y: -30, phase: rnd(0, 6) });
+      nextDrop = t + rnd(12, 18);
+    }
+
+    enemies.forEach(function (e) {
+      e.y += e.vy * dt;
+      e.x = clamp(e.x0 + Math.sin(t * 0.9 + e.phase) * e.sway, 34, W - 34);
+      if (e.flash > 0) e.flash -= dt;
+      if (t >= e.bombAt && e.y > 20 && e.y < H * 0.55) {
+        drops.push({ kind: 'bomb', x: e.x, y: e.y + 30 * e.size, phase: 0 });
+        e.bombAt = t + rnd(3, 5);
+      }
+    });
+
+    // bullets hit enemies (generous boxes) and bombs
+    bullets.forEach(function (b) {
+      if (b.gone) return;
+      for (var i = 0; i < enemies.length; i++) {
+        var e = enemies[i];
+        if (!e.dead && e.y > -30 && Math.abs(b.x - e.x) < 34 * e.size && Math.abs(b.y - e.y) < 32 * e.size) { b.gone = true; hit(e); return; }
+      }
+      for (var j = 0; j < drops.length; j++) {
+        var p = drops[j];
+        if (p.kind === 'bomb' && !p.gone && Math.abs(b.x - p.x) < 20 && Math.abs(b.y - p.y) < 22) { b.gone = true; p.gone = true; sfx.pop && sfx.pop(); burst(p.x, p.y, '#3A3F55', 8); return; }
+      }
+    });
+
+    // bumps
+    enemies.forEach(function (e) {
+      if (e.dead) return;
+      if (Math.abs(e.x - me.x) < BUMP * (0.6 + 0.4 * e.size) && Math.abs(e.y - me.y) < BUMP * (0.6 + 0.4 * e.size)) {
+        if (hurt()) { e.dead = true; burst(e.x, e.y, COLORS[e.pic][0], 12); }
+      }
+    });
+    drops.forEach(function (p) {
+      if (p.gone) return;
+      p.y += (p.kind === 'bomb' ? 110 : 70) * dt;
+      if (p.kind !== 'bomb') p.x += Math.sin(t * 2 + p.phase) * 20 * dt;
+      var near = Math.abs(p.x - me.x) < (p.kind === 'bomb' ? 24 : 46) && Math.abs(p.y - me.y) < (p.kind === 'bomb' ? 26 : 46);
+      if (!near) return;
+      p.gone = true;
+      if (p.kind === 'bomb') { if (hurt()) burst(p.x, p.y, '#3A3F55', 8); }
+      else if (p.kind === 'heart') { lives = Math.min(LIVES, lives + 1); sfx.tada(); hud(); burst(p.x, p.y, '#E8579B', 12); }
+      else { powerUntil = t + 8; sfx.tada(); burst(p.x, p.y, '#F5B800', 12); }
+    });
+
+    bullets = bullets.filter(function (b) { return !b.gone && b.y > -20; });
+    enemies = enemies.filter(function (e) { return !e.dead && e.y < H + 60; });   // ones that fly past just leave, no penalty
+    drops = drops.filter(function (p) { return !p.gone && p.y < H + 40; });
+  }
+
+  // ---- Draw ----
+  function cloud(x, y, s) {
+    cx.beginPath();
+    cx.ellipse(x - 26 * s, y + 6 * s, 26 * s, 16 * s, 0, 0, 7);
+    cx.ellipse(x, y - 4 * s, 30 * s, 22 * s, 0, 0, 7);
+    cx.ellipse(x + 28 * s, y + 6 * s, 24 * s, 15 * s, 0, 0, 7);
+    cx.fill();
+  }
+  function draw() {
+    cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    var g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#7CC6F2'); g.addColorStop(1, '#CDEBFB');
+    cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    cx.fillStyle = 'rgba(255,255,255,.85)';
+    clouds.forEach(function (c) { cloud(c.x * W, c.y * H, c.s * 1.2); });
+
+    drops.forEach(function (p) {
+      if (p.kind === 'bomb') {
+        cx.fillStyle = '#3A3F55'; cx.beginPath(); cx.ellipse(p.x, p.y, 9, 12, 0, 0, 7); cx.fill();
+        cx.fillStyle = (Math.floor(t * 6) % 2) ? '#E5484D' : '#FFB4B4'; cx.beginPath(); cx.arc(p.x, p.y + 9, 4, 0, 7); cx.fill();
+        cx.fillStyle = '#5A6078'; cx.fillRect(p.x - 8, p.y - 16, 16, 5);
+      } else {
+        var s = 40 + Math.sin(t * 5) * 4;
+        cx.drawImage(p.kind === 'heart' ? HEART_IMG : STAR_IMG, p.x - s / 2, p.y - s / 2, s, s);
+      }
+    });
+
+    cx.fillStyle = '#FFD23F';
+    bullets.forEach(function (b) {
+      cx.beginPath(); cx.ellipse(b.x, b.y, 5, 11, 0, 0, 7); cx.fill();
+    });
+    cx.fillStyle = 'rgba(255,255,255,.8)';
+    bullets.forEach(function (b) { cx.beginPath(); cx.ellipse(b.x, b.y - 3, 2, 5, 0, 0, 7); cx.fill(); });
+
+    enemies.forEach(function (e) {
+      var s = 72 * e.size;
+      cx.save(); cx.translate(e.x, e.y);
+      if (e.flash > 0) cx.globalAlpha = 0.5;
+      cx.drawImage(FOES[e.pic], -s / 2, -s / 2, s, s);
+      // propeller at the nose (bottom)
+      cx.globalAlpha = 0.7; cx.fillStyle = '#fff';
+      cx.beginPath(); cx.ellipse(0, s * 0.39, s * 0.2 * Math.abs(Math.sin(t * 30)) + 2, 2.5, 0, 0, 7); cx.fill();
+      cx.restore();
+      if (e.size > 1) for (var i = 0; i < 3; i++) {
+        cx.fillStyle = i < e.hp ? '#2FA86B' : 'rgba(0,0,0,.15)';
+        cx.beginPath(); cx.arc(e.x - 14 + i * 14, e.y - s / 2 - 8, 5, 0, 7); cx.fill();
+      }
+    });
+
+    if (me && lives > 0) {
+      var blink = t < safeUntil && Math.floor(t * 8) % 2 === 0;
+      if (!blink) {
+        cx.save(); cx.translate(me.x, me.y); cx.rotate((me.tilt || 0) * 0.15);
+        if (t < powerUntil) { cx.fillStyle = 'rgba(245,184,0,.3)'; cx.beginPath(); cx.arc(0, 0, 48, 0, 7); cx.fill(); }
+        cx.drawImage(ME, -40, -40, 80, 80);
+        cx.globalAlpha = 0.75; cx.fillStyle = '#fff';
+        cx.beginPath(); cx.ellipse(0, -31, 16 * Math.abs(Math.sin(t * 30)) + 2, 2.5, 0, 0, 7); cx.fill();
+        cx.restore();
+      }
+    }
+
+    bits.forEach(function (b) {
+      cx.globalAlpha = Math.max(0, b.life / b.max);
+      if (b.text) {
+        cx.fillStyle = '#1D2B4F'; cx.font = '800 26px "Baloo 2", sans-serif'; cx.textAlign = 'center'; cx.fillText(b.text, b.x, b.y);
+      } else if (b.star) {
+        var r = b.r * 1.6; cx.drawImage(STAR_IMG, b.x - r, b.y - r, r * 2, r * 2);
+      } else { cx.fillStyle = b.c; cx.beginPath(); cx.arc(b.x, b.y, b.r, 0, 7); cx.fill(); }
+    });
+    cx.globalAlpha = 1;
+  }
+
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!document.hidden) { t += dt; step(dt); draw(); }
+    requestAnimationFrame(frame);
+  }
+
+  // ---- Controls: one finger anywhere on the sky ----
+  function aim(ev) {
+    if (!me) return;
+    var r = field.getBoundingClientRect();
+    me.tx = clamp(ev.clientX - r.left, 36, W - 36);
+  }
+  field.addEventListener('pointerdown', function (ev) { sfx.unlock(); aim(ev); try { field.setPointerCapture(ev.pointerId); } catch (e) {} ev.preventDefault(); });
+  field.addEventListener('pointermove', function (ev) { if (ev.buttons || ev.pointerType === 'touch' || ev.pressure > 0) aim(ev); });
+  window.addEventListener('keydown', function (ev) { if (ev.key === 'ArrowLeft') keys.left = true; if (ev.key === 'ArrowRight') keys.right = true; });
+  window.addEventListener('keyup', function (ev) { if (ev.key === 'ArrowLeft') { keys.left = false; me.tx = me.x; } if (ev.key === 'ArrowRight') { keys.right = false; me.tx = me.x; } });
+  window.addEventListener('resize', resize);
+
+  $('go').addEventListener('click', function () { sfx.unlock(); $('startScreen').hidden = true; startOver(); });
+  $('again').addEventListener('click', function () { sfx.unlock(); startOver(); });
+  $('restart').addEventListener('click', function () { if (state === 'ready') return; startOver(); });
+
+  // first paint behind the start screen
+  resize(); lives = LIVES; score = 0; level = 1; me = { x: W / 2, tx: W / 2, y: H - 95 };
+  enemies = []; bullets = []; drops = []; bits = [];
+  clouds = [0, 1, 2, 3, 4].map(function (i) { return { x: rnd(0, 1), y: i / 5, s: rnd(0.6, 1.2) }; });
+  hud();
+  requestAnimationFrame(frame);
+
+  // for the automatic tests
+  window.__sky = {
+    get state() { return state; }, get lives() { return lives; }, get score() { return score; }, get level() { return level; },
+    get me() { return me; }, get enemies() { return enemies; }, get bullets() { return bullets; }, get drops() { return drops; },
+    get W() { return W; }, get H() { return H; },
+    spawn: spawn, setScore: function (n) { score = n; level = 1 + Math.floor(n / PER_LEVEL); hud(); },
+    clear: function () { enemies.length = 0; drops.length = 0; bullets.length = 0; nextSpawn = t + 999; nextDrop = t + 999; },
+    resume: function () { nextSpawn = t; },
+    speedNow: speedNow
+  };
+})();
+</script>
+<script src="../assets/sw-register.js"></script>
+</body>
+</html>
