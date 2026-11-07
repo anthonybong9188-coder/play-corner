@@ -64,6 +64,20 @@ module.exports = [
   { id: 'ZW8', games: ['zh-write'], file: 'assets/zh.js', what: 'two characters swapped onto each other\'s stroke data', find: "{ id: 'da', hz: '大'", repl: "{ id: 'xiao', hz: '大'" },
   { id: 'ZW5', games: ['portal'], file: 'sw.js', what: 'stroke data not saved for offline', find: "  './zh-write/data/ri.json',\n", repl: '' },
 
+  // ---- Rocket Maths
+  { id: 'MA1', games: ['maths'], file: 'maths/index.html', what: "plus can go over the limit", find: "b = rand(1, P.max - a);", repl: "b = rand(1, P.max);" },
+  { id: 'MA2', games: ['maths'], file: 'maths/index.html', what: "minus can leave nothing", find: "b = rand(1, a - 1);", repl: "b = rand(1, a);" },
+  { id: 'MA3', games: ['maths'], file: 'maths/index.html', what: "right answer missing from the choices", find: "var all = [ans].concat(picks);", repl: "var all = [ans + 4].concat(picks);" },
+  { id: 'MA4', games: ['maths'], file: 'maths/index.html', what: "any answer counts as right", find: "if (n === q.ans) right(b); else wrong(b);", repl: "right(b);" },
+  { id: 'MA5', games: ['maths'], file: 'maths/index.html', what: "animal eats one too few", find: "eat(q.a - 1, q.a - q.b);", repl: "eat(q.a - 1, q.a - q.b + 1);" },
+  { id: 'MA6', games: ['maths'], file: 'maths/index.html', what: "never lands on the planet", find: "if (step >= STEPS) land(); else show();", repl: "show();" },
+  { id: 'MA7', games: ['maths'], file: 'maths/index.html', what: "next trip goes to the same planet", find: "if (planet < PLANETS.length - 1) planet++;", repl: "" },
+  { id: 'MA8', games: ['maths'], file: 'maths/index.html', what: "counting help starts at 0", find: "'<span class=\"n\">' + (i + 1) + '</span>'", repl: "'<span class=\"n\">' + i + '</span>'" },
+  { id: 'MA9', games: ['maths'], file: 'maths/index.html', what: "one of the \"more\" pictures is missing", find: "for (var j = 0; j < q.b; j++) (function (j) {", repl: "for (var j = 0; j < q.b - 1; j++) (function (j) {" },
+  { id: 'MA10', games: ['maths'], file: 'maths/index.html', what: "the Stars only ask plus", find: "ops: ['+', '-'], max: 10", repl: "ops: ['+'], max: 10" },
+  { id: 'MA11', games: ['maths'], file: 'maths/index.html', what: "same question twice in a row", find: "} while (key === lastKey && ++tries < 20);", repl: "} while (false);" },
+  { id: 'MA12', games: ['maths'], file: 'maths/index.html', what: "wrong answer still moves the rocket", find: "b.classList.add('wrong'); b.disabled = true;", repl: "b.classList.add('wrong'); b.disabled = true; step++;" },
+  { id: 'MA13', games: ['portal'], file: 'sw.js', what: 'Rocket Maths not saved for offline', find: "  './maths/',\n", repl: '' },
   // ---- Sky Hero
   { id: 'SK1', games: ['sky'], file: 'sky/index.html', what: 'plane never fires', find: 'if (t - lastShot >= FIRE_MS / 1000) {', repl: 'if (false) {' },
   { id: 'SK2', games: ['sky'], file: 'sky/index.html', what: 'plane also moves up and down with the finger', find: 'me.tx = clamp(ev.clientX - r.left, 36, W - 36);', repl: 'me.tx = clamp(ev.clientX - r.left, 36, W - 36); me.y = ev.clientY - r.top;' },

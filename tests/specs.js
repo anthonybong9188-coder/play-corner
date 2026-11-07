@@ -351,6 +351,7 @@ module.exports = [
   // ===== 汉字 Builder
   { game: 'zh-write', name: 'watch, then trace in stroke order; finished characters get a tick', timeout: 90000, fn: async (page, h) => {
     await page.goto(h.base + 'sky/'); await page.waitForSelector('#go', { timeout: 5000 });
+    await page.goto(h.base + 'maths/'); await page.waitForSelector('.pl', { timeout: 5000 });
     await page.goto(h.base + 'zh-write/'); await page.click('#go');
     await zwReady(page);
     h.assert((await h.said()).includes('日'), 'the character is spoken');
@@ -372,6 +373,7 @@ module.exports = [
 
   { game: 'zh-write', name: 'all 40 characters load the right stroke data; groups and Next work', timeout: 90000, fn: async (page, h) => {
     await page.goto(h.base + 'sky/'); await page.waitForSelector('#go', { timeout: 5000 });
+    await page.goto(h.base + 'maths/'); await page.waitForSelector('.pl', { timeout: 5000 });
     await page.goto(h.base + 'zh-write/'); await page.click('#go'); await zwReady(page);
     // fingerprint from the original stroke data: "<strokes>:<x>,<y> of where the first stroke starts>"
     const EXPECT = { 日: '4:284,684', 月: '4:339,773', 山: '3:472,748', 水: '4:473,814', 火: '4:216,534', 木: '4:228,534', 人: '2:483,736', 口: '3:229,584', 田: '5:168,630', 雨: '8:312,695', 一: '1:121,393', 二: '2:293,587', 三: '3:316,655', 四: '5:132,606', 五: '4:304,694', 六: '4:441,756', 七: '2:101,340', 八: '2:331,470', 九: '2:402,808', 十: '2:109,442', 目: '5:281,723', 耳: '6:224,757', 手: '4:696,777', 足: '7:322,757', 牛: '4:314,694', 羊: '6:345,813', 马: '3:289,716', 鸟: '5:425,861', 鱼: '8:442,848', 虫: '6:233,528', 大: '3:210,458', 小: '3:484,773', 上: '3:446,781', 下: '3:113,682', 中: '4:194,598', 天: '4:326,698', 云: '4:342,641', 土: '3:283,438', 石: '5:265,665', 门: '3:304,770' };
@@ -399,6 +401,78 @@ module.exports = [
   }},
 
   // ===== Portal + offline
+  // ---------------------------------------------------------------- Rocket Maths
+  { game: 'maths', name: 'every planet asks the right kind of sums; answer is always one of 3 choices; no repeats', fn: async (page, h) => {
+    await page.goto(h.base + 'maths/');
+    const r = await page.evaluate(() => {
+      const M = __maths, out = [];
+      M.PLANETS.forEach((P, i) => {
+        M.setPlanet(i); let last = '', ops = {}, bad = [];
+        for (let k = 0; k < 400; k++) {
+          const q = M.makeQuestion(), key = q.a + q.op + q.b; ops[q.op] = 1;
+          const ans = q.op === '+' ? q.a + q.b : q.a - q.b;
+          if (q.ans !== ans) bad.push('wrong answer ' + key);
+          if (!P.ops.includes(q.op)) bad.push('wrong op ' + key);
+          if (q.a < 1 || q.b < 1 || ans < 1) bad.push('zero/negative ' + key);
+          if ((q.op === '+' ? ans : q.a) > P.max) bad.push('too big ' + key);
+          if (key === last) bad.push('repeat ' + key);
+          if (q.choices.length !== 3 || new Set(q.choices).size !== 3 || !q.choices.includes(ans) || q.choices.some((c) => c < 1 || c > 10)) bad.push('choices ' + q.choices);
+          last = key;
+        }
+        out.push({ p: P.short, bad: bad.slice(0, 3), ops: Object.keys(ops).sort().join('') });
+      });
+      return out;
+    });
+    r.forEach((x) => h.assert(!x.bad.length, x.p + ': ' + x.bad.join(', ')));
+    h.assert(r[4].ops === '+-', 'the Stars mix plus and minus');
+  }},
+  { game: 'maths', name: 'pictures match the sum; wrong answer counts along and lets you retry; right answer flies on', timeout: 90000, fn: async (page, h) => {
+    await page.goto(h.base + 'maths/');
+    await page.click('.pl[data-p="0"]'); await page.click('#go');
+    const S = (f) => page.evaluate(f);
+    const idle = () => page.waitForFunction(() => !__maths.busy, null, { timeout: 15000 });
+    await idle();
+    let q = await S(() => __maths.q);
+    h.assert(q.op === '+', 'the Moon starts with plus');
+    h.assert((await page.locator('#trayA .item').count()) === q.a && (await page.locator('#trayB .item').count()) === q.b, 'plus shows ' + q.a + ' and ' + q.b + ' pictures');
+    const wrongN = q.choices.find((c) => c !== q.ans);
+    await page.click(`.ans[data-n="${wrongN}"]`);
+    h.assert(await page.locator(`.ans[data-n="${wrongN}"]`).isDisabled(), 'a wrong answer is greyed out');
+    await page.waitForFunction((n) => document.querySelectorAll('.item .n').length === n, q.ans, { timeout: 12000 });
+    const badges = await page.$$eval('.item .n', (b) => b.map((x) => x.textContent).join(','));
+    h.assert(badges === Array.from({ length: q.ans }, (_, i) => i + 1).join(','), 'counts along 1..' + q.ans + ' (got ' + badges + ')');
+    await idle();
+    h.assert((await S(() => __maths.step)) === 0, 'a wrong answer does not move the rocket');
+    await page.click(`.ans[data-n="${q.ans}"]`);
+    h.assert((await page.textContent('#qbox')) === String(q.ans), 'the ? box shows the answer');
+    h.assert((await S(() => __maths.step)) === 1 && (await page.locator('.dot.on').count()) === 1, 'rocket moves one step');
+    // minus: the animal eats some, the rest are left
+    await S(() => __maths.setPlanet(1));
+    await page.waitForFunction(() => __maths.q.op === '-' , null, { timeout: 6000 });
+    await idle();
+    q = await S(() => __maths.q);
+    const left = await page.locator('#trayA .item:not(.ghost)').count(), gone = await page.locator('#trayA .item.ghost').count();
+    h.assert(left === q.ans && gone === q.b, `${q.a} − ${q.b}: ${left} left and ${gone} eaten`);
+    h.assert((await h.said()).some((t) => /eats .* How many are left\?/.test(t)), 'the question is read out as a story');
+  }},
+  { game: 'maths', name: '8 right answers land on the planet; next trip goes to the next planet', timeout: 60000, fn: async (page, h) => {
+    await page.goto(h.base + 'maths/');
+    await page.click('.pl[data-p="0"]'); await page.click('#go');
+    const S = (f) => page.evaluate(f);
+    await page.waitForFunction(() => !__maths.busy, null, { timeout: 15000 });
+    await S(() => __maths.setStep(__maths.STEPS - 1));
+    const q = await S(() => __maths.q);
+    await page.click(`.ans[data-n="${q.ans}"]`);
+    await page.waitForSelector('#landScreen:not([hidden])', { timeout: 5000 });
+    h.assert(/Moon/.test(await page.textContent('#landTitle')), 'landed on the Moon');
+    h.assert(/Mars/.test(await page.textContent('#next')), 'offers the trip to Mars');
+    await page.click('#next');
+    h.assert((await S(() => __maths.planet)) === 1 && (await S(() => __maths.step)) === 0, 'now flying to Mars from the start');
+    h.assert(/Mars/.test(await page.textContent('#tripLabel')), 'strip says To Mars');
+    await page.goto(h.base + 'maths/');
+    h.assert(await page.locator('.pl[data-p="1"]').evaluate((e) => e.classList.contains('on')), 'next visit remembers Mars');
+  }},
+
   // ---------------------------------------------------------------- Sky Hero
   { game: 'sky', name: 'auto-fires; finger moves the plane left/right only; enemies drift down slowly; shots pop them', fn: async (page, h) => {
     await page.goto(h.base + 'sky/'); await page.click('#go');
@@ -484,6 +558,7 @@ module.exports = [
     await page.goto(h.base + 'match/?set=zh'); await page.waitForSelector('.card', { timeout: 5000 });
     h.assert((await page.locator('.front .hz').count()) === 10, 'Character Match works offline (needs the Mandarin words file)');
     await page.goto(h.base + 'sky/'); await page.waitForSelector('#go', { timeout: 5000 });
+    await page.goto(h.base + 'maths/'); await page.waitForSelector('.pl', { timeout: 5000 });
     await page.goto(h.base + 'zh-write/'); await page.click('#go');
     await page.waitForFunction(() => /strokes/.test(document.getElementById('strokes').textContent), null, { timeout: 8000 });
   }}

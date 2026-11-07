@@ -4,6 +4,7 @@ Simple, no-login games for little ones, made for big phones.
 
 - **Match the Cards** – flip two cards to find matching shapes (4 × 5 board).
 - **Penalty Kick** – tap the ball to shoot past the sliding goalie.
+- **Rocket Maths** – plus and minus as little stories ("5 carrots, Bunny eats 2"); each right answer flies the rocket on, from the Moon to the Stars.
 - **Sky Hero** – slide one finger to fly; your plane shoots by itself. Pop the slow planes coming down and don't let them bump you.
 - **学中文 Learn Chinese** (simplified characters + Hanyu Pinyin, Mandarin voice from the phone):
   - 找一找 Find It – hear "小猫在哪里?" and tap the right picture (animals, fruits, colours, body)

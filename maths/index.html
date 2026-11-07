@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rocket Maths · Play Corner</title>
+<meta name="theme-color" content="#F4F8FC">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/app.css">
+<style>
+  .screen { height: 100dvh; min-height: 0; gap: 10px; }
+  /* journey strip: Earth → planet, one dot per right answer */
+  .trip {
+    position: relative; height: 64px; flex-shrink: 0; border-radius: 20px; overflow: hidden;
+    background: linear-gradient(90deg, #1B2350, #2E2A6B 60%, #3A2C78);
+  }
+  .trip .sky { position: absolute; inset: 0; }
+  .trip .dots { position: absolute; left: 62px; right: 62px; top: 50%; display: flex; justify-content: space-between; transform: translateY(-50%); }
+  .trip .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.25); transition: background .3s, transform .3s; }
+  .trip .dot.on { background: #FFD23F; transform: scale(1.3); box-shadow: 0 0 8px #FFD23F; }
+  .trip .earth, .trip .goal { position: absolute; top: 50%; transform: translateY(-50%); width: 46px; height: 46px; }
+  .trip .earth { left: 8px; } .trip .goal { right: 8px; }
+  .trip .rocket { position: absolute; top: 50%; width: 50px; height: 34px; transform: translate(-50%, -50%); transition: left .9s cubic-bezier(.4,1.6,.5,1); z-index: 2; }
+  .trip .label { position: absolute; left: 0; right: 0; bottom: 3px; text-align: center; color: #CFD6FF; font-weight: 800; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+
+  .scene {
+    flex: 1; min-height: 0; position: relative; border-radius: 24px; background: #FFF7E8;
+    display: flex; flex-direction: column; align-items: center; padding: 12px 10px 8px; gap: 8px; overflow: hidden;
+  }
+  .sum { font-family: var(--display); font-weight: 800; font-size: 54px; line-height: 1; color: var(--ink); display: flex; align-items: center; gap: 10px; }
+  .sum .op { color: #FF7A59; }
+  .sum .q { display: inline-flex; align-items: center; justify-content: center; min-width: 58px; height: 58px; border-radius: 16px; background: #fff; box-shadow: inset 0 0 0 3px #F2D9B0; color: #C9A46A; }
+  .sum .q.done { background: var(--ok); color: #fff; box-shadow: none; animation: pop .35s; }
+  .story { font-size: 17px; font-weight: 800; color: var(--ink-2); text-align: center; min-height: 23px; }
+  .trays { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .trays { --s: 48px; }
+  .tray { display: grid; grid-template-columns: repeat(3, var(--s)); gap: 4px; padding: 8px; border-radius: 18px; background: #fff; box-shadow: 0 3px 0 #F0DDBB; align-content: center; justify-content: center; min-height: 64px; }
+  .tray.b { background: #EAF4FF; box-shadow: 0 3px 0 #C9DEF5; }
+  .tray.wide { grid-template-columns: repeat(5, var(--s)); }
+  .plus { font-family: var(--display); font-weight: 800; font-size: 40px; color: #FF7A59; }
+  .item { width: var(--s); height: var(--s); position: relative; transition: transform .45s cubic-bezier(.5,0,.7,.4), opacity .45s; }
+  .item svg { width: 100%; height: 100%; display: block; }
+  .item.in { animation: drop .35s cubic-bezier(.3,.7,.3,1.4) both; }
+  .item.eaten { opacity: 0; }
+  .item.ghost { border-radius: 50%; box-shadow: inset 0 0 0 2px #E2C99E; background: none; }
+  .item .n {
+    position: absolute; right: -4px; top: -4px; min-width: 22px; height: 22px; border-radius: 11px; padding: 0 5px;
+    background: var(--ink); color: #fff; font-weight: 800; font-size: 14px; line-height: 22px; text-align: center; animation: pop .25s;
+  }
+  @keyframes drop { from { transform: translateY(-60px) scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+  .buddy { position: absolute; right: 6px; bottom: 4px; width: 92px; height: 92px; transition: transform .3s; }
+  .buddy.hop { animation: hop .5s; }
+  @keyframes hop { 40% { transform: translateY(-18px); } }
+
+  .answers { display: flex; justify-content: center; gap: 16px; flex-shrink: 0; padding-bottom: 4px; }
+  .ans {
+    appearance: none; border: 0; cursor: pointer; width: 96px; height: 96px; border-radius: 50%;
+    font-family: var(--display); font-weight: 800; font-size: 50px; color: #fff; line-height: 1;
+    display: flex; align-items: center; justify-content: center; padding-top: 6px;
+    transition: transform .15s, opacity .2s;
+  }
+  .ans:nth-child(1) { background: #8B5CF6; box-shadow: 0 6px 0 #6A3FD0; }
+  .ans:nth-child(2) { background: #2F9BEA; box-shadow: 0 6px 0 #1F74B5; }
+  .ans:nth-child(3) { background: #F28C28; box-shadow: 0 6px 0 #C46A12; }
+  .ans:active { transform: translateY(4px); }
+  .ans.right { background: var(--ok) !important; box-shadow: 0 6px 0 #22804F !important; animation: pop .35s; }
+  .ans.wrong { animation: shake .4s; opacity: .35; }
+  .ans:disabled { cursor: default; }
+  @keyframes shake { 25% { transform: translateX(-8px); } 50% { transform: translateX(8px); } 75% { transform: translateX(-4px); } }
+
+  .start h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 36px; line-height: 1.1; }
+  .start p { margin: 0; font-size: 18px; font-weight: 700; color: var(--ink-2); max-width: 310px; }
+  .planets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; max-width: 360px; }
+  .pl { appearance: none; border: 0; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; border-radius: 14px; font-weight: 800; font-size: 12px; color: var(--ink); }
+  .pl svg { width: 48px; height: 48px; }
+  .pl.on { background: #fff; box-shadow: 0 0 0 3px var(--ink); }
+  .pl small { font-weight: 700; font-size: 10px; color: var(--ink-2); }
+  .land { background: radial-gradient(circle at 50% 40%, #3A2C78, #141A3D) !important; color: #fff; }
+  .land h2 { color: #fff; }
+  .land p { color: #CFD6FF; }
+  .land .bigplanet { width: 170px; height: 170px; animation: pop .6s cubic-bezier(.3,.7,.3,1.4); }
+  .land .flag { font-family: var(--display); font-weight: 800; font-size: 22px; color: #FFD23F; }
+  .burst { position: absolute; pointer-events: none; width: 14px; height: 14px; border-radius: 50%; animation: fly 1s ease-out forwards; }
+  @keyframes fly { to { transform: translate(var(--dx), var(--dy)) scale(.3); opacity: 0; } }
+</style>
+</head>
+<body>
+<main class="screen">
+  <div class="topbar">
+    <a class="round-btn" href="../" aria-label="Back to games">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <h1>Rocket Maths</h1>
+    <button class="round-btn" type="button" id="hear" aria-label="Hear the question again">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="#1D2B4F"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+    </button>
+  </div>
+
+  <div class="trip" id="trip" aria-label="Rocket trip">
+    <svg class="sky" viewBox="0 0 400 64" preserveAspectRatio="none" aria-hidden="true" id="tripSky"></svg>
+    <svg class="earth" viewBox="0 0 50 50" aria-hidden="true"><circle cx="25" cy="25" r="22" fill="#2F9BEA"/><path d="M12 16c6-4 10 2 8 7s-9 3-10 9c-4-4-3-12 2-16zM30 8c6 2 12 8 12 15-4 1-7-3-10-1s-1 8-6 9c-2-6 0-9-2-13s3-8 6-10z" fill="#2FA86B"/></svg>
+    <div class="dots" id="dots"></div>
+    <svg class="rocket" id="rocket" viewBox="0 0 60 40" aria-hidden="true">
+      <path d="M2 20l10-6v12z" fill="#FF7A59"><animate attributeName="d" values="M2 20l10-6v12z;M-4 20l16-5v10z;M2 20l10-6v12z" dur=".25s" repeatCount="indefinite"/></path>
+      <path d="M12 12h26c10 0 18 4 20 8-2 4-10 8-20 8H12z" fill="#F4F6FB"/>
+      <path d="M16 12l-6-9h10l8 9zM16 28l-6 9h10l8-9z" fill="#E5484D"/>
+      <circle cx="38" cy="20" r="5" fill="#7CC6F2" stroke="#2F6FED" stroke-width="2"/>
+    </svg>
+    <div class="goal" id="goal"></div>
+    <div class="label" id="tripLabel">To the Moon</div>
+  </div>
+
+  <section class="scene" id="scene">
+    <div class="sum" id="sum" aria-live="polite"></div>
+    <div class="story" id="story"></div>
+    <div class="trays" id="trays"></div>
+    <div class="buddy" id="buddy" aria-hidden="true"></div>
+  </section>
+
+  <div class="answers" id="answers"></div>
+</main>
+
+<div class="start" id="startScreen">
+  <h2>Rocket Maths</h2>
+  <p>Answer the sums to fly your rocket from planet to planet.</p>
+  <div class="planets" id="planets"></div>
+  <button class="big-btn" type="button" id="go">Blast off!</button>
+</div>
+
+<div class="start land" id="landScreen" hidden>
+  <div class="flag" id="landFlag">Touchdown!</div>
+  <div class="bigplanet" id="landPlanet"></div>
+  <h2 id="landTitle">You reached the Moon!</h2>
+  <p id="landText">Next stop: Mars</p>
+  <button class="big-btn" type="button" id="next">Fly to Mars!</button>
+</div>
+
+<script src="../assets/sfx.js"></script>
+<script src="../assets/animals.js"></script>
+<script src="../assets/zh.js"></script>
+<script>
+(function () {
+  var STEPS = 8;  // right answers to reach each planet
+  // Each planet is a level: what kind of sums, and how big the numbers get.
+  var PLANETS = [
+    { name: 'the Moon', short: 'Moon', ops: ['+'], max: 5, note: '+ up to 5',
+      svg: '<circle cx="50" cy="50" r="44" fill="#D9DCE6"/><circle cx="34" cy="36" r="9" fill="#BCC1D0"/><circle cx="62" cy="62" r="12" fill="#BCC1D0"/><circle cx="66" cy="30" r="5" fill="#BCC1D0"/><circle cx="32" cy="66" r="5" fill="#BCC1D0"/>' },
+    { name: 'Mars', short: 'Mars', ops: ['-'], max: 5, note: '− up to 5',
+      svg: '<circle cx="50" cy="50" r="44" fill="#E8613A"/><path d="M14 40c14 6 30-4 44 2s20 2 28-2M12 62c18 4 34-6 50 0s18 2 26-2" stroke="#C2452A" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="64" cy="28" r="6" fill="#C2452A"/>' },
+    { name: 'Jupiter', short: 'Jupiter', ops: ['+'], max: 10, note: '+ up to 10',
+      svg: '<circle cx="50" cy="50" r="44" fill="#E9C38F"/><path d="M8 34h84M6 50h88M10 66h80" stroke="#C98B56" stroke-width="8"/><ellipse cx="62" cy="62" rx="10" ry="6" fill="#D2553B"/>' },
+    { name: 'Saturn', short: 'Saturn', ops: ['-'], max: 10, note: '− up to 10',
+      svg: '<ellipse cx="50" cy="52" rx="48" ry="13" fill="none" stroke="#C9A35E" stroke-width="7"/><circle cx="50" cy="50" r="30" fill="#F2CF84"/><path d="M22 42h56M21 56h58" stroke="#DDB066" stroke-width="5"/><path d="M2 52a48 13 0 0 0 96 0" fill="none" stroke="#C9A35E" stroke-width="7"/>' },
+    { name: 'the Stars', short: 'Stars', ops: ['+', '-'], max: 10, note: '+ and −',
+      svg: '<polygon points="50,4 62,36 96,37 69,57 79,92 50,72 21,92 31,57 4,37 38,36" fill="#FFD23F" stroke="#F5A623" stroke-width="4" stroke-linejoin="round"/><circle cx="42" cy="48" r="4" fill="#1D2B4F"/><circle cx="58" cy="48" r="4" fill="#1D2B4F"/><path d="M42 60q8 7 16 0" stroke="#1D2B4F" stroke-width="3.5" fill="none" stroke-linecap="round"/>' }
+  ];
+  var $ = function (id) { return document.getElementById(id); };
+  var sfx = window.PC && PC.sfx ? PC.sfx : null;
+  var play = function (n) { try { if (sfx && sfx[n]) sfx[n](); } catch (e) {} };
+  var say = function (t) { try { if (sfx) sfx.say(t); } catch (e) {} };
+  var planetSvg = function (p) { return '<svg viewBox="0 0 100 100" aria-hidden="true">' + p.svg + '</svg>'; };
+
+  // Who's in the story: an animal and its favourite snack.
+  var fruit = function (id) { var f = PC.zhVocab && PC.zhVocab.fruits.items.filter(function (x) { return x.id === id; })[0]; return f ? f.pic() : PC.food('banana'); };
+  var CAST = [
+    { who: 'bunny', name: 'Bunny', thing: 'carrot', pic: function () { return PC.food('carrot'); } },
+    { who: 'monkey', name: 'Monkey', thing: 'banana', pic: function () { return PC.food('banana'); } },
+    { who: 'dog', name: 'Puppy', thing: 'bone', pic: function () { return PC.food('bone'); } },
+    { who: 'cat', name: 'Kitty', thing: 'fish', pic: function () { return PC.food('fish'); } },
+    { who: 'chick', name: 'Chick', thing: 'corn', pic: function () { return PC.food('corn'); } },
+    { who: 'frog', name: 'Froggy', thing: 'strawberry', pic: function () { return fruit('strawberry'); } },
+    { who: 'bunny', name: 'Bunny', thing: 'apple', pic: function () { return fruit('apple'); } }
+  ];
+  var WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+  var plural = function (n, t) { return n === 1 ? t : t === 'fish' ? 'fish' : t === 'strawberry' ? 'strawberries' : t + 's'; };
+
+  var planet = 0, step = 0, q = null, lastKey = '', lastCast = -1, busy = false, timers = [];
+  var later = function (ms, f) { var id = setTimeout(f, ms); timers.push(id); return id; };
+  var clearTimers = function () { timers.forEach(clearTimeout); timers = []; };
+  var rand = function (a, b) { return a + Math.floor(Math.random() * (b - a + 1)); };
+
+  try { var saved = parseInt(localStorage.getItem('pc-maths-planet'), 10); if (saved >= 0 && saved < PLANETS.length) planet = saved; } catch (e) {}
+
+  // ---- Questions ----
+  function makeQuestion() {
+    var P = PLANETS[planet], op, a, b, key, tries = 0;
+    do {
+      op = P.ops[rand(0, P.ops.length - 1)];
+      if (op === '+') { a = rand(1, P.max - 1); b = rand(1, P.max - a); }
+      else { a = rand(P.max > 5 ? 4 : 2, P.max); b = rand(1, a - 1); }
+      key = a + op + b;
+    } while (key === lastKey && ++tries < 20);
+    lastKey = key;
+    var ans = op === '+' ? a + b : a - b;
+    var c; do { c = rand(0, CAST.length - 1); } while (c === lastCast); lastCast = c;
+    return { op: op, a: a, b: b, ans: ans, cast: CAST[c], choices: choices(ans) };
+  }
+  function choices(ans) {
+    var near = [ans - 1, ans + 1, ans - 2, ans + 2, ans + 3].filter(function (n) { return n >= 1 && n <= 10 && n !== ans; });
+    var picks = [];
+    while (picks.length < 2 && near.length) {
+      var i = picks.length === 0 ? rand(0, Math.min(1, near.length - 1)) : rand(0, near.length - 1);
+      picks.push(near.splice(i, 1)[0]);
+    }
+    var all = [ans].concat(picks);
+    for (var j = all.length - 1; j > 0; j--) { var k = rand(0, j), t = all[j]; all[j] = all[k]; all[k] = t; }
+    return all;
+  }
+  function question(q) {
+    var t = q.cast.thing;
+    return q.op === '+'
+      ? WORD[q.a] + ' ' + plural(q.a, t) + ', and ' + WORD[q.b] + ' more. How many altogether?'
+      : WORD[q.a] + ' ' + plural(q.a, t) + '. ' + q.cast.name + ' eats ' + WORD[q.b] + '. How many are left?';
+  }
+  function storyText(q) {
+    return q.op === '+' ? q.a + ' and ' + q.b + ' more' : q.cast.name + ' eats ' + q.b + '!';
+  }
+
+  // ---- Drawing a question ----
+  function itemHtml(q, i) { return '<div class="item in" style="animation-delay:' + (i * 0.08) + 's" data-i="' + i + '">' + q.cast.pic() + '</div>'; }
+  function show() {
+    clearTimers(); busy = true;
+    q = makeQuestion();
+    $('sum').innerHTML = '<span>' + q.a + '</span><span class="op">' + (q.op === '+' ? '+' : '−') + '</span><span>' + q.b + '</span><span>=</span><span class="q" id="qbox">?</span>';
+    $('story').textContent = '';
+    $('buddy').innerHTML = PC.animal(q.cast.who, 'happy');
+    var trays = $('trays');
+    // pictures as big as fit: few snacks get big pictures
+    var tot = q.op === '+' ? Math.max(q.a, q.b) : q.a;
+    trays.style.setProperty('--s', (q.op === '+' ? (tot <= 3 ? 56 : 44) : (tot <= 6 ? 74 : 60)) + 'px');
+    if (q.op === '+') {
+      trays.innerHTML = '<div class="tray" id="trayA"></div><div class="plus">+</div><div class="tray b" id="trayB"></div>';
+      var A = '', B = '';
+      for (var i = 0; i < q.a; i++) A += itemHtml(q, i);
+      $('trayA').innerHTML = A;
+      // the "more" ones drop in one by one
+      for (var j = 0; j < q.b; j++) (function (j) {
+        later(500 + j * 380, function () { $('trayB').insertAdjacentHTML('beforeend', itemHtml(q, q.a + j).replace('animation-delay:' + ((q.a + j) * 0.08) + 's', 'animation-delay:0s')); play('pop'); });
+      })(j);
+      later(500 + q.b * 380, ready);
+    } else {
+      trays.innerHTML = '<div class="tray ' + (q.a > 6 ? 'wide' : '') + '" id="trayA"></div>';
+      var h = ''; for (var k = 0; k < q.a; k++) h += itemHtml(q, k);
+      $('trayA').innerHTML = h;
+      // the animal hops over and eats some
+      later(900, function () { eat(q.a - 1, q.a - q.b); });
+    }
+    renderAnswers(true);
+    say(question(q));
+  }
+  function eat(i, stop) {
+    if (i < stop) { $('buddy').innerHTML = PC.animal(q.cast.who, 'happy'); later(250, ready); return; }
+    var el = $('trayA').querySelector('[data-i="' + i + '"]'), bd = $('buddy');
+    if (!el) return;
+    var r = el.getBoundingClientRect(), br = bd.getBoundingClientRect();
+    bd.innerHTML = PC.animal(q.cast.who, 'open'); bd.classList.remove('hop'); void bd.offsetWidth; bd.classList.add('hop');
+    el.classList.remove('in');
+    el.style.transform = 'translate(' + (br.left + br.width / 2 - r.left - r.width / 2) + 'px,' + (br.top + br.height / 3 - r.top - r.height / 2) + 'px) scale(.2)';
+    el.classList.add('eaten');
+    play('chomp');
+    later(480, function () {
+      // leave an empty dotted spot where it was
+      el.classList.remove('eaten'); el.style.transform = ''; el.innerHTML = ''; el.classList.add('ghost'); el.dataset.gone = '1';
+      eat(i - 1, stop);
+    });
+  }
+  function ready() { busy = false; $('story').textContent = storyText(q); renderAnswers(false); }
+  function renderAnswers(locked) {
+    var box = $('answers');
+    box.innerHTML = q.choices.map(function (n) { return '<button class="ans" type="button" data-n="' + n + '"' + (locked ? ' disabled' : '') + ' aria-label="' + n + '">' + n + '</button>'; }).join('');
+  }
+
+  // ---- Answering ----
+  $('answers').addEventListener('click', function (ev) {
+    var b = ev.target.closest('.ans');
+    if (!b || b.disabled || busy) return;
+    var n = +b.dataset.n;
+    if (n === q.ans) right(b); else wrong(b);
+  });
+  function right(b) {
+    busy = true;
+    b.classList.add('right');
+    [].forEach.call($('answers').children, function (x) { x.disabled = true; });
+    var qb = $('qbox'); qb.textContent = q.ans; qb.classList.add('done');
+    $('buddy').innerHTML = PC.animal(q.cast.who, 'happy');
+    play('tada'); burst(b);
+    say('Yes! ' + WORD[q.a] + (q.op === '+' ? ' plus ' : ' minus ') + WORD[q.b] + ' is ' + WORD[q.ans] + '!');
+    step++; drawTrip();
+    later(2200, function () {
+      if (step >= STEPS) land(); else show();
+    });
+  }
+  function wrong(b) {
+    busy = true;
+    b.classList.add('wrong'); b.disabled = true;
+    play('boing');
+    // count together: number the snacks that are there now
+    var items = [].filter.call($('trays').querySelectorAll('.item'), function (el) { return !el.dataset.gone; });
+    say("Let's count together!");
+    items.forEach(function (el, i) {
+      later(1200 + i * 650, function () { el.insertAdjacentHTML('beforeend', '<span class="n">' + (i + 1) + '</span>'); play('note'); say(WORD[i + 1]); });
+    });
+    later(1200 + items.length * 650 + 300, function () {
+      [].forEach.call($('trays').querySelectorAll('.item .n'), function (x) { x.remove(); });
+      busy = false;
+      say('Try again!');
+    });
+  }
+  function burst(el) {
+    var r = el.getBoundingClientRect(), colors = ['#FFD23F', '#FF7A59', '#2FA86B', '#2F9BEA', '#E8579B'];
+    for (var i = 0; i < 16; i++) {
+      var d = document.createElement('div'), a = Math.random() * 6.3, v = 60 + Math.random() * 90;
+      d.className = 'burst'; d.style.background = colors[i % colors.length];
+      d.style.left = (r.left + r.width / 2) + 'px'; d.style.top = (r.top + r.height / 2) + 'px'; d.style.position = 'fixed';
+      d.style.setProperty('--dx', Math.cos(a) * v + 'px'); d.style.setProperty('--dy', Math.sin(a) * v + 'px');
+      document.body.appendChild(d); setTimeout(function (d) { d.remove(); }.bind(null, d), 1100);
+    }
+  }
+
+  // ---- The trip ----
+  function drawTrip() {
+    var P = PLANETS[planet], h = '';
+    for (var i = 0; i < STEPS; i++) h += '<div class="dot' + (i < step ? ' on' : '') + '"></div>';
+    $('dots').innerHTML = h;
+    $('goal').innerHTML = planetSvg(P);
+    $('tripLabel').textContent = 'To ' + P.name;
+    // rocket sits between Earth (step 0) and the planet (step 8)
+    var w = $('trip').clientWidth || 380, x0 = 34, x1 = w - 34;
+    $('rocket').style.left = (x0 + (x1 - x0) * (step / STEPS)) + 'px';
+  }
+  function land() {
+    var P = PLANETS[planet], nextP = PLANETS[Math.min(planet + 1, PLANETS.length - 1)], last = planet === PLANETS.length - 1;
+    $('landPlanet').innerHTML = planetSvg(P);
+    $('landTitle').textContent = 'You reached ' + P.name + '!';
+    $('landText').textContent = last ? 'You are a super space pilot! Fly again?' : 'Next stop: ' + nextP.name;
+    $('next').textContent = last ? 'Fly again!' : 'Fly to ' + nextP.short + '!';
+    $('landScreen').hidden = false;
+    play('tada'); later(400, function () { play('tada'); });
+    say('Touchdown! You reached ' + P.name + '!');
+    if (!last) { try { localStorage.setItem('pc-maths-planet', String(planet + 1)); } catch (e) {} }
+  }
+  $('next').addEventListener('click', function () {
+    if (planet < PLANETS.length - 1) planet++;
+    $('landScreen').hidden = true; step = 0; drawTrip(); show();
+  });
+  $('hear').addEventListener('click', function () { if (q) say(question(q)); });
+
+  // ---- Start screen: pick a planet (each is a level) ----
+  function renderPlanets() {
+    $('planets').innerHTML = PLANETS.map(function (p, i) {
+      return '<button class="pl' + (i === planet ? ' on' : '') + '" type="button" data-p="' + i + '">' + planetSvg(p) + p.short + '<small>' + p.note + '</small></button>';
+    }).join('');
+  }
+  $('planets').addEventListener('click', function (ev) {
+    var b = ev.target.closest('.pl'); if (!b) return;
+    planet = +b.dataset.p; renderPlanets();
+  });
+  $('go').addEventListener('click', function () {
+    try { sfx && sfx.unlock(); } catch (e) {}
+    $('startScreen').hidden = true; step = 0; drawTrip(); show();
+  });
+  // stars in the strip
+  var st = ''; for (var s = 0; s < 26; s++) st += '<circle cx="' + rand(0, 400) + '" cy="' + rand(3, 61) + '" r="' + (Math.random() < .2 ? 1.6 : 0.9) + '" fill="#fff" opacity="' + (0.4 + Math.random() * 0.6).toFixed(2) + '"/>';
+  $('tripSky').innerHTML = st;
+  renderPlanets(); drawTrip();
+  window.addEventListener('resize', drawTrip);
+
+  // for the automatic tests
+  window.__maths = {
+    get q() { return q; }, get step() { return step; }, get planet() { return planet; }, get busy() { return busy; },
+    PLANETS: PLANETS, STEPS: STEPS, makeQuestion: makeQuestion,
+    setPlanet: function (i) { planet = i; }, setStep: function (n) { step = n; drawTrip(); }
+  };
+})();
+</script>
+<script src="../assets/sw-register.js"></script>
+</body>
+</html>
