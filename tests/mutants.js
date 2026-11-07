@@ -37,10 +37,6 @@ module.exports = [
   { id: 'F7', games: ['feed-zh'], file: 'feed/index.html', what: 'fish uses the wrong measure word', find: "zf: '鱼',   zfp: 'yú',        zm: '条', zmp: 'tiáo'", repl: "zf: '鱼',   zfp: 'yú',        zm: '根', zmp: 'gēn'" },
   { id: 'F8', games: ['feed-zh'], file: 'feed/index.html', what: 'bites not counted aloud', find: "          PC.zh.say(n.count + '!');", repl: '' },
 
-  // ---- Peekaboo Pets
-  { id: 'K1', games: ['peekaboo'], file: 'peekaboo/index.html', what: 'tapping an empty hole counts', find: 'if (!h.up || h.found || paused) return;', repl: 'if (h.found || paused) return;' },
-  { id: 'K2', games: ['peekaboo'], file: 'peekaboo/index.html', what: 'round needs 11 instead of 10', find: 'if (found >= NEED) roundDone();', repl: 'if (found >= NEED + 1) roundDone();' },
-  { id: 'K3', games: ['peekaboo'], file: 'peekaboo/index.html', what: 'pets never hide again', find: '      if (h.up && now >= h.downAt) hide(h);', repl: '' },
 
   // ---- 找一找 / 跟我说 / voice
   { id: 'Z1', games: ['zh-find'], file: 'zh-find/index.html', what: 'wrong picture accepted', find: '    if (it === target) {', repl: '    if (it !== target) {' },

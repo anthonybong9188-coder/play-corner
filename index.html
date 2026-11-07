@@ -166,31 +166,6 @@
     </div>
   </a>
 
-  <a class="tile" href="feed/" aria-label="Play Feed the Animals">
-    <div class="tile-art" style="background:#FFE9C7;gap:6px">
-      <div id="art-feed-animal" style="width:130px;height:130px"></div>
-      <div id="art-feed-food" style="width:62px;height:62px;transform:rotate(-14deg)"></div>
-    </div>
-    <div class="tile-foot">
-      <div>
-        <div class="tile-name">Feed the Animals</div>
-        <div class="tile-sub">Count out their favourite snack</div>
-      </div>
-      <div class="play"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="#fff"/></svg></div>
-    </div>
-  </a>
-
-  <a class="tile" href="peekaboo/" aria-label="Play Peekaboo Pets">
-    <div class="tile-art" style="background:#8FD694;align-items:flex-end;padding-bottom:12px;gap:14px" id="art-peek"></div>
-    <div class="tile-foot">
-      <div>
-        <div class="tile-name">Peekaboo Pets</div>
-        <div class="tile-sub">Tap the pets that peek out</div>
-      </div>
-      <div class="play"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="#fff"/></svg></div>
-    </div>
-  </a>
-
   <a class="tile" href="sky/" aria-label="Play Sky Hero">
     <div class="tile-art" style="background:linear-gradient(#7CC6F2,#CDEBFB)" id="art-sky"></div>
     <div class="tile-foot">
@@ -242,8 +217,6 @@
 <script>
   (function () {
     if (!window.PC) return;
-    document.getElementById('art-feed-animal').innerHTML = PC.animal('bunny', 'open');
-    document.getElementById('art-feed-food').innerHTML = PC.food('carrot');
     if (PC.zhVocab) {
       var V = PC.zhVocab, g = function (id) { return document.getElementById(id); };
       var balloon = function (c) { return '<svg viewBox="0 0 84 120" aria-hidden="true"><path d="M42 92C38 104 48 110 42 120" fill="none" stroke="#7A8AA6" stroke-width="2"/><ellipse cx="42" cy="46" rx="36" ry="42" fill="' + c + '"/><ellipse cx="28" cy="28" rx="7" ry="12" fill="#fff" opacity=".45" transform="rotate(-25 28 28)"/></svg>'; };
@@ -265,12 +238,6 @@
       '<div style="display:flex;gap:40px">' + pl('#E5484D', '#B8323A', true, 52) + pl('#8B5CF6', '#6A3FD0', true, 52) + '</div>' +
       '<svg width="10" height="22" viewBox="0 0 10 22" aria-hidden="true"><ellipse cx="5" cy="11" rx="4" ry="9" fill="#FFD23F"/></svg>' +
       pl('#4A8BFF', '#1F4FB8', false, 60) + '</div>';
-    var peek = document.getElementById('art-peek'), pets = [['cat', 'open', 64], ['dog', 'happy', 0], ['frog', 'open', 40]];
-    peek.innerHTML = pets.map(function (p) {
-      return '<div style="position:relative;width:78px;height:96px">' +
-        '<div style="position:absolute;left:0;right:0;top:0;bottom:16px;overflow:hidden"><div style="position:absolute;left:50%;bottom:0;width:72px;height:72px;transform:translate(-50%,' + p[2] + '%)">' + PC.animal(p[0], p[1]) + '</div></div>' +
-        '<div style="position:absolute;left:0;right:0;bottom:0;height:24px;border-radius:50%;background:#9C6B43;box-shadow:inset 0 -4px 0 #7E5333"></div></div>';
-    }).join('');
   })();
 </script>
 <script src="assets/sw-register.js"></script>

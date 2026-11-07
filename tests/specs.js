@@ -264,31 +264,6 @@ module.exports = [
     h.assert((await h.said()).includes('一!'), 'counts the first bite aloud: 一!');
   }},
 
-  // ===== Peekaboo Pets
-  { game: 'peekaboo', name: 'only peeking pets count; they hide again; 10 ends the round', timeout: 90000, fn: async (page, h) => {
-    await page.goto(h.base + 'peekaboo/'); await page.waitForSelector('.hole');
-    const count = async () => +(await page.textContent('#count'));
-    const empty = await page.$$eval('.hole', (hs) => hs.findIndex((x) => !x.classList.contains('up')));
-    await tap(page, '.hole', empty); await h.sleep(100);
-    h.assert((await count()) === 0, 'tapping an empty hole must not count');
-    // a pet that is not tapped goes back down by itself
-    await page.waitForSelector('.hole.up', { timeout: 4000 });
-    const wentDown = await page.evaluate(() => new Promise((res) => {
-      const i = [...document.querySelectorAll('.hole')].findIndex((x) => x.classList.contains('up'));
-      const el = document.querySelectorAll('.hole')[i], t0 = performance.now();
-      const tick = () => { if (!el.classList.contains('up')) return res(true); if (performance.now() - t0 > 3000) return res(false); requestAnimationFrame(tick); };
-      tick();
-    }));
-    h.assert(wentDown, 'pets hide again if not tapped');
-    for (let n = 1; n <= 10; n++) {
-      await page.waitForSelector('.hole.up:not(.found)', { timeout: 5000 });
-      const i = await page.$$eval('.hole', (hs) => hs.findIndex((x) => x.classList.contains('up') && !x.classList.contains('found')));
-      await tap(page, '.hole', i); await h.sleep(60);
-      h.assert((await count()) === n, `found count should be ${n}`);
-    }
-    await page.waitForSelector('#cheer.show', { timeout: 2000 });
-    await page.waitForFunction(() => document.getElementById('round').textContent === 'Round 2' && document.getElementById('count').textContent === '0', null, { timeout: 4000 });
-  }},
 
   // ===== 找一找
   { game: 'zh-find', name: 'right picture earns a star, wrong one is named; 8 stars move to next topic', timeout: 90000, fn: async (page, h) => {
@@ -497,7 +472,7 @@ module.exports = [
   { game: 'portal', name: 'every tile opens a working page; Mandarin modes work offline', sw: true, timeout: 60000, fn: async (page, h) => {
     await page.goto(h.base);
     const hrefs = await page.$$eval('a.tile', (as) => as.map((a) => a.getAttribute('href')));
-    h.assert(hrefs.length >= 13, 'expected at least 13 tiles, found ' + hrefs.length);
+    h.assert(hrefs.length >= 11, 'expected at least 11 tiles, found ' + hrefs.length);
     for (const href of hrefs) { const r = await page.request.get(h.base + href); h.assert(r.ok(), href + ' → ' + r.status()); }
     await page.evaluate(() => navigator.serviceWorker.ready);
     await page.reload(); await page.waitForFunction(() => navigator.serviceWorker.controller);
