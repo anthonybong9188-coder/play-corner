@@ -212,6 +212,13 @@ module.exports = [
       await h.sleep(150);
     }
   }},
+  { game: 'feed', name: 'a different animal comes every time', fn: async (page, h) => {
+    await page.goto(h.base + 'feed/?lang=zh'); await page.waitForSelector('.food');
+    const seq = await page.evaluate(() => { const out = [__feed.who]; for (let i = 0; i < 80; i++) { __feed.newRound(); out.push(__feed.who); } return out; });
+    const rep = seq.findIndex((w, i) => i > 0 && w === seq[i - 1]);
+    h.assert(rep < 0, 'same animal twice in a row at round ' + rep + ': ' + seq.slice(Math.max(0, rep - 2), rep + 1));
+    h.assert(new Set(seq).size >= 4, 'all the animals take turns');
+  }},
   { game: 'feed', name: 'worst case: wants 5 with unhelpful refills — the tray never runs out', timeout: 90000, fn: async (page, h) => {
     await page.goto(h.base + 'feed/'); await page.waitForSelector('.food');
     const FOOD = { Bunny: 'carrot', Monkey: 'banana', Doggy: 'bone', Kitty: 'fish', Chick: 'corn' };

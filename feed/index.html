@@ -355,6 +355,8 @@
   });
 
   newRound();
+  // for the automatic tests
+  window.__feed = { newRound: newRound, get who() { return who; } };
 })();
 </script>
 <script src="../assets/sw-register.js"></script>

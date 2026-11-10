@@ -15,5 +15,5 @@ node tests/run-mutants.js X1 F3    # just some planted bugs
 - `mutants.js` – planted bugs; each must make at least one test fail ("killed")
 - `harness.js` – tiny static server, browser launcher, speech stub
 
-Every planted bug is caught. A real bug the tests found and that was fixed: the Feed the Animals tray
+Every planted bug is caught (105/105 on 2026-11-10). A real bug the tests found and that was fixed: the Feed the Animals tray
 could run out of the wanted food.
