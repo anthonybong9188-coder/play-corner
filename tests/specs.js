@@ -265,6 +265,91 @@ module.exports = [
   }},
 
 
+  // ===== 跟我读 Read With Me
+  { game: 'zh-read', name: 'every sentence: pinyin for each character, a picture, short enough for a 4-year-old', fn: async (page, h) => {
+    await page.goto(h.base + 'zh-read/');
+    const bad = await page.evaluate(() => {
+      const out = [], syl = /^[a-zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü]+$/;
+      __zr.LESSONS.forEach((L, l) => {
+        if (L.s.length < 5 || L.s.length > 6) out.push(L.hz + ' has ' + L.s.length + ' sentences');
+        L.s.forEach((S, i) => {
+          try {
+            const ws = __zr.parse(S[0]), chars = ws.filter((w) => !w.punct).map((w) => w.hz).join('');
+            if (Array.from(chars).length > 10) out.push(S[0] + ' too long');
+            ws.forEach((w) => w.py.forEach((p) => { if (!syl.test(p)) out.push('bad pinyin ' + p); }));
+            const pic = S[2](); if (!pic || (pic.html || pic).length < 50) out.push('no picture ' + S[0]);
+            if (!S[1]) out.push('no English ' + S[0]);
+          } catch (e) { out.push(e.message); }
+        });
+      });
+      return out;
+    });
+    h.assert(!bad.length, bad.slice(0, 4).join('; '));
+  }},
+  { game: 'zh-read', name: 'teacher reads word by word with the light; light resets; child reads along in silence; then a star', timeout: 90000, fn: async (page, h) => {
+    // a phone voice that reports when each word is finished
+    await page.addInitScript(() => {
+      window.__log = [];
+      speechSynthesis.speak = (u) => { window.__said.push({ text: u.text }); window.__log.push('say:' + u.text); setTimeout(() => u.onend && u.onend(), 250); };
+      const was = new WeakMap();
+      new MutationObserver((ms) => ms.forEach((m) => {
+        const t = m.target, isNow = !!(t.classList && t.classList.contains('word') && t.classList.contains('now'));
+        const lit = isNow && !was.get(t); if (t.classList && t.classList.contains('word')) was.set(t, isNow);
+        if (lit)
+          window.__log.push((t.classList.contains('you') ? 'you:' : 'lit:') + t.dataset.w + '@' + Date.now());
+        if (t.id === 'phase' && t.className !== m.oldValue) window.__log.push('phase:' + t.className.replace('phase', '').trim() + ':heard=' + document.querySelectorAll('.word.heard,.word.read').length);
+      })).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+    });
+    await page.goto(h.base + 'zh-read/');
+    await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+    await page.reload();
+    await page.click('#go');
+    await page.evaluate(() => __zr.go(1, 3));   // 我有一个家。
+    await page.evaluate(() => { __log.length = 0; });
+    await page.click('#listen');
+    await page.waitForSelector('#phase.done', { timeout: 30000 });
+    const log = await page.evaluate(() => __log);
+    const words = await page.evaluate(() => __zr.words.map((w, i) => ({ i, hz: w.hz, punct: w.punct })));
+    const real = words.filter((w) => !w.punct);
+    const lit = log.filter((x) => x.startsWith('lit:')).map((x) => +x.split(':')[1].split('@')[0]);
+    h.assert(JSON.stringify(lit) === JSON.stringify(real.map((w) => w.i)), 'teacher lights each word in order: ' + lit);
+    const spoken = log.filter((x) => x.startsWith('say:')).map((x) => x.slice(4));
+    h.assert(JSON.stringify(spoken.slice(0, real.length)) === JSON.stringify(real.map((w) => w.hz)), 'teacher says each word in order, no punctuation: ' + spoken);
+    const turnAt = log.findIndex((x) => x.startsWith('phase:turn'));
+    h.assert(turnAt > 0 && /heard=0$/.test(log[turnAt]), 'the light is reset before the child reads: ' + log[turnAt]);
+    const after = log.slice(turnAt);
+    const you = after.filter((x) => x.startsWith('you:'));
+    h.assert(JSON.stringify(you.map((x) => +x.split(':')[1].split('@')[0])) === JSON.stringify(real.map((w) => w.i)), 'child light goes through each word in order');
+    const saidInTurn = after.filter((x) => x.startsWith('say:')).map((x) => x.slice(4));
+    h.assert(saidInTurn.every((t) => !real.some((w) => w.hz === t)), 'no words are spoken during the child\'s turn: ' + saidInTurn);
+    const times = you.map((x) => +x.split('@')[1]);
+    for (let k = 1; k < times.length; k++) {
+      const len = Array.from(real[k - 1].hz).length;
+      h.assert(times[k] - times[k - 1] >= len * 700, 'child gets time to read ' + real[k - 1].hz + ' (' + (times[k] - times[k - 1]) + ' ms)');
+    }
+    h.assert(await page.locator('#progress i').nth(3).evaluate((e) => e.classList.contains('on')), 'the sentence gets its star');
+    h.assert(/1\/5/.test(await page.textContent('.chip[data-l="1"]')), 'lesson shows 1/5');
+    // tap a word to hear it alone
+    await page.evaluate(() => { __said.length = 0; });
+    await page.click('.word[data-w="2"]', { force: true });
+    h.assert((await h.said()).includes('一个'), 'tapping a word says it');
+    // pinyin can be hidden
+    await page.click('#pyBtn');
+    h.assert(await page.locator('#sentence.nopy').count() === 1, 'pinyin hides');
+    await page.click('#next', { force: true });
+    h.assert((await page.evaluate(() => __zr.idx)) === 4, 'Next goes to the next sentence');
+    await page.reload();
+    h.assert(/1\/5/.test(await page.textContent('.chip[data-l="1"]')), 'progress is remembered');
+  }},
+  { game: 'zh-read', name: 'still works on a phone that never says when speech ends', timeout: 60000, fn: async (page, h) => {
+    await page.goto(h.base + 'zh-read/');
+    await page.click('#go');
+    await page.evaluate(() => __zr.go(0, 0));
+    await page.click('#listen');
+    await page.waitForSelector('#phase.turn', { timeout: 10000 });
+    await page.waitForSelector('#phase.done', { timeout: 15000 });
+  }},
+
   // ===== 找一找
   { game: 'zh-find', name: 'right picture earns a star, wrong one is named; 8 stars move to next topic', timeout: 90000, fn: async (page, h) => {
     await page.goto(h.base + 'zh-find/'); await page.click('#go');
@@ -352,6 +437,7 @@ module.exports = [
   { game: 'zh-write', name: 'watch, then trace in stroke order; finished characters get a tick', timeout: 90000, fn: async (page, h) => {
     await page.goto(h.base + 'sky/'); await page.waitForSelector('#go', { timeout: 5000 });
     await page.goto(h.base + 'maths/'); await page.waitForSelector('.pl', { timeout: 5000 });
+    await page.goto(h.base + 'zh-read/'); await page.waitForSelector('.word', { timeout: 5000 });
     await page.goto(h.base + 'zh-write/'); await page.click('#go');
     await zwReady(page);
     h.assert((await h.said()).includes('日'), 'the character is spoken');
@@ -374,6 +460,7 @@ module.exports = [
   { game: 'zh-write', name: 'all 40 characters load the right stroke data; groups and Next work', timeout: 90000, fn: async (page, h) => {
     await page.goto(h.base + 'sky/'); await page.waitForSelector('#go', { timeout: 5000 });
     await page.goto(h.base + 'maths/'); await page.waitForSelector('.pl', { timeout: 5000 });
+    await page.goto(h.base + 'zh-read/'); await page.waitForSelector('.word', { timeout: 5000 });
     await page.goto(h.base + 'zh-write/'); await page.click('#go'); await zwReady(page);
     // fingerprint from the original stroke data: "<strokes>:<x>,<y> of where the first stroke starts>"
     const EXPECT = { 日: '4:284,684', 月: '4:339,773', 山: '3:472,748', 水: '4:473,814', 火: '4:216,534', 木: '4:228,534', 人: '2:483,736', 口: '3:229,584', 田: '5:168,630', 雨: '8:312,695', 一: '1:121,393', 二: '2:293,587', 三: '3:316,655', 四: '5:132,606', 五: '4:304,694', 六: '4:441,756', 七: '2:101,340', 八: '2:331,470', 九: '2:402,808', 十: '2:109,442', 目: '5:281,723', 耳: '6:224,757', 手: '4:696,777', 足: '7:322,757', 牛: '4:314,694', 羊: '6:345,813', 马: '3:289,716', 鸟: '5:425,861', 鱼: '8:442,848', 虫: '6:233,528', 大: '3:210,458', 小: '3:484,773', 上: '3:446,781', 下: '3:113,682', 中: '4:194,598', 天: '4:326,698', 云: '4:342,641', 土: '3:283,438', 石: '5:265,665', 门: '3:304,770' };
@@ -559,6 +646,7 @@ module.exports = [
     h.assert((await page.locator('.front .hz').count()) === 10, 'Character Match works offline (needs the Mandarin words file)');
     await page.goto(h.base + 'sky/'); await page.waitForSelector('#go', { timeout: 5000 });
     await page.goto(h.base + 'maths/'); await page.waitForSelector('.pl', { timeout: 5000 });
+    await page.goto(h.base + 'zh-read/'); await page.waitForSelector('.word', { timeout: 5000 });
     await page.goto(h.base + 'zh-write/'); await page.click('#go');
     await page.waitForFunction(() => /strokes/.test(document.getElementById('strokes').textContent), null, { timeout: 8000 });
   }}

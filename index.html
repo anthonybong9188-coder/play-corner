@@ -52,6 +52,7 @@
   .zh-grid .tile-art svg { height: 84px; width: auto; }
   .zh-grid .tile-name { font-family: 'Noto Sans SC', 'PingFang SC', sans-serif; font-weight: 900; font-size: 22px; }
   .zh-grid .tile-sub { font-size: 14px; }
+  .zh-grid .tile.wide { grid-column: 1 / -1; }
   .art-hz { font-family: 'Noto Sans SC', 'PingFang SC', sans-serif; font-weight: 900; font-size: 40px; color: #B8323A; }
   .foot { margin-top: auto; text-align: center; font-size: 14px; font-weight: 700; color: var(--ink-3); }
 </style>
@@ -190,6 +191,10 @@
 
   <div class="section"><h2>学中文</h2><span>Learn Chinese</span></div>
   <div class="zh-grid">
+    <a class="tile wide" href="zh-read/" aria-label="Play Read With Me, in Mandarin">
+      <div class="tile-art" style="background:#FFF1C2" id="zart-read"></div>
+      <div><div class="tile-name">跟我读</div><div class="tile-sub">Read With Me · listen, then read the sentence</div></div>
+    </a>
     <a class="tile" href="zh-find/" aria-label="Play Find It, in Mandarin">
       <div class="tile-art" style="background:#DDF0FC" id="zart-find"></div>
       <div><div class="tile-name">找一找</div><div class="tile-sub">Find It · listen &amp; tap</div></div>
@@ -231,6 +236,7 @@
     if (PC.zhVocab) {
       var V = PC.zhVocab, g = function (id) { return document.getElementById(id); };
       var balloon = function (c) { return '<svg viewBox="0 0 84 120" aria-hidden="true"><path d="M42 92C38 104 48 110 42 120" fill="none" stroke="#7A8AA6" stroke-width="2"/><ellipse cx="42" cy="46" rx="36" ry="42" fill="' + c + '"/><ellipse cx="28" cy="28" rx="7" ry="12" fill="#fff" opacity=".45" transform="rotate(-25 28 28)"/></svg>'; };
+      g('zart-read').innerHTML = PC.animal('cat', 'happy') + '<span class="art-hz" style="font-size:34px;color:#1D2B4F"><span style="background:#FFD23F;border-radius:10px;padding:0 4px">我</span>爱<span style="background:#DDF5E7;border-radius:10px;padding:0 4px">妈妈</span></span>';
       g('zart-find').innerHTML = PC.animal('cat', 'open') + '<span class="art-hz" style="color:#2F6FED">?</span>';
       g('zart-count').innerHTML = PC.animal('bunny', 'happy') + '<span class="art-hz" style="font-size:30px;color:#F28C28">一二三</span>';
       g('zart-balloon').innerHTML = balloon('#E5484D') + balloon('#F5B800') + balloon('#2F6FED');

@@ -64,6 +64,19 @@ module.exports = [
   { id: 'ZW8', games: ['zh-write'], file: 'assets/zh.js', what: 'two characters swapped onto each other\'s stroke data', find: "{ id: 'da', hz: '大'", repl: "{ id: 'xiao', hz: '大'" },
   { id: 'ZW5', games: ['portal'], file: 'sw.js', what: 'stroke data not saved for offline', find: "  './zh-write/data/ri.json',\n", repl: '' },
 
+  // ---- 跟我读 Read With Me
+  { id: 'R1', games: ['zh-read'], file: 'zh-read/index.html', what: "light not reset before the child reads", edits: [{ find: "clearMarks(); yourTurn(true);", repl: "yourTurn(true);" }, { find: "clearMarks(); setPhase('turn'", repl: "setPhase('turn'" }] },
+  { id: 'R2', games: ['zh-read'], file: 'zh-read/index.html', what: "teacher skips a word", find: "n++; setTimeout(nextWord, 160);", repl: "n += 2; setTimeout(nextWord, 160);" },
+  { id: 'R3', games: ['zh-read'], file: 'zh-read/index.html', what: "words are spoken in the child's turn", find: "wordEl(i).classList.add('now', 'you');", repl: "wordEl(i).classList.add('now', 'you'); say(words[i].hz);" },
+  { id: 'R4', games: ['zh-read'], file: 'zh-read/index.html', what: "punctuation is read out", find: "return words.map(function (w, i) { return i; }).filter(function (i) { return !words[i].punct; });", repl: "return words.map(function (w, i) { return i; });" },
+  { id: 'R5', games: ['zh-read'], file: 'zh-read/index.html', what: "no backup timer if speech end never comes", find: "setTimeout(go, 900 + 520 * Array.from(w.hz).length);", repl: "" },
+  { id: 'R6', games: ['zh-read'], file: 'zh-read/index.html', what: "child's light runs too fast", find: "setTimeout(step, Math.max(len * 750, (durs[i] || 0) * 1.4));", repl: "setTimeout(step, 200);" },
+  { id: 'R7', games: ['zh-read'], file: 'zh-read/index.html', what: "progress not saved", find: "done[key(lesson, idx)] = 1; save();", repl: "" },
+  { id: 'R8', games: ['zh-read'], file: 'zh-read/index.html', what: "tapping a word is silent", find: "el.classList.add('now'); say(w.hz, { rate: 0.7 });", repl: "el.classList.add('now');" },
+  { id: 'R9', games: ['zh-read'], file: 'zh-read/index.html', what: "Next skips a sentence", find: "    idx++;\n    if (idx >= LESSONS", repl: "    idx += 2;\n    if (idx >= LESSONS" },
+  { id: 'R10', games: ['zh-read'], file: 'zh-read/index.html', what: "a pinyin is missing", find: "\u5c0f\u732b:xi\u01ceo m\u0101o", repl: "\u5c0f\u732b:xi\u01ceo" },
+  { id: 'R11', games: ['zh-read'], file: 'zh-read/index.html', what: "pinyin cannot be hidden", find: "$('sentence').classList.toggle('nopy', !showPy);", repl: "$('sentence').classList.toggle('nopy', false);" },
+  { id: 'R12', games: ['portal'], file: 'sw.js', what: 'Read With Me not saved for offline', find: "  './zh-read/',\n", repl: '' },
   // ---- Rocket Maths
   { id: 'MA1', games: ['maths'], file: 'maths/index.html', what: "plus can go over the limit", find: "b = rand(1, P.max - a);", repl: "b = rand(1, P.max);" },
   { id: 'MA2', games: ['maths'], file: 'maths/index.html', what: "minus can leave nothing", find: "b = rand(1, a - 1);", repl: "b = rand(1, a);" },
