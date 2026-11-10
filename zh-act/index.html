@@ -134,6 +134,60 @@
   @keyframes nod { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
   .a-wavewater { animation: scroll 1.6s linear infinite; }
   .a-blink { animation: blinkl 1s steps(2) infinite; }
+  .a-bob.slow { animation-duration: .45s; } .a-scroll.slow { animation-duration: 1.4s; } .a-kick.slow { animation-duration: .9s; } .a-spin.fast { animation-duration: .5s; }
+  .d1 { animation-delay: .7s; } .d2 { animation-delay: 1.4s; }
+  .a-rise { animation: rise 4s ease-out infinite; } @keyframes rise { from { transform: translateY(40px); } to { transform: translateY(0); } }
+  .a-stretch { animation: stretch 1.2s ease-in-out infinite alternate; } @keyframes stretch { from { transform: rotate(-12deg); } to { transform: rotate(12deg); } }
+  .a-ring { animation: ring .12s linear infinite alternate; } @keyframes ring { from { transform: rotate(-12deg); } to { transform: rotate(12deg); } }
+  .a-drop { animation: dropf .9s linear infinite; } @keyframes dropf { from { transform: translateY(0); opacity: 1; } to { transform: translateY(34px); opacity: 0; } }
+  .a-comb { animation: comb .6s ease-in-out infinite alternate; } @keyframes comb { from { transform: rotate(-20deg); } to { transform: rotate(10deg); } }
+  .a-walk { animation: walk .6s ease-in-out infinite alternate; } @keyframes walk { from { transform: rotate(-20deg); } to { transform: rotate(20deg); } }
+  .a-scroll-slow { animation: scrollb 8s linear infinite; } @keyframes scrollb { from { transform: translateX(120px); } to { transform: translateX(-320px); } }
+  .a-sweep { animation: sweep .5s ease-in-out infinite alternate; } @keyframes sweep { from { transform: rotate(-25deg); } to { transform: rotate(15deg); } }
+  .a-dust { animation: dust 1s ease-out infinite; } @keyframes dust { from { transform: translate(0, 0) scale(.5); opacity: .9; } to { transform: translate(24px, -14px) scale(1.4); opacity: 0; } }
+  .a-shine { animation: blinkl 1s steps(2) infinite; }
+  .a-push { animation: pushm .8s ease-in-out infinite alternate; } @keyframes pushm { to { transform: translateX(22px); } }
+  .a-dish { animation: spin 1.4s linear infinite; }
+  .a-grow { animation: grow 3s ease-out infinite; } @keyframes grow { 0% { transform: scale(.15); } 60%, 100% { transform: scale(1); } }
+  .a-wipe { animation: wipe .4s ease-in-out infinite alternate; } @keyframes wipe { from { transform: rotate(-22deg); } to { transform: rotate(22deg); } }
+  .a-trash { animation: trash 2.4s ease-in-out infinite; } @keyframes trash { 0%, 25% { transform: translate(0, 0); opacity: 1; } 55% { transform: translate(54px, -14px); } 80% { transform: translate(54px, 26px); opacity: 1; } 100% { transform: translate(54px, 26px); opacity: 0; } }
+  .a-flutter { animation: flutter 1s ease-in-out infinite alternate; } @keyframes flutter { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+  .a-reach { animation: reach .8s ease-in-out infinite alternate; } @keyframes reach { from { transform: rotate(-12deg); } to { transform: rotate(12deg); } }
+  .a-pat { animation: pat .35s ease-in-out infinite alternate; } @keyframes pat { from { transform: rotate(-10deg); } to { transform: rotate(25deg); } }
+  .a-ballbounce { animation: bball .35s ease-in infinite alternate; } @keyframes bball { to { transform: translateY(52px); } }
+  .a-shadowb { animation: shb .35s ease-in infinite alternate; } @keyframes shb { from { transform: scale(.5); } to { transform: scale(1); } }
+  .a-slide { animation: slidek 2.4s ease-in infinite; } @keyframes slidek { 0%, 10% { transform: translate(0, 0); opacity: 1; } 75% { transform: translate(130px, 100px); opacity: 1; } 90%, 100% { transform: translate(130px, 100px); opacity: 0; } }
+  .a-pendulum { animation: pend 1.6s ease-in-out infinite alternate; } @keyframes pend { from { transform: rotate(-28deg); } to { transform: rotate(28deg); } }
+  .a-rope { animation: rope .5s ease-in-out infinite alternate; } @keyframes rope { from { transform: scaleY(1); } to { transform: scaleY(-1); } }
+  .a-glide { animation: glide 1.6s ease-in-out infinite alternate; } @keyframes glide { from { transform: translateX(-40px) rotate(-8deg); } to { transform: translateX(40px) rotate(8deg); } }
+  .a-climb { animation: climb 1s ease-in-out infinite alternate; } @keyframes climb { to { transform: translateY(-24px); } }
+  .a-kite { animation: kite 1.4s ease-in-out infinite alternate; } @keyframes kite { from { transform: translate(-12px, 6px) rotate(-10deg); } to { transform: translate(12px, -6px) rotate(10deg); } }
+  .a-kitehand { animation: reach 1.4s ease-in-out infinite alternate; }
+  .a-fishjump { animation: fishj 2s ease-in-out infinite; } @keyframes fishj { 0%, 40% { transform: translate(0, 20px); opacity: 0; } 50% { transform: translate(0, 8px); opacity: 1; } 70% { transform: translate(20px, -30px) rotate(-30deg); } 90% { transform: translate(40px, 10px) rotate(30deg); opacity: 1; } 100% { transform: translate(40px, 20px); opacity: 0; } }
+  .a-oar { animation: oar 1s ease-in-out infinite alternate; } @keyframes oar { from { transform: rotate(-15deg); } to { transform: rotate(15deg); } }
+  .a-oar2 { animation: oar2 1s ease-in-out infinite alternate; } @keyframes oar2 { from { transform: rotate(-20deg); } to { transform: rotate(20deg); } }
+  .a-shoot { animation: shoot 1.8s ease-in-out infinite; } @keyframes shoot { 0%, 15% { transform: rotate(0); } 25% { transform: rotate(-25deg); } 45%, 100% { transform: rotate(0); } }
+  .a-hoop { animation: hoop 1.8s ease-in-out infinite; } @keyframes hoop { 0%, 25% { transform: translate(0, 0); opacity: 1; } 55% { transform: translate(60px, -50px); } 80% { transform: translate(122px, 2px); } 95% { transform: translate(122px, 40px); opacity: 1; } 100% { transform: translate(122px, 40px); opacity: 0; } }
+  .a-stack { animation: stack 3.2s ease-in infinite; } @keyframes stack { 0% { transform: translateY(-80px); opacity: 0; } 10% { opacity: 1; } 25%, 90% { transform: translateY(0); opacity: 1; } 100% { opacity: 0; } }
+  .a-snow { animation: snow 4s linear infinite; } @keyframes snow { from { transform: translate(0, 0); } to { transform: translate(20px, 200px); } }
+  .a-blowb { animation: blowb 2.4s ease-out infinite; } @keyframes blowb { from { transform: translate(0, 0) scale(.3); opacity: 1; } 80% { opacity: 1; } to { transform: translate(110px, -60px) scale(1.2); opacity: 0; } }
+  .a-press { animation: press .3s ease-in-out infinite alternate; } @keyframes press { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+  .a-hit { animation: hit .3s ease-in-out infinite alternate; } @keyframes hit { from { transform: rotate(-25deg); } to { transform: rotate(5deg); } }
+  .a-clap { animation: clapl .3s ease-in-out infinite alternate; } @keyframes clapl { from { transform: rotate(0); } to { transform: rotate(35deg); } }
+  .a-clap2 { animation: clapr .3s ease-in-out infinite alternate; } @keyframes clapr { from { transform: rotate(0); } to { transform: rotate(-35deg); } }
+  .a-flash { animation: flash 2s linear infinite; } @keyframes flash { 0%, 45% { opacity: 0; } 50% { opacity: 1; } 62%, 100% { opacity: 0; } }
+  .a-snip { animation: snip .25s ease-in-out infinite alternate; } @keyframes snip { from { transform: rotate(-12deg); } to { transform: rotate(4deg); } }
+  .a-tvc { animation: tvc 2s steps(1) infinite; } .a-tvc.d1 { animation-delay: 1s; } @keyframes tvc { 0% { opacity: 0; } 50% { opacity: 1; } }
+  .a-ripple { animation: ripple 1.2s ease-out infinite; } @keyframes ripple { from { transform: scale(.6); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
+  .a-fishswim { animation: fishsw 2s ease-in-out infinite alternate; } @keyframes fishsw { to { transform: translateX(-36px); } }
+  .a-flake { animation: flake 2s linear infinite; } @keyframes flake { from { transform: translateY(0); opacity: 1; } to { transform: translateY(50px); opacity: 0; } }
+  .a-sprinkle { animation: press .4s ease-in-out infinite alternate; }
+  .a-wag { animation: press .2s ease-in-out infinite alternate; }
+  .a-dig { animation: dig .6s ease-in-out infinite alternate; } @keyframes dig { from { transform: rotate(-20deg); } to { transform: rotate(20deg); } }
+  .a-applefall { animation: applef 2.4s ease-in infinite; } @keyframes applef { 0%, 30% { transform: translate(0, 0); opacity: 1; } 75% { transform: translate(-84px, 86px); opacity: 1; } 90%, 100% { transform: translate(-84px, 86px); opacity: 0; } }
+  .a-tear { animation: tear 1.2s ease-in infinite; } @keyframes tear { from { transform: translateY(0); opacity: 1; } to { transform: translateY(40px); opacity: 0; } }
+  .a-throw { animation: throwa 1.8s ease-in-out infinite; } @keyframes throwa { 0%, 20% { transform: rotate(-30deg); } 40%, 100% { transform: rotate(80deg); } }
+  .a-throwball { animation: throwb 1.8s ease-out infinite; } @keyframes throwb { 0%, 25% { transform: translate(0, 0); opacity: 1; } 45% { transform: translate(50px, -20px); } 90% { transform: translate(190px, 40px); opacity: 1; } 100% { transform: translate(190px, 40px); opacity: 0; } }
   @keyframes blinkl { 50% { opacity: .25; } }
 </style>
 </head>
@@ -151,6 +205,8 @@
     <button class="mode on" type="button" id="mLearn" data-m="learn"><span class="zh">学一学</span>Learn</button>
     <button class="mode" type="button" id="mGuess" data-m="guess"><span class="zh">猜一猜</span>Guess</button>
   </div>
+
+  <div class="chips" id="groups"></div>
 
   <div class="stage" id="stage"><div class="count" id="count" hidden></div></div>
 
@@ -195,7 +251,9 @@
   function kid(o) {
     o = o || {};
     var shirt = o.shirt || '#FF7A59', pants = o.pants || '#3B5BDB';
-    var eyes = o.eyes === 'closed'
+    var eyes = o.eyes === 'happy'
+      ? '<path d="M-12 -22q4-7 8 0M4 -22q4-7 8 0" stroke="#2A2F45" stroke-width="2.6" fill="none" stroke-linecap="round"/>'
+      : o.eyes === 'closed'
       ? '<path d="M-12 -24q4 4 8 0M4 -24q4 4 8 0" stroke="#2A2F45" stroke-width="2.4" fill="none" stroke-linecap="round"/>'
       : o.eyes === 'down'
         ? '<circle cx="-8" cy="-21" r="3" fill="#2A2F45"/><circle cx="8" cy="-21" r="3" fill="#2A2F45"/>'
@@ -205,7 +263,8 @@
       open: '<ellipse cx="0" cy="-12" rx="5" ry="4.5" fill="#B8323A"/>',
       talk: '<g transform="translate(0 -12)"><g class="a-talk"><ellipse cx="0" cy="0" rx="5" ry="5" fill="#B8323A"/></g></g>',
       teeth: '<rect x="-7" y="-15" width="14" height="7" rx="3.5" fill="#fff" stroke="#B8323A" stroke-width="2"/>',
-      o: '<circle cx="0" cy="-12" r="3" fill="#B8323A"/>'
+      o: '<circle cx="0" cy="-12" r="3" fill="#B8323A"/>',
+      sad: '<path d="M-6 -8q6-7 12 0" stroke="#B8323A" stroke-width="2.6" fill="none" stroke-linecap="round"/>'
     }[o.mouth || 'smile'];
     var head = '<g transform="translate(0 -46)"><g class="' + (o.cHead || '') + '">' +
       '<circle cx="0" cy="-22" r="23" fill="' + SKIN + '"/>' +
@@ -228,6 +287,10 @@
   var cloudShape = '<g fill="#fff"><ellipse cx="0" cy="0" rx="22" ry="12"/><ellipse cx="18" cy="-6" rx="16" ry="12"/><ellipse cx="34" cy="2" rx="16" ry="10"/></g>';
   var note = function (x, y, d, t) { return at(x, y, '<g class="a-note" style="animation-delay:' + d + 's"><text font-size="26" font-weight="900" fill="' + (t || '#8B5CF6') + '">♪</text></g>'); };
   var bubble = function (x, y, d, r) { return at(x, y, '<g class="a-bub" style="animation-delay:' + d + 's"><circle r="' + (r || 5) + '" fill="#fff" stroke="#9FD3F5" stroke-width="1.5" opacity=".9"/></g>'); };
+
+  var tree = function (x, y, k) { return at(x, y, '<g transform="scale(' + (k || 1) + ')"><rect x="-8" y="-60" width="16" height="60" fill="#A06A3A"/><circle cx="0" cy="-74" r="30" fill="#5DB06C"/><circle cx="-20" cy="-58" r="18" fill="#6CC17A"/><circle cx="20" cy="-58" r="18" fill="#6CC17A"/></g>'); };
+  var flower = function (x, y, c, cls) { return at(x, y, '<g class="' + (cls || '') + '"><path d="M0 0v-26" stroke="#2FA86B" stroke-width="4"/><ellipse cx="-7" cy="-12" rx="6" ry="3" fill="#2FA86B"/>' +
+    [0, 72, 144, 216, 288].map(function (r) { return '<ellipse cx="0" cy="-36" rx="5" ry="8" fill="' + c + '" transform="rotate(' + r + ' 0 -30)"/>'; }).join('') + '<circle cx="0" cy="-30" r="5" fill="#FFD23F"/></g>'); };
 
   // ---------- the actions ----------
   var ACTIONS = [
@@ -344,9 +407,305 @@
       return sky('#EAF6EC') + '<rect x="16" y="40" width="70" height="146" fill="#C98B56"/><rect x="20" y="70" width="62" height="6" fill="#A06A3A"/><rect x="20" y="110" width="62" height="6" fill="#A06A3A"/>' +
         '<rect x="24" y="48" width="10" height="22" fill="#E5484D"/><rect x="36" y="52" width="8" height="18" fill="#2F6FED"/><rect x="46" y="50" width="10" height="20" fill="#FFD23F"/>' +
         grass + at(170, 146, kid({ aL: -32, aR: 32, eyes: 'down', front: book, shirt: '#2FA86B', cHead: 'a-nod' }));
-    }}
+    }},
+    // ---------- more actions ----------
+    { id: 'getup', hz: '起床', py: 'qǐ chuáng', en: 'get up', scene: function () {
+      return sky('#FFF4D6') + at(250, 70, '<g class="a-rise"><circle r="20" fill="#FFB020"/></g>') +
+        '<rect x="196" y="30" width="96" height="80" rx="6" fill="none" stroke="#C98B56" stroke-width="5"/>' +
+        '<rect x="20" y="150" width="220" height="30" rx="6" fill="#C98B56"/><rect x="20" y="178" width="10" height="26" fill="#A06A3A"/><rect x="230" y="178" width="10" height="26" fill="#A06A3A"/><rect x="16" y="104" width="14" height="78" rx="5" fill="#A06A3A"/>' +
+        at(100, 146, kid({ gL: -90, gR: -90, aL: 160, aR: -160, cAL: 'a-stretch', cAR: 'a-stretch rev', eyes: 'closed', mouth: 'open', shirt: '#FFD23F' })) +
+        '<path d="M60 152v-26q0-12 12-12h150q14 0 14 12v26z" fill="#7C9CFF"/>' +
+        at(262, 160, '<g class="a-ring"><circle r="14" fill="#E5484D"/><circle r="10" fill="#fff"/><path d="M0 -6v6l4 3" stroke="#2A2F45" stroke-width="2" fill="none"/><circle cx="-9" cy="-13" r="4" fill="#E5484D"/><circle cx="9" cy="-13" r="4" fill="#E5484D"/></g>') +
+        '<rect x="246" y="174" width="34" height="30" fill="#C98B56"/>';
+    }},
+    { id: 'bath', hz: '洗澡', py: 'xǐ zǎo', en: 'take a bath', scene: function () {
+      return sky('#E6F6FF') + '<path d="M0 50h300M0 100h300M75 0v150M150 0v150M225 0v150" stroke="#CDE6F7" stroke-width="2"/>' +
+        '<path d="M232 20v30h-30" stroke="#AEB7C6" stroke-width="7" fill="none" stroke-linecap="round"/><rect x="190" y="46" width="24" height="8" rx="3" fill="#AEB7C6"/>' +
+        [196, 202, 208].map(function (x, i) { return at(x, 58, '<g class="a-drop" style="animation-delay:' + (i * .25) + 's"><ellipse rx="2" ry="4" fill="#7CC6F2"/></g>'); }).join('') +
+        at(160, 150, kid({ aL: 150, aR: -150, cAL: 'a-wave', cAR: 'a-wave rev', shirt: SKIN, pants: SKIN, mouth: 'open' })) +
+        '<path d="M50 140h220v20q0 40-40 40h-140q-40 0-40-40z" fill="#fff" stroke="#C9D7E4" stroke-width="3"/>' +
+        '<g fill="#fff" stroke="#BFE3F7" stroke-width="2"><circle cx="90" cy="138" r="12"/><circle cx="112" cy="132" r="14"/><circle cx="210" cy="134" r="13"/><circle cx="232" cy="138" r="10"/></g>' +
+        bubble(120, 120, 0, 5) + bubble(200, 118, .7, 4) + bubble(150, 110, 1.2, 4) +
+        '<rect x="70" y="198" width="10" height="12" fill="#C9D7E4"/><rect x="240" y="198" width="10" height="12" fill="#C9D7E4"/>';
+    }},
+    { id: 'face', hz: '洗脸', py: 'xǐ liǎn', en: 'wash your face', scene: function () {
+      return sky('#E6F6FF') + '<rect x="200" y="20" width="80" height="100" rx="40" fill="#BFE3F7" stroke="#fff" stroke-width="6"/>' +
+        at(130, 160, kid({ aL: -125, aR: 125, cAL: 'a-rub', cAR: 'a-rub rev', eyes: 'closed', mouth: 'o', shirt: '#2FA86B' })) +
+        '<rect x="40" y="162" width="180" height="58" fill="#DDE7F2"/><rect x="34" y="156" width="192" height="10" rx="5" fill="#C9D7E4"/>' +
+        [118, 130, 142].map(function (x, i) { return at(x, 102, '<g class="a-drop" style="animation-delay:' + (i * .3) + 's"><ellipse rx="2" ry="4" fill="#7CC6F2"/></g>'); }).join('') +
+        bubble(112, 92, 0, 4) + bubble(148, 90, .6, 4);
+    }},
+    { id: 'comb', hz: '梳头', py: 'shū tóu', en: 'comb your hair', scene: function () {
+      var comb = '<g transform="translate(0 34) rotate(-90)"><rect x="-4" y="-18" width="8" height="26" rx="3" fill="#E8579B"/><path d="M4 -16h6M4 -11h6M4 -6h6M4 -1h6M4 4h6" stroke="#E8579B" stroke-width="2"/></g>';
+      return sky('#FFEFF6') + '<rect x="30" y="20" width="90" height="120" rx="45" fill="#BFE3F7" stroke="#F7B6D2" stroke-width="6"/>' +
+        '<rect y="186" width="300" height="34" fill="#F7D6E6"/>' +
+        at(180, 146, kid({ aR: 165, cAR: 'a-comb', iR: comb, aL: 10, hair: '#6B3E1E', shirt: '#E8579B' }));
+    }},
+    { id: 'school', hz: '上学', py: 'shàng xué', en: 'go to school', scene: function () {
+      var bag = '<rect x="-14" y="-44" width="28" height="36" rx="8" fill="#F28C28"/>';
+      return sky() + '<g class="a-scroll-slow">' +
+        '<rect x="200" y="80" width="110" height="106" fill="#FFE3C2"/><path d="M190 82l65-40 65 40z" fill="#E5484D"/><rect x="236" y="140" width="34" height="46" fill="#C98B56"/>' +
+        '<rect x="214" y="100" width="22" height="22" fill="#BFE3F7"/><rect x="272" y="100" width="22" height="22" fill="#BFE3F7"/><line x1="255" y1="42" x2="255" y2="10" stroke="#8A9BB8" stroke-width="3"/><path d="M255 10h20l-4 6 4 6h-20z" fill="#E5484D"/>' +
+        '<text x="226" y="96" font-size="11" font-weight="900" fill="#B8323A" font-family="sans-serif">学校</text></g>' + grass +
+        at(110, 146, '<g class="a-bob slow">' + kid({ overBody: bag, cGL: 'a-walk', cGR: 'a-walk rev', cAL: 'a-walk rev', cAR: 'a-walk', shirt: '#2F6FED', pants: '#3A3F55' }) + '</g>');
+    }},
+    { id: 'walk', hz: '走路', py: 'zǒu lù', en: 'walk', scene: function () {
+      return sky() + tree(40, 186, 1) + at(0, 50, '<g class="a-cloud">' + cloudShape + '</g>') + grass +
+        '<g class="a-scroll slow"><path d="M0 200h20M60 200h20M120 200h20M180 200h20M240 200h20M300 200h20" stroke="#5DB06C" stroke-width="4" stroke-linecap="round"/></g>' +
+        at(150, 146, '<g class="a-bob slow">' + kid({ cGL: 'a-walk', cGR: 'a-walk rev', cAL: 'a-walk rev', cAR: 'a-walk', shirt: '#F28C28' }) + '</g>');
+    }},
+    { id: 'sweep', hz: '扫地', py: 'sǎo dì', en: 'sweep the floor', scene: function () {
+      var broom = '<g transform="translate(0 33)"><line x1="0" y1="-40" x2="0" y2="40" stroke="#A06A3A" stroke-width="4"/><path d="M-10 40h20l6 22h-32z" fill="#F5C542"/></g>';
+      return sky('#FFF8E6') + '<rect y="186" width="300" height="34" fill="#E8D2A8"/>' +
+        at(140, 140, kid({ aR: -20, aL: -40, cAR: 'a-sweep', iR: broom, shirt: '#8B5CF6' })) +
+        [0, 1, 2].map(function (i) { return at(186 + i * 10, 192, '<g class="a-dust" style="animation-delay:' + (i * .3) + 's"><circle r="5" fill="#D9C3A0"/></g>'); }).join('');
+    }},
+    { id: 'mop', hz: '拖地', py: 'tuō dì', en: 'mop the floor', scene: function () {
+      var mop = '<g transform="translate(0 33)"><line x1="0" y1="-30" x2="0" y2="46" stroke="#8A9BB8" stroke-width="4"/><rect x="-16" y="44" width="32" height="10" rx="4" fill="#7CC6F2"/></g>';
+      return sky('#EAF4FF') + '<rect y="186" width="300" height="34" fill="#CFE0F2"/><path d="M150 200h120" stroke="#fff" stroke-width="4" opacity=".7" class="a-shine"/>' +
+        at(120, 140, '<g class="a-push">' + kid({ aR: -30, aL: -50, iR: mop, shirt: '#2FA86B' }) + '</g>') +
+        '<rect x="236" y="160" width="36" height="28" rx="4" fill="#F28C28"/><path d="M240 160q14-14 28 0" stroke="#C46A12" stroke-width="3" fill="none"/>';
+    }},
+    { id: 'dishes', hz: '洗碗', py: 'xǐ wǎn', en: 'wash the dishes', scene: function () {
+      return sky('#FFF3DC') + '<path d="M0 40h300M0 80h300M0 120h300" stroke="#F3E2BE" stroke-width="2"/>' +
+        at(150, 160, kid({ aL: -32, aR: 32, cAL: 'a-rub', cAR: 'a-rub rev', shirt: '#E5484D' })) +
+        at(150, 140, '<g class="a-dish"><ellipse rx="16" ry="16" fill="#fff" stroke="#7CC6F2" stroke-width="3"/><ellipse rx="8" ry="8" fill="none" stroke="#BFE3F7" stroke-width="2"/></g>') +
+        '<rect x="30" y="162" width="240" height="58" fill="#C98B56"/><rect x="24" y="156" width="252" height="10" rx="5" fill="#E0B07A"/>' +
+        '<g fill="#fff" stroke="#7CC6F2" stroke-width="2"><ellipse cx="230" cy="150" rx="16" ry="5"/><ellipse cx="230" cy="144" rx="16" ry="5"/></g>' +
+        bubble(130, 136, 0, 5) + bubble(170, 134, .5, 4) + bubble(150, 128, 1, 4);
+    }},
+    { id: 'water', hz: '浇花', py: 'jiāo huā', en: 'water the flowers', scene: function () {
+      var can = '<g transform="translate(0 32) rotate(-70)"><rect x="-12" y="-6" width="24" height="20" rx="4" fill="#2FA86B"/><path d="M12 0l16-10" stroke="#2FA86B" stroke-width="4" stroke-linecap="round"/><path d="M-12 0q-10 6 0 12" stroke="#2FA86B" stroke-width="3" fill="none"/></g>';
+      return sky() + '<circle cx="40" cy="36" r="18" fill="#FFD23F"/>' + grass +
+        at(110, 146, kid({ aR: -80, iR: can, aL: 10, shirt: '#FFD23F' })) +
+        [0, 1, 2, 3].map(function (i) { return at(178 + i * 6, 128, '<g class="a-drop" style="animation-delay:' + (i * .2) + 's"><ellipse rx="2" ry="4" fill="#4FB3F0"/></g>'); }).join('') +
+        flower(184, 186, '#E8579B', 'a-grow') + flower(214, 186, '#FFB020', 'a-grow d1') + flower(244, 186, '#8B5CF6', 'a-grow d2');
+    }},
+    { id: 'wipe', hz: '擦桌子', py: 'cā zhuō zi', en: 'wipe the table', scene: function () {
+      return sky('#F1F7EC') + at(150, 166, kid({ aR: -40, cAR: 'a-wipe', iR: '<rect x="-10" y="30" width="20" height="10" rx="3" fill="#FFD23F"/>', aL: -30, shirt: '#2F9BEA' })) +
+        '<rect x="40" y="152" width="220" height="10" rx="4" fill="#C98B56"/><rect x="56" y="162" width="10" height="48" fill="#A06A3A"/><rect x="234" y="162" width="10" height="48" fill="#A06A3A"/>' +
+        at(200, 140, '<g class="a-blink"><path d="M0 -8v16M-8 0h16" stroke="#FFD23F" stroke-width="3" stroke-linecap="round"/></g>') +
+        at(90, 136, '<g class="a-blink" style="animation-delay:.5s"><path d="M0 -6v12M-6 0h12" stroke="#FFD23F" stroke-width="3" stroke-linecap="round"/></g>');
+    }},
+    { id: 'trash', hz: '倒垃圾', py: 'dào lā jī', en: 'take out the trash', scene: function () {
+      return sky() + grass + at(110, 146, kid({ aR: -110, aL: 10, shirt: '#E5484D' })) +
+        '<rect x="196" y="120" width="56" height="66" rx="6" fill="#2FA86B"/><rect x="190" y="112" width="68" height="10" rx="4" fill="#22804F"/><path d="M212 136v38M224 136v38M236 136v38" stroke="#22804F" stroke-width="3"/>' +
+        at(170, 100, '<g class="a-trash"><path d="M-12 -10h24l-4 26h-16z" fill="#3A3F55"/><path d="M-6 -10q6-10 12 0" stroke="#3A3F55" stroke-width="3" fill="none"/></g>');
+    }},
+    { id: 'hang', hz: '晒衣服', py: 'shài yī fu', en: 'hang up clothes', scene: function () {
+      var shirt = function (x, c, d) { return at(x, 62, '<g class="a-flutter" style="animation-delay:' + d + 's"><path d="M-14 0h28l8 10-6 5-4-4v26h-24v-26l-4 4-6-5z" fill="' + c + '"/></g>'); };
+      return sky() + '<circle cx="270" cy="30" r="18" fill="#FFD23F"/><line x1="20" y1="60" x2="280" y2="60" stroke="#8A9BB8" stroke-width="3"/>' +
+        '<line x1="20" y1="60" x2="20" y2="186" stroke="#A06A3A" stroke-width="6"/><line x1="280" y1="60" x2="280" y2="186" stroke="#A06A3A" stroke-width="6"/>' +
+        shirt(60, '#E5484D', 0) + shirt(110, '#2F9BEA', .4) + shirt(220, '#FFD23F', .8) + grass +
+        at(160, 146, kid({ aL: 165, aR: -165, cAL: 'a-reach', cAR: 'a-reach rev', shirt: '#2FA86B' }));
+    }},
+    { id: 'bike', hz: '骑车', py: 'qí chē', en: 'ride a bike', scene: function () {
+      var wheel = function (x) { return at(x, 168, '<circle r="20" fill="none" stroke="#2A2F45" stroke-width="5"/><g class="a-spin fast"><path d="M0 -18v36M-18 0h36M-13 -13l26 26M13 -13l-26 26" stroke="#AEB7C6" stroke-width="2"/></g>'); };
+      return sky() + at(0, 46, '<g class="a-cloud">' + cloudShape + '</g>') + grass +
+        '<g class="a-scroll"><path d="M0 204h30M60 204h30M120 204h30M180 204h30M240 204h30M300 204h30" stroke="#5DB06C" stroke-width="4" stroke-linecap="round"/></g>' +
+        wheel(110) + wheel(196) + '<path d="M110 168l36-36h40l10 36M146 132l10 36h30M186 132l-6-16h14" stroke="#E5484D" stroke-width="5" fill="none" stroke-linejoin="round"/><rect x="134" y="126" width="22" height="7" rx="3" fill="#2A2F45"/>' +
+        at(146, 128, kid({ gL: -40, gR: -40, cGL: 'a-run', cGR: 'a-run rev', aL: -70, aR: -70, mouth: 'open', shirt: '#2F9BEA' }));
+    }},
+    { id: 'bounce', hz: '拍球', py: 'pāi qiú', en: 'bounce a ball', scene: function () {
+      return sky('#FFF4D6') + '<rect y="186" width="300" height="34" fill="#E8B887"/>' +
+        at(130, 146, kid({ aR: -40, cAR: 'a-pat', aL: 15, shirt: '#2FA86B' })) +
+        at(166, 120, '<g class="a-ballbounce"><circle r="14" fill="#F28C28"/><path d="M-14 0h28M0 -14v28" stroke="#C46A12" stroke-width="2"/></g>') +
+        at(166, 188, '<g class="a-shadowb"><ellipse rx="14" ry="3" fill="#000" opacity=".15"/></g>');
+    }},
+    { id: 'hike', hz: '爬山', py: 'pá shān', en: 'climb a mountain', scene: function () {
+      return sky() + '<path d="M-20 220l180-190 160 190z" fill="#8FD694"/><path d="M160 30l-30 32 14-4 16 10 14-12 14 6z" fill="#fff"/>' +
+        '<line x1="160" y1="30" x2="160" y2="6" stroke="#8A9BB8" stroke-width="3"/><path d="M160 6h18l-4 5 4 5h-18z" fill="#E5484D"/>' +
+        at(96, 134, '<g transform="rotate(-20)"><g class="a-bob slow">' + kid({ cGL: 'a-walk', cGR: 'a-walk rev', aR: -30, cAR: 'a-walk', iR: '<line x1="0" y1="20" x2="0" y2="62" stroke="#A06A3A" stroke-width="4"/>', aL: 20, shirt: '#E5484D', pants: '#3A3F55' }) + '</g></g>');
+    }},
+    { id: 'slide', hz: '滑滑梯', py: 'huá huá tī', en: 'go down the slide', scene: function () {
+      return sky() + grass + '<path d="M60 70l150 116" stroke="#FFB020" stroke-width="14" stroke-linecap="round"/><path d="M60 70v116M40 70v116" stroke="#E5484D" stroke-width="6"/><path d="M40 90h20M40 115h20M40 140h20M40 165h20" stroke="#E5484D" stroke-width="4"/>' +
+        at(70, 60, '<g class="a-slide">' + kid({ gL: -60, gR: -60, aL: 140, aR: -140, mouth: 'open', shirt: '#8B5CF6' }) + '</g>');
+    }},
+    { id: 'swing', hz: '荡秋千', py: 'dàng qiū qiān', en: 'play on the swing', scene: function () {
+      return sky() + grass + '<path d="M60 186l30-160h120l30 160" stroke="#C98B56" stroke-width="8" fill="none"/>' +
+        at(150, 30, '<g class="a-pendulum"><line x1="-14" y1="0" x2="-14" y2="120" stroke="#8A9BB8" stroke-width="3"/><line x1="14" y1="0" x2="14" y2="120" stroke="#8A9BB8" stroke-width="3"/>' +
+          at(0, 112, kid({ gL: -70, gR: -70, aL: 175, aR: -175, mouth: 'open', shirt: '#FF7A59' })) + '<rect x="-22" y="116" width="44" height="8" rx="3" fill="#A06A3A"/></g>');
+    }},
+    { id: 'rope', hz: '跳绳', py: 'tiào shéng', en: 'skip rope', scene: function () {
+      return sky('#FFF4D6') + grass + at(150, 190, '<g class="a-shadow"><ellipse rx="22" ry="5" fill="#000" opacity=".15"/></g>') +
+        at(150, 146, '<g class="a-jump">' + kid({ aL: 40, aR: -40, mouth: 'open', shirt: '#E8579B' }) +
+          at(0, -14, '<g class="a-rope"><path d="M-46 0q46 120 92 0" stroke="#8B5CF6" stroke-width="3" fill="none"/></g>') + '</g>');
+    }},
+    { id: 'skate', hz: '滑冰', py: 'huá bīng', en: 'ice-skate', scene: function () {
+      return sky('#E6F6FF') + '<rect y="170" width="300" height="50" fill="#CFEFFF"/><path d="M20 190h80M160 204h90" stroke="#fff" stroke-width="3"/>' +
+        '<path d="M30 170l20-40 20 40zM240 170l22-46 22 46z" fill="#2FA86B"/>' +
+        at(150, 128, '<g class="a-glide">' + kid({ gL: 20, gR: -30, aL: 90, aR: -90, cAL: 'a-sway', cAR: 'a-sway', shirt: '#2F9BEA', pants: '#3A3F55' }) +
+          '<path d="M-26 40h14M10 36h14" stroke="#AEB7C6" stroke-width="3" stroke-linecap="round"/></g>');
+    }},
+    { id: 'tree', hz: '爬树', py: 'pá shù', en: 'climb a tree', scene: function () {
+      return sky() + grass + '<rect x="132" y="40" width="36" height="150" rx="8" fill="#A06A3A"/><circle cx="150" cy="40" r="50" fill="#5DB06C"/><circle cx="110" cy="60" r="30" fill="#6CC17A"/><circle cx="194" cy="60" r="30" fill="#6CC17A"/>' +
+        at(150, 150, '<g class="a-climb">' + kid({ aL: 160, aR: -160, cAL: 'a-reach', cAR: 'a-reach rev', gL: 30, gR: -30, cGL: 'a-reach rev', cGR: 'a-reach', shirt: '#E5484D' }) + '</g>');
+    }},
+    { id: 'kite', hz: '放风筝', py: 'fàng fēng zheng', en: 'fly a kite', scene: function () {
+      return sky() + grass + at(220, 50, '<g class="a-kite"><path d="M0 -24l18 24-18 24-18-24z" fill="#E5484D"/><path d="M0 -24v48M-18 0h36" stroke="#fff" stroke-width="2"/><path d="M0 24q-6 10 0 16t0 16" stroke="#FFD23F" stroke-width="3" fill="none"/></g>') +
+        '<path d="M130 92q50-10 90-18" stroke="#2A2F45" stroke-width="1.5" fill="none"/>' +
+        at(110, 146, kid({ aR: -140, cAR: 'a-kitehand', aL: 10, mouth: 'open', shirt: '#2F9BEA' }));
+    }},
+    { id: 'fish', hz: '钓鱼', py: 'diào yú', en: 'go fishing', scene: function () {
+      var rod = '<g transform="translate(0 32) rotate(105)"><line x1="0" y1="0" x2="0" y2="-80" stroke="#A06A3A" stroke-width="3"/></g>';
+      return sky() + '<rect y="140" width="300" height="80" fill="#4FB3F0"/><rect y="132" width="120" height="14" fill="#8FD694"/>' +
+        at(70, 128, kid({ gL: -90, gR: -90, aR: -60, iR: rod, aL: -30, shirt: '#F28C28' })) +
+        '<path d="M170 48q12 50 10 104" stroke="#2A2F45" stroke-width="1.5" fill="none"/><circle cx="180" cy="152" r="4" fill="#E5484D"/>' +
+        at(220, 170, '<g class="a-fishjump"><path d="M-14 0q14-12 28 0-14 12-28 0zM14 0l8-7v14z" fill="#FFB020"/><circle cx="-6" cy="-2" r="1.6" fill="#2A2F45"/></g>');
+    }},
+    { id: 'row', hz: '划船', py: 'huá chuán', en: 'row a boat', scene: function () {
+      return sky() + '<rect y="150" width="300" height="70" fill="#4FB3F0"/>' +
+        '<g class="a-wavewater"><path d="M0 152q15-8 30 0t30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0" stroke="#fff" stroke-width="3" fill="none" opacity=".8"/></g>' +
+        at(150, 160, '<g class="a-bob slow">' + at(0, -24, kid({ aL: -60, aR: 60, cAL: 'a-oar', cAR: 'a-oar', shirt: '#FFD23F' })) +
+          '<path d="M-70 -14h140l-20 24h-100z" fill="#C98B56"/><path d="M-60 -6h120" stroke="#A06A3A" stroke-width="3"/>' +
+          at(-40, -40, '<g class="a-oar2"><line x1="0" y1="0" x2="-40" y2="44" stroke="#8A6A4A" stroke-width="4"/></g>') + at(40, -40, '<g class="a-oar2"><line x1="0" y1="0" x2="40" y2="44" stroke="#8A6A4A" stroke-width="4"/></g>') + '</g>');
+    }},
+    { id: 'basket', hz: '打篮球', py: 'dǎ lán qiú', en: 'play basketball', scene: function () {
+      return sky('#FFF4D6') + '<rect y="186" width="300" height="34" fill="#E8B887"/><rect x="250" y="40" width="8" height="146" fill="#8A9BB8"/><rect x="214" y="30" width="56" height="40" rx="3" fill="#fff" stroke="#AEB7C6" stroke-width="3"/>' +
+        '<ellipse cx="230" cy="72" rx="18" ry="4" fill="none" stroke="#E5484D" stroke-width="3"/><path d="M214 72l6 18h20l6-18" stroke="#fff" stroke-width="2" fill="none"/>' +
+        at(100, 146, kid({ aL: 160, aR: -160, cAL: 'a-shoot', cAR: 'a-shoot', shirt: '#E5484D' })) +
+        at(108, 70, '<g class="a-hoop"><circle r="12" fill="#F28C28"/><path d="M-12 0h24M0 -12v24" stroke="#C46A12" stroke-width="2"/></g>');
+    }},
+    { id: 'blocks', hz: '搭积木', py: 'dā jī mù', en: 'build with blocks', scene: function () {
+      var blk = function (y, c, d) { return at(200, y, '<g class="a-stack" style="animation-delay:' + d + 's"><rect x="-20" y="-14" width="40" height="28" rx="3" fill="' + c + '"/></g>'); };
+      return sky('#FFF8E6') + '<rect y="186" width="300" height="34" fill="#F2D7A6"/>' +
+        at(110, 146, kid({ aR: -100, cAR: 'a-stir', aL: 10, shirt: '#8B5CF6' })) +
+        '<rect x="180" y="158" width="40" height="28" rx="3" fill="#E5484D"/>' + blk(144, '#2F9BEA', 0) + blk(116, '#FFD23F', .8) + blk(88, '#2FA86B', 1.6);
+    }},
+    { id: 'snowman', hz: '堆雪人', py: 'duī xuě rén', en: 'build a snowman', scene: function () {
+      return sky('#DCE8F5') + '<rect y="176" width="300" height="44" fill="#fff"/>' +
+        [30, 90, 150, 210, 270].map(function (x, i) { return at(x, 0, '<g class="a-snow" style="animation-delay:' + (i * .5) + 's"><circle r="3" fill="#fff"/></g>'); }).join('') +
+        '<circle cx="200" cy="160" r="30" fill="#fff" stroke="#C9D7E4" stroke-width="2"/><circle cx="200" cy="112" r="22" fill="#fff" stroke="#C9D7E4" stroke-width="2"/><circle cx="193" cy="108" r="2.5" fill="#2A2F45"/><circle cx="207" cy="108" r="2.5" fill="#2A2F45"/><path d="M200 114l12 3-12 3z" fill="#F28C28"/><rect x="186" y="84" width="28" height="8" fill="#2A2F45"/><rect x="190" y="70" width="20" height="16" fill="#2A2F45"/>' +
+        at(120, 146, kid({ aR: -110, cAR: 'a-pat', aL: 10, shirt: '#E5484D', pants: '#3A3F55', hat: '<path d="M-22 -36q22-26 44 0z" fill="#2F9BEA"/><circle cx="0" cy="-50" r="5" fill="#fff"/>' }));
+    }},
+    { id: 'bubbles', hz: '吹泡泡', py: 'chuī pào pao', en: 'blow bubbles', scene: function () {
+      var wand = '<g transform="translate(0 32) rotate(-30)"><line x1="0" y1="0" x2="0" y2="-14" stroke="#8B5CF6" stroke-width="3"/><circle cx="0" cy="-20" r="6" fill="none" stroke="#8B5CF6" stroke-width="2.5"/></g>';
+      var bb = function (d, r) { return at(152, 92, '<g class="a-blowb" style="animation-delay:' + d + 's"><circle r="' + r + '" fill="#E9F6FF" fill-opacity=".4" stroke="#7CC6F2" stroke-width="2"/><circle cx="-' + (r / 3) + '" cy="-' + (r / 3) + '" r="' + (r / 4) + '" fill="#fff"/></g>'); };
+      return sky() + grass + at(120, 146, kid({ aR: 120, iR: wand, aL: 10, mouth: 'o', shirt: '#FFD23F' })) + bb(0, 9) + bb(.6, 12) + bb(1.2, 7) + bb(1.8, 10);
+    }},
+    { id: 'piano', hz: '弹琴', py: 'tán qín', en: 'play the piano', scene: function () {
+      var keys = ''; for (var i = 0; i < 9; i++) keys += '<rect x="' + (60 + i * 20) + '" y="150" width="19" height="34" fill="#fff" stroke="#C9D7E4"/>';
+      for (var j = 0; j < 8; j++) if (j !== 2 && j !== 6) keys += '<rect x="' + (74 + j * 20) + '" y="150" width="11" height="20" fill="#2A2F45"/>';
+      return sky('#F3ECFF') + at(150, 166, kid({ aL: -25, aR: 25, cAL: 'a-press', cAR: 'a-press rev', shirt: '#8B5CF6', eyes: 'closed' })) +
+        '<rect x="50" y="120" width="200" height="32" rx="6" fill="#2A2F45"/>' + keys + '<rect x="50" y="184" width="200" height="36" fill="#2A2F45"/>' +
+        note(210, 100, 0) + note(70, 96, 1.2, '#E8579B');
+    }},
+    { id: 'drum', hz: '打鼓', py: 'dǎ gǔ', en: 'play the drum', scene: function () {
+      var stick = '<line x1="0" y1="30" x2="0" y2="56" stroke="#A06A3A" stroke-width="4" stroke-linecap="round"/><circle cx="0" cy="57" r="4" fill="#A06A3A"/>';
+      return sky('#FFF4D6') + at(150, 150, kid({ aL: -35, aR: 35, cAL: 'a-hit', cAR: 'a-hit rev', iL: stick, iR: stick, mouth: 'open', shirt: '#E5484D' })) +
+        '<ellipse cx="150" cy="170" rx="46" ry="12" fill="#FFE3C2" stroke="#C98B56" stroke-width="3"/><path d="M104 170v34q46 20 92 0v-34" fill="#E5484D"/><path d="M110 176l20 26M150 182v24M190 176l-20 26" stroke="#FFD23F" stroke-width="3"/>' +
+        at(90, 150, '<g class="a-blink"><path d="M0 0l-14-6M0 8l-16 2" stroke="#F28C28" stroke-width="3" stroke-linecap="round"/></g>') + at(210, 150, '<g class="a-blink" style="animation-delay:.5s"><path d="M0 0l14-6M0 8l16 2" stroke="#F28C28" stroke-width="3" stroke-linecap="round"/></g>');
+    }},
+    { id: 'clap', hz: '拍手', py: 'pāi shǒu', en: 'clap your hands', scene: function () {
+      return sky('#FFE3F1') + '<rect y="186" width="300" height="34" fill="#F7B6D2"/>' +
+        at(150, 146, kid({ aL: -75, aR: 75, cAL: 'a-clap', cAR: 'a-clap2', mouth: 'open', shirt: '#2FA86B' })) +
+        at(150, 70, '<g class="a-blink"><path d="M-12 -10l-6-6M12 -10l6-6M0 -14v-8" stroke="#F28C28" stroke-width="3" stroke-linecap="round"/></g>');
+    }},
+    { id: 'photo', hz: '拍照', py: 'pāi zhào', en: 'take a photo', scene: function () {
+      var cam = '<rect x="-16" y="-12" width="32" height="22" rx="4" fill="#2A2F45"/><circle cx="0" cy="-1" r="7" fill="#7CC6F2" stroke="#fff" stroke-width="2"/><rect x="6" y="-16" width="8" height="5" fill="#2A2F45"/>';
+      return sky() + grass + tree(250, 186, .9) + flower(210, 186, '#E8579B') +
+        at(110, 146, kid({ aL: -120, aR: 120, shirt: '#F28C28', front: at(0, -66, cam) })) +
+        at(110, 60, '<g class="a-flash"><circle r="26" fill="#fff" opacity=".9"/><path d="M0 -40v-10M28 -28l8-8M-28 -28l-8-8M40 0h10M-40 0h-10" stroke="#FFD23F" stroke-width="4" stroke-linecap="round"/></g>');
+    }},
+    { id: 'write', hz: '写字', py: 'xiě zì', en: 'write', scene: function () {
+      var pencil = '<g transform="translate(0 30)"><rect x="-3" y="0" width="6" height="20" fill="#FFD23F"/><path d="M-3 20l3 6 3-6z" fill="#2A2F45"/></g>';
+      return sky('#FFF8E6') + at(130, 170, kid({ aR: -30, cAR: 'a-scribble', iR: pencil, aL: -40, eyes: 'down', shirt: '#2F9BEA' })) +
+        '<rect x="40" y="166" width="220" height="10" rx="4" fill="#C98B56"/><rect x="56" y="176" width="10" height="44" fill="#A06A3A"/><rect x="234" y="176" width="10" height="44" fill="#A06A3A"/>' +
+        '<rect x="140" y="146" width="80" height="20" fill="#fff" stroke="#E3D5B8"/>' +
+        '<path d="M156 152h18M165 148v16M156 164l9-6 9 6" stroke="#2A2F45" stroke-width="2.5" fill="none" class="a-draw" style="stroke-dasharray:80"/>';
+    }},
+    { id: 'cut', hz: '剪纸', py: 'jiǎn zhǐ', en: 'cut paper', scene: function () {
+      var sc = '<g transform="translate(0 34) rotate(-60)"><g class="a-snip"><path d="M0 0l22-4" stroke="#AEB7C6" stroke-width="4" stroke-linecap="round"/><circle cx="-6" cy="2" r="5" fill="none" stroke="#E5484D" stroke-width="3"/></g><g class="a-snip rev"><path d="M0 0l22 4" stroke="#AEB7C6" stroke-width="4" stroke-linecap="round"/><circle cx="-6" cy="-2" r="5" fill="none" stroke="#E5484D" stroke-width="3"/></g></g>';
+      return sky('#FFF8E6') + at(120, 166, kid({ aR: -70, iR: sc, aL: -60, shirt: '#E8579B' })) +
+        '<rect x="40" y="166" width="220" height="10" rx="4" fill="#C98B56"/><rect x="56" y="176" width="10" height="44" fill="#A06A3A"/><rect x="234" y="176" width="10" height="44" fill="#A06A3A"/>' +
+        '<path d="M170 110h60v50h-60z" fill="#E5484D"/><path d="M180 110v50" stroke="#fff" stroke-width="2" stroke-dasharray="4 4"/>' +
+        at(220, 130, '<g class="a-dust"><path d="M0 0l10 6-6 6z" fill="#E5484D"/></g>');
+    }},
+    { id: 'tv', hz: '看电视', py: 'kàn diàn shì', en: 'watch TV', scene: function () {
+      return sky('#F1ECE4') + '<rect x="186" y="60" width="100" height="70" rx="6" fill="#2A2F45"/><rect x="192" y="66" width="88" height="58" fill="#7CC6F2"/>' +
+        '<rect x="192" y="66" width="88" height="58" fill="#FFD23F" class="a-tvc"/><rect x="192" y="66" width="88" height="58" fill="#8FD694" class="a-tvc d1"/>' +
+        '<circle cx="236" cy="96" r="12" fill="#fff" opacity=".8"/><path d="M226 130l-8 16M246 130l8 16" stroke="#2A2F45" stroke-width="4"/><rect x="180" y="146" width="112" height="40" fill="#C98B56"/>' +
+        '<rect y="186" width="300" height="34" fill="#D9C3A0"/>' +
+        at(90, 150, kid({ gL: -90, gR: -90, cGL: 'a-kick slow', aL: 20, aR: -10, mouth: 'open', shirt: '#2FA86B' })) +
+        '<path d="M20 186v-40q0-10 10-10h110q10 0 10 10v40z" fill="#E5484D" opacity=".9"/><rect x="14" y="150" width="140" height="20" rx="8" fill="#B8323A"/>';
+    }},
+    { id: 'phone', hz: '打电话', py: 'dǎ diàn huà', en: 'make a phone call', scene: function () {
+      var ph = '<g transform="translate(0 32) rotate(-20)"><rect x="-6" y="-14" width="12" height="24" rx="3" fill="#2A2F45"/><rect x="-4" y="-11" width="8" height="15" fill="#7CC6F2"/></g>';
+      return sky('#EAF6EC') + grass + at(140, 146, kid({ aL: -150, iL: ph, aR: 10, mouth: 'talk', shirt: '#F28C28' })) +
+        [0, 1, 2].map(function (i) { return at(196, 80, '<g class="a-ripple" style="animation-delay:' + (i * .4) + 's"><path d="M0 -12a14 14 0 0 1 0 24" stroke="#2F9BEA" stroke-width="3" fill="none"/></g>'); }).join('');
+    }},
+    { id: 'feedfish', hz: '喂鱼', py: 'wèi yú', en: 'feed the fish', scene: function () {
+      return sky('#F1F7EC') + '<rect x="150" y="80" width="130" height="100" rx="8" fill="#BFE3F7" stroke="#7CC6F2" stroke-width="4"/><rect x="150" y="80" width="130" height="10" fill="#E6F6FF"/><path d="M160 180q10-24 0-40M270 180q-12-30 0-50" stroke="#2FA86B" stroke-width="5" fill="none"/>' +
+        at(230, 140, '<g class="a-fishswim"><path d="M-14 0q14-12 28 0-14 12-28 0zM14 0l8-7v14z" fill="#F28C28"/><circle cx="-6" cy="-2" r="1.6" fill="#2A2F45"/></g>') +
+        [0, 1, 2].map(function (i) { return at(186 + i * 6, 86, '<g class="a-flake" style="animation-delay:' + (i * .4) + 's"><rect x="-2" y="-2" width="4" height="4" fill="#C46A12"/></g>'); }).join('') +
+        '<rect x="140" y="180" width="150" height="10" fill="#C98B56"/>' + '<rect y="190" width="300" height="30" fill="#D9C3A0"/>' +
+        at(100, 150, kid({ aR: -140, cAR: 'a-sprinkle', aL: 10, shirt: '#2F9BEA' }));
+    }},
+    { id: 'dog', hz: '遛狗', py: 'liù gǒu', en: 'walk the dog', scene: function () {
+      var dog = '<g class="a-bob"><ellipse cx="0" cy="0" rx="22" ry="12" fill="#C98B56"/><circle cx="22" cy="-10" r="11" fill="#C98B56"/><ellipse cx="28" cy="-18" rx="4" ry="8" fill="#8A5A2E" transform="rotate(20 28 -18)"/><circle cx="26" cy="-12" r="2" fill="#2A2F45"/><circle cx="32" cy="-8" r="2.5" fill="#2A2F45"/><path d="M-22 -4q-10-10-6-16" stroke="#C98B56" stroke-width="4" fill="none" class="a-wag"/>' +
+        '<g class="a-walk"><line x1="-12" y1="8" x2="-12" y2="24" stroke="#C98B56" stroke-width="5"/></g><g class="a-walk rev"><line x1="12" y1="8" x2="12" y2="24" stroke="#C98B56" stroke-width="5"/></g></g>';
+      return sky() + tree(260, 186, .8) + grass + '<g class="a-scroll slow"><path d="M0 204h20M60 204h20M120 204h20M180 204h20M240 204h20M300 204h20" stroke="#5DB06C" stroke-width="4" stroke-linecap="round"/></g>' +
+        at(110, 146, '<g class="a-bob slow">' + kid({ cGL: 'a-walk', cGR: 'a-walk rev', aR: -60, aL: 10, cAL: 'a-walk', shirt: '#E8579B' }) + '</g>') +
+        '<path d="M150 126q20 20 36 32" stroke="#E5484D" stroke-width="2" fill="none"/>' + at(200, 164, dog);
+    }},
+    { id: 'plant', hz: '种花', py: 'zhòng huā', en: 'plant flowers', scene: function () {
+      var spade = '<g transform="translate(0 32)"><line x1="0" y1="0" x2="0" y2="22" stroke="#A06A3A" stroke-width="4"/><path d="M-7 22h14l-7 12z" fill="#8A9BB8"/></g>';
+      return sky() + '<circle cx="270" cy="36" r="18" fill="#FFD23F"/>' + '<rect y="186" width="300" height="34" fill="#A87A4E"/><ellipse cx="190" cy="188" rx="22" ry="5" fill="#7E5333"/>' +
+        at(130, 150, '<g transform="rotate(12)">' + kid({ aR: -40, cAR: 'a-dig', iR: spade, aL: -10, shirt: '#FFD23F' }) + '</g>') + flower(190, 188, '#E5484D', 'a-grow');
+    }},
+    { id: 'apple', hz: '摘苹果', py: 'zhāi píng guǒ', en: 'pick apples', scene: function () {
+      var ap = function (x, y) { return '<circle cx="' + x + '" cy="' + y + '" r="8" fill="#E5484D"/>'; };
+      return sky() + grass + '<rect x="200" y="80" width="26" height="106" fill="#A06A3A"/><circle cx="213" cy="70" r="56" fill="#5DB06C"/>' + ap(184, 60) + ap(236, 50) + ap(244, 86) + ap(200, 96) +
+        at(150, 146, kid({ aR: -150, cAR: 'a-reach', aL: 20, mouth: 'open', shirt: '#2F9BEA' })) +
+        at(176, 84, '<g class="a-applefall"><circle r="8" fill="#E5484D"/><path d="M0 -8v-4" stroke="#7E5333" stroke-width="2"/></g>') +
+        '<path d="M70 170h44l-6 18h-32z" fill="#C98B56"/><path d="M70 170q22-24 44 0" stroke="#A06A3A" stroke-width="3" fill="none"/>';
+    }},
+    { id: 'wave', hz: '招手', py: 'zhāo shǒu', en: 'wave hello', scene: function () {
+      return sky() + grass + tree(40, 186, .9) + at(150, 146, kid({ aR: -160, cAR: 'a-wave', aL: 10, mouth: 'open', shirt: '#8B5CF6' })) +
+        at(200, 70, '<g class="a-note"><text font-size="20" font-weight="900" fill="#E5484D" font-family="Noto Sans SC, sans-serif">你好!</text></g>');
+    }},
+    { id: 'hug', hz: '拥抱', py: 'yōng bào', en: 'hug', scene: function () {
+      return sky('#FFE3F1') + '<rect y="186" width="300" height="34" fill="#F7B6D2"/>' +
+        at(150, 186, '<g class="a-sway">' +
+          at(-22, -40, kid({ aR: -110, aL: 10, eyes: 'closed', shirt: '#2F9BEA' })) +
+          at(22, -40, kid({ aL: 110, aR: -10, eyes: 'closed', shirt: '#E8579B', hair: '#6B3E1E' })) + '</g>') +
+        at(150, 70, '<g class="a-note"><path d="M0 6c-10-8-14-12-14-18 0-5 4-8 8-8 3 0 5 2 6 4 1-2 3-4 6-4 4 0 8 3 8 8 0 6-4 10-14 18z" fill="#E5484D"/></g>') +
+        at(176, 84, '<g class="a-note" style="animation-delay:1.2s"><path d="M0 6c-10-8-14-12-14-18 0-5 4-8 8-8 3 0 5 2 6 4 1-2 3-4 6-4 4 0 8 3 8 8 0 6-4 10-14 18z" fill="#E8579B"/></g>');
+    }},
+    { id: 'cry', hz: '哭', py: 'kū', en: 'cry', scene: function () {
+      return sky('#DCE4F0') + '<path d="M0 186h300v34H0z" fill="#B8C9DB"/>' + at(70, 40, cloudShape.replace('#fff', '#AEB7C6')) +
+        at(150, 146, kid({ aL: -150, aR: 150, mouth: 'sad', eyes: 'closed', shirt: '#7CC6F2' })) +
+        [[-10, 0], [10, .5], [-10, 1], [10, 1.5]].map(function (t) { return at(150 + t[0], 74, '<g class="a-tear" style="animation-delay:' + t[1] + 's"><ellipse rx="3" ry="5" fill="#4FB3F0"/></g>'); }).join('');
+    }},
+    { id: 'laugh', hz: '笑', py: 'xiào', en: 'laugh', scene: function () {
+      return sky('#FFF4D6') + grass + at(150, 146, '<g class="a-bob">' + kid({ aL: 30, aR: -30, cAL: 'a-wave', cAR: 'a-wave rev', mouth: 'open', eyes: 'happy', shirt: '#FFD23F' }) + '</g>') +
+        at(190, 70, '<g class="a-note"><text font-size="22" font-weight="900" fill="#F28C28" font-family="Noto Sans SC, sans-serif">哈哈</text></g>') +
+        at(70, 84, '<g class="a-note" style="animation-delay:1.2s"><text font-size="18" font-weight="900" fill="#E8579B" font-family="Noto Sans SC, sans-serif">哈哈</text></g>');
+    }},
+    { id: 'cart', hz: '推车', py: 'tuī chē', en: 'push a cart', scene: function () {
+      var wheelc = function (x) { return at(x, 182, '<circle r="7" fill="#2A2F45"/><g class="a-spin fast"><path d="M0 -6v12" stroke="#AEB7C6" stroke-width="2"/></g>'); };
+      return sky('#EAF4FF') + '<g class="a-scroll slow"><rect x="0" y="60" width="40" height="100" fill="#FFE3C2"/><rect x="120" y="60" width="40" height="100" fill="#FFE3C2"/><rect x="240" y="60" width="40" height="100" fill="#FFE3C2"/></g>' +
+        '<rect y="186" width="300" height="34" fill="#CFE0F2"/>' +
+        at(110, 146, '<g class="a-bob slow">' + kid({ cGL: 'a-walk', cGR: 'a-walk rev', aR: -75, aL: -70, shirt: '#2FA86B' }) + '</g>') +
+        '<path d="M150 112h14l10 50h70l10-44h-86" stroke="#8A9BB8" stroke-width="4" fill="none" stroke-linejoin="round"/><rect x="180" y="104" width="22" height="18" fill="#E5484D"/><circle cx="216" cy="110" r="10" fill="#FFD23F"/><rect x="226" y="98" width="12" height="22" fill="#2F9BEA"/>' +
+        wheelc(184) + wheelc(238);
+    }},
+    { id: 'throw', hz: '扔球', py: 'rēng qiú', en: 'throw a ball', scene: function () {
+      return sky() + grass + at(90, 146, kid({ aR: 180, cAR: 'a-throw', aL: 40, mouth: 'open', shirt: '#E5484D' })) +
+        at(100, 80, '<g class="a-throwball"><circle r="11" fill="#2F9BEA"/><path d="M-11 0q11-6 22 0" stroke="#fff" stroke-width="2" fill="none"/></g>');
+    }},
+  ];
+  var GROUPS = [
+    { id: 'all', hz: '全部', en: 'All' },
+    { id: 'daily', hz: '每天', en: 'Every day', ids: 'getup bath face brush comb dress wash eat drink sleep school walk' },
+    { id: 'chores', hz: '家务', en: 'Chores', ids: 'cook tidy sweep mop dishes water wipe trash hang plant' },
+    { id: 'sport', hz: '运动', en: 'Sports', ids: 'swim run jump kick bike bounce hike rope skate basket throw row' },
+    { id: 'play', hz: '玩', en: 'Play', ids: 'slide swing tree kite fish blocks snowman bubbles feedfish dog apple cart tv' },
+    { id: 'art', hz: '艺术', en: 'Music & art', ids: 'draw sing dance piano drum photo write cut read' },
+    { id: 'friends', hz: '朋友', en: 'Friends', ids: 'wave hug cry laugh phone clap' }
   ];
   var byId = {}; ACTIONS.forEach(function (a) { byId[a.id] = a; });
+  GROUPS.forEach(function (g) { g.items = g.ids ? g.ids.split(' ').map(function (id) { if (!byId[id]) throw new Error('no action ' + id); return byId[id]; }) : ACTIONS; });
 
   // ---------- page ----------
   var $ = function (id) { return document.getElementById(id); };
@@ -354,7 +713,7 @@
   var play = function (n) { try { PC.sfx && PC.sfx[n] && PC.sfx[n](); } catch (e) {} };
   var mode = 'learn', li = 0, run = 0, round = [], ri = 0, stars = 0, cur = null, tries = 0;
   var STAR = '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 62,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 38,37" fill="#FFD23F" stroke="#F5A623" stroke-width="4" stroke-linejoin="round"/></svg>';
-  var ROUND = 8;
+  var MAX_ROUND = 8, ROUND = 8, grp = null;
 
   function stop() { run++; try { speechSynthesis.cancel(); } catch (e) {} }
   function sayChain(list, my, each, done) {
@@ -388,7 +747,7 @@
 
   // ---- 学一学 Learn ----
   function learn(i) {
-    stop(); var my = run; mode = 'learn'; li = (i + ACTIONS.length) % ACTIONS.length; cur = ACTIONS[li];
+    stop(); var my = run; mode = 'learn'; var L = grp.items; li = (i + L.length) % L.length; cur = L[li];
     setMode();
     showScene(cur);
     $('talk').innerHTML = keyBox(cur) + '<div class="sentence">小朋友在<b>' + cur.hz + '</b>。</div>';
@@ -410,7 +769,8 @@
   }
   function startRound() {
     stop(); mode = 'guess'; stars = 0; ri = 0;
-    round = shuffle(ACTIONS).slice(0, ROUND);
+    ROUND = Math.min(MAX_ROUND, grp.items.length);
+    round = shuffle(grp.items).slice(0, ROUND);
     $('roundDone').hidden = true;
     ask();
   }
@@ -455,6 +815,23 @@
     $('nav').hidden = mode !== 'learn'; $('choices').hidden = mode !== 'guess';
   }
   $('mLearn').addEventListener('click', function () { learn(li); });
+  // categories
+  function renderGroups() {
+    $('groups').innerHTML = GROUPS.map(function (g) {
+      return '<button class="chip' + (g === grp ? ' on' : '') + '" type="button" data-g="' + g.id + '"><span class="zh">' + g.hz + '</span><span class="py">' + g.items.length + '</span></button>';
+    }).join('');
+  }
+  function setGroup(id) {
+    grp = GROUPS.filter(function (g) { return g.id === id; })[0] || GROUPS[0]; renderGroups();
+    try { localStorage.setItem('pc-act-group', grp.id); } catch (e) {}
+  }
+  $('groups').addEventListener('click', function (ev) {
+    var b = ev.target.closest('.chip'); if (!b) return;
+    setGroup(b.dataset.g);
+    if ($('startScreen').hidden) { if (mode === 'guess') startRound(); else learn(0); }
+  });
+  var savedG = null; try { savedG = localStorage.getItem('pc-act-group'); } catch (e) {}
+  setGroup(savedG || 'all');
   $('mGuess').addEventListener('click', startRound);
   $('go').addEventListener('click', function () {
     try { PC.sfx && PC.sfx.unlock(); } catch (e) {}
@@ -467,7 +844,7 @@
   window.__act = {
     ACTIONS: ACTIONS, pickChoices: pickChoices,
     get mode() { return mode; }, get cur() { return cur; }, get stars() { return stars; }, get ri() { return ri; }, get round() { return round; },
-    learn: learn, startRound: startRound
+    learn: learn, startRound: startRound, GROUPS: GROUPS, setGroup: setGroup, get group() { return grp; }
   };
 })();
 </script>

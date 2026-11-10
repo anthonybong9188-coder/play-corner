@@ -255,7 +255,10 @@ module.exports = [
     await page.goto(h.base + 'zh-act/');
     const bad = await page.evaluate(() => {
       const out = [], A = __act.ACTIONS;
-      if (A.length < 12) out.push('only ' + A.length + ' actions');
+      if (A.length < 60) out.push('only ' + A.length + ' actions');
+      if (new Set(A.map((a) => a.hz)).size !== A.length) out.push('a word is used twice');
+      const inGroups = __act.GROUPS.filter((g) => g.id !== 'all').flatMap((g) => g.items);
+      if (inGroups.length !== A.length || new Set(inGroups).size !== A.length) out.push('every action must be in exactly one category: ' + inGroups.length + '/' + A.length);
       A.forEach((a) => {
         if (a.py.split(' ').length !== Array.from(a.hz).length) out.push('pinyin ' + a.hz);
         const svg = a.scene(); if (!/class="a-/.test(svg) || !/<circle cx="0" cy="-22" r="23"/.test(svg)) out.push('no animated child in ' + a.hz);
@@ -302,6 +305,29 @@ module.exports = [
     const last = await page.evaluate(() => __act.ACTIONS[__act.ACTIONS.length - 1].id);
     h.assert((await page.evaluate(() => __act.cur.id)) === last, 'back from the first goes to the last');
     h.assert(await page.locator('#choices').isHidden(), 'no answer buttons in Learn');
+  }},
+  { game: 'zh-act', name: 'categories: Learn and Guess stay inside the chosen category, which is remembered', timeout: 90000, fn: async (page, h) => {
+    await page.addInitScript(() => { speechSynthesis.speak = (u) => { window.__said.push({ text: u.text }); setTimeout(() => u.onend && u.onend(), 50); }; });
+    await page.goto(h.base + 'zh-act/');
+    await page.click('#go');
+    await page.click('.chip[data-g="friends"]');
+    const ids = await page.evaluate(() => __act.group.items.map((a) => a.id));
+    h.assert(ids.length === 6, 'friends has 6 actions');
+    const seen = [];
+    for (let k = 0; k < ids.length + 1; k++) { seen.push(await page.evaluate(() => __act.cur.id)); await page.click('#next'); }
+    h.assert(JSON.stringify(seen) === JSON.stringify(ids.concat(ids[0])), 'Learn goes through the category and round again: ' + seen);
+    await page.click('#mGuess');
+    const round = await page.evaluate(() => __act.round.map((a) => a.id));
+    h.assert(round.length === 6 && round.every((id) => ids.includes(id)), 'Guess asks only this category: ' + round);
+    // play the short round to the end
+    for (let q = 0; q < 6; q++) {
+      await page.waitForFunction((q) => __act.ri === q && document.querySelectorAll('.choice:not([disabled])').length === 3, q, { timeout: 15000 });
+      await page.click(`.choice[data-id="${await page.evaluate(() => __act.cur.id)}"]`);
+    }
+    await page.waitForSelector('#roundDone:not([hidden])', { timeout: 15000 });
+    h.assert(/6 of 6/.test(await page.textContent('#roundText')), 'round of 6 ends: ' + (await page.textContent('#roundText')));
+    await page.reload();
+    h.assert((await page.evaluate(() => __act.group.id)) === 'friends', 'category remembered');
   }},
   { game: 'zh-act', name: 'guess: pick the word for the animation; wrong is greyed; star only first time; 8 per round', timeout: 120000, fn: async (page, h) => {
     await page.addInitScript(() => { speechSynthesis.speak = (u) => { window.__said.push({ text: u.text, rate: u.rate }); setTimeout(() => u.onend && u.onend(), 60); }; });

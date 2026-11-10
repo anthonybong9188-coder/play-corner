@@ -19,4 +19,4 @@ Plain HTML/CSS/JS, no build step. Hosted on GitHub Pages; installable to the hom
 To add a game: create a new folder with an `index.html`, add a tile on the landing page, and add the files to `CORE` in `sw.js` (bump the `CACHE` version).
 
 - **跟我读 Read With Me** – six short lessons of K1-level sentences with pinyin. Each sentence teaches one new word first (big, red, said slowly twice); then each word lights up as it is read, the light runs again for the child to read along, and the new word is said once more. Each lesson ends with a review of all its new words.
-- **动一动 Action Words** – 16 animated actions (游泳, 跑步, 做饭, 刷牙, 穿衣服, 收拾…). Learn: each action with its word, big and red, said slowly twice, then in a sentence. Guess: watch the animation and pick the right word from three.
+- **动一动 Action Words** – 62 animated actions in 6 categories (每天 every day, 家务 chores, 运动 sports, 玩 play, 艺术 music & art, 朋友 friends & feelings). Learn: each action with its word, big and red, said slowly twice, then in a sentence. Guess: watch the animation and pick the right word from three.
