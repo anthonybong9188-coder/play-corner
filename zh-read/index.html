@@ -48,6 +48,36 @@
   .word.heard { background: #FFF1C2; }
   .word.now.you { background: #5FD394; box-shadow: 0 4px 0 #2FA86B; }
   .word.read { background: #DDF5E7; }
+  /* the key word to remember: big, red, said slowly */
+  .keyrow { display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .keyrow .pic { width: 104px; height: 104px; }
+  .keyrow .pic.two { width: 132px; }
+  .keyrow .pic.two > div { width: 64px; height: 64px; }
+  .keybox { appearance: none; border: 0; cursor: pointer; background: #FFF4F4; border-radius: 22px; padding: 6px 14px 8px; box-shadow: 0 0 0 3px #F6C9C9 inset;
+    display: flex; flex-direction: column; align-items: center; gap: 0; transition: transform .25s, box-shadow .25s; }
+  .keybox .kpy { font-family: var(--body); font-weight: 800; font-size: 22px; color: #B8323A; line-height: 1.2; }
+  .keybox .khz { font-size: 64px; font-weight: 900; color: #E5484D; line-height: 1.1; letter-spacing: .04em; }
+  .keybox .ken { font-family: var(--body); font-weight: 800; font-size: 13px; color: var(--ink-2); }
+  .keybox.say { transform: scale(1.1); box-shadow: 0 0 0 4px #E5484D inset, 0 6px 0 #F0B3B3; background: #FFE3E3; }
+  .word.key .hz { color: #E5484D; font-weight: 900; }
+  .word.key .py { color: #B8323A; font-weight: 800; }
+  .word.key { box-shadow: 0 0 0 2px #F6C9C9 inset; }
+  .phase.word { background: #FFE3E3; color: #9E2A30; }
+  .review-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 380px; }
+  .rcard { appearance: none; border: 0; cursor: pointer; background: #fff; border-radius: 18px; padding: 8px 4px; box-shadow: 0 4px 0 var(--card-shadow);
+    display: flex; flex-direction: column; align-items: center; gap: 2px; transition: transform .25s, box-shadow .25s; }
+  .rcard .rp { width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; gap: 2px; }
+  .rcard .rp svg { width: 100%; height: 100%; }
+  .rcard .rp > div { width: 36px; height: 36px; }
+  .rcard .rp:has(> div) { width: 76px; }
+  .rcard .rhz { font-size: 30px; font-weight: 900; color: #E5484D; line-height: 1.15; }
+  .rcard .rpy { font-weight: 800; font-size: 13px; color: var(--ink-2); }
+  .rcard.say { transform: scale(1.08); box-shadow: 0 0 0 4px #E5484D, 0 4px 0 var(--card-shadow); }
+  .rcard.you { box-shadow: 0 0 0 4px var(--ok), 0 4px 0 var(--card-shadow); }
+  .review-note { min-height: 26px; font-weight: 800; font-size: 18px; color: var(--ink-2); }
+  .review-btns { display: flex; gap: 12px; width: 100%; max-width: 360px; }
+  .review-btns .big-btn { flex: 1; font-size: 20px; }
+  .review-btns .again { background: #F5A623; box-shadow: 0 6px 0 #C47F0E; }
   .en { font-size: 15px; font-weight: 700; color: var(--ink-2); text-align: center; min-height: 20px; }
 
   .controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; flex-shrink: 0; }
@@ -87,7 +117,10 @@
 
   <section class="card">
     <div class="progress" id="progress"></div>
-    <div class="pic" id="pic"></div>
+    <div class="keyrow">
+      <div class="pic" id="pic"></div>
+      <button class="keybox zh" type="button" id="keybox" aria-label="Hear the new word"><span class="kpy" id="kpy"></span><span class="khz" id="khz"></span><span class="ken" id="ken"></span></button>
+    </div>
     <div class="phase" id="phase"></div>
     <div class="sentence zh" id="sentence"></div>
     <div class="en" id="en"></div>
@@ -104,11 +137,23 @@
   <h2 class="zh">跟我读</h2>
   <p>Read With Me</p>
   <ol>
+    <li>New word: learn the big red word first.</li>
     <li>Listen: each word lights up as it is read.</li>
     <li>Your turn: the light moves again. Read each word out loud as it lights up.</li>
     <li>Tap any word to hear it on its own.</li>
   </ol>
   <button class="big-btn" type="button" id="go">开始 Start</button>
+</div>
+
+<div class="start" id="review" hidden>
+  <h2 class="zh">复习 <span style="font-family:var(--body);font-size:24px">Review</span></h2>
+  <p id="reviewSub">Say each word after me.</p>
+  <div class="review-grid zh" id="reviewGrid"></div>
+  <div class="review-note" id="reviewNote"></div>
+  <div class="review-btns">
+    <button class="big-btn again" type="button" id="reviewAgain">再来 Again</button>
+    <button class="big-btn" type="button" id="reviewNext">下一课 Next</button>
+  </div>
 </div>
 
 <script src="../assets/sfx.js"></script>
@@ -125,57 +170,59 @@
   var TWO = function (a, b) { return { two: true, html: '<div>' + a + '</div><div>' + b + '</div>' }; };
   var LESSONS = [
     { hz: '你好', en: 'Hello', s: [
-      ['你好:nǐ hǎo / !', 'Hello!', function () { return A('chick'); }],
-      ['老师:lǎo shī / 好:hǎo / !', 'Hello, teacher!', function () { return A('cat'); }],
-      ['早上:zǎo shang / 好:hǎo / !', 'Good morning!', function () { return W('', 'ri'); }],
-      ['谢谢:xiè xie / 你:nǐ / !', 'Thank you!', function () { return A('bunny'); }],
-      ['不客气:bú kè qi / 。', "You're welcome.", function () { return A('dog'); }],
-      ['再见:zài jiàn / !', 'Goodbye!', function () { return A('monkey'); }]
+      ['*你好:nǐ hǎo=hello / !', 'Hello!', function () { return A('chick'); }],
+      ['*老师:lǎo shī=teacher / 好:hǎo / !', 'Hello, teacher!', function () { return A('cat'); }],
+      ['*早上:zǎo shang=morning / 好:hǎo / !', 'Good morning!', function () { return W('', 'ri'); }],
+      ['*谢谢:xiè xie=thank you / 你:nǐ / !', 'Thank you!', function () { return A('bunny'); }],
+      ['*不客气:bú kè qi=you\'re welcome / 。', "You're welcome.", function () { return A('dog'); }],
+      ['*再见:zài jiàn=goodbye / !', 'Goodbye!', function () { return A('monkey'); }]
     ]},
     { hz: '我的家', en: 'My family', s: [
-      ['我:wǒ / 爱:ài / 妈妈:mā ma / 。', 'I love Mummy.', function () { return TWO(A('bunny'), A('bunny', 'open')); }],
-      ['我:wǒ / 爱:ài / 爸爸:bà ba / 。', 'I love Daddy.', function () { return TWO(A('dog'), A('dog', 'open')); }],
-      ['妈妈:mā ma / 爱:ài / 我:wǒ / 。', 'Mummy loves me.', function () { return TWO(A('cat'), A('cat', 'open')); }],
-      ['我:wǒ / 有:yǒu / 一个:yí gè / 家:jiā / 。', 'I have a family.', function () { return W('', 'ren'); }],
-      ['我们:wǒ men / 是:shì / 一家人:yì jiā rén / 。', 'We are one family.', function () { return TWO(A('chick'), A('chick', 'open')); }]
+      ['我:wǒ / 爱:ài / *妈妈:mā ma=Mummy / 。', 'I love Mummy.', function () { return TWO(A('bunny'), A('bunny', 'open')); }],
+      ['我:wǒ / 爱:ài / *爸爸:bà ba=Daddy / 。', 'I love Daddy.', function () { return TWO(A('dog'), A('dog', 'open')); }],
+      ['妈妈:mā ma / *爱:ài=love / 我:wǒ / 。', 'Mummy loves me.', function () { return TWO(A('cat'), A('cat', 'open')); }],
+      ['我:wǒ / 有:yǒu / 一个:yí gè / *家:jiā=home / 。', 'I have a family.', function () { return W('', 'ren'); }],
+      ['*我们:wǒ men=we / 是:shì / 一家人:yì jiā rén / 。', 'We are one family.', function () { return TWO(A('chick'), A('chick', 'open')); }]
     ]},
     { hz: '小动物', en: 'Animals', s: [
-      ['小猫:xiǎo māo / 喵喵:miāo miāo / 叫:jiào / 。', 'The kitten says miaow.', function () { return A('cat', 'open'); }],
-      ['小狗:xiǎo gǒu / 汪汪:wāng wāng / 叫:jiào / 。', 'The puppy says woof.', function () { return A('dog', 'open'); }],
-      ['小鸡:xiǎo jī / 叽叽:jī jī / 叫:jiào / 。', 'The chick says cheep.', function () { return A('chick', 'open'); }],
-      ['小鸟:xiǎo niǎo / 飞飞飞:fēi fēi fēi / 。', 'The little bird flies.', function () { return W('', 'niao'); }],
-      ['小鱼:xiǎo yú / 游游游:yóu yóu yóu / 。', 'The little fish swims.', function () { return W('', 'yu-fish'); }],
-      ['小兔:xiǎo tù / 跳跳跳:tiào tiào tiào / 。', 'The bunny hops.', function () { return A('bunny'); }]
+      ['*小猫:xiǎo māo=kitten / 喵喵:miāo miāo / 叫:jiào / 。', 'The kitten says miaow.', function () { return A('cat', 'open'); }],
+      ['*小狗:xiǎo gǒu=puppy / 汪汪:wāng wāng / 叫:jiào / 。', 'The puppy says woof.', function () { return A('dog', 'open'); }],
+      ['*小鸡:xiǎo jī=chick / 叽叽:jī jī / 叫:jiào / 。', 'The chick says cheep.', function () { return A('chick', 'open'); }],
+      ['*小鸟:xiǎo niǎo=little bird / 飞飞飞:fēi fēi fēi / 。', 'The little bird flies.', function () { return W('', 'niao'); }],
+      ['*小鱼:xiǎo yú=little fish / 游游游:yóu yóu yóu / 。', 'The little fish swims.', function () { return W('', 'yu-fish'); }],
+      ['*小兔:xiǎo tù=bunny / 跳跳跳:tiào tiào tiào / 。', 'The bunny hops.', function () { return A('bunny'); }]
     ]},
     { hz: '水果', en: 'Fruit', s: [
-      ['苹果:píng guǒ / 红红的:hóng hóng de / 。', 'The apple is red.', function () { return find('fruits', 'apple'); }],
-      ['香蕉:xiāng jiāo / 黄黄的:huáng huáng de / 。', 'The banana is yellow.', function () { return find('fruits', 'banana'); }],
-      ['葡萄:pú tao / 紫紫的:zǐ zǐ de / 。', 'The grapes are purple.', function () { return find('fruits', 'grapes'); }],
-      ['西瓜:xī guā / 大:dà / 又:yòu / 圆:yuán / 。', 'The watermelon is big and round.', function () { return find('fruits', 'watermelon'); }],
-      ['我:wǒ / 爱:ài / 吃:chī / 水果:shuǐ guǒ / 。', 'I love eating fruit.', function () { return find('fruits', 'strawberry'); }]
+      ['*苹果:píng guǒ=apple / 红红的:hóng hóng de / 。', 'The apple is red.', function () { return find('fruits', 'apple'); }],
+      ['*香蕉:xiāng jiāo=banana / 黄黄的:huáng huáng de / 。', 'The banana is yellow.', function () { return find('fruits', 'banana'); }],
+      ['*葡萄:pú tao=grapes / 紫紫的:zǐ zǐ de / 。', 'The grapes are purple.', function () { return find('fruits', 'grapes'); }],
+      ['*西瓜:xī guā=watermelon / 大:dà / 又:yòu / 圆:yuán / 。', 'The watermelon is big and round.', function () { return find('fruits', 'watermelon'); }],
+      ['我:wǒ / 爱:ài / 吃:chī / *水果:shuǐ guǒ=fruit / 。', 'I love eating fruit.', function () { return find('fruits', 'strawberry'); }]
     ]},
     { hz: '我的身体', en: 'My body', s: [
-      ['我:wǒ / 有:yǒu / 两只:liǎng zhī / 眼睛:yǎn jing / 。', 'I have two eyes.', function () { return find('body', 'eye'); }],
-      ['我:wǒ / 有:yǒu / 一张:yì zhāng / 嘴巴:zuǐ ba / 。', 'I have one mouth.', function () { return find('body', 'mouth'); }],
-      ['我:wǒ / 有:yǒu / 两只:liǎng zhī / 小手:xiǎo shǒu / 。', 'I have two little hands.', function () { return find('body', 'hand'); }],
-      ['拍拍:pāi pāi / 手:shǒu / 。', 'Clap your hands.', function () { return find('body', 'hand'); }],
-      ['跺跺:duò duò / 脚:jiǎo / 。', 'Stamp your feet.', function () { return find('body', 'foot'); }]
+      ['我:wǒ / 有:yǒu / 两只:liǎng zhī / *眼睛:yǎn jing=eyes / 。', 'I have two eyes.', function () { return find('body', 'eye'); }],
+      ['我:wǒ / 有:yǒu / 一张:yì zhāng / *嘴巴:zuǐ ba=mouth / 。', 'I have one mouth.', function () { return find('body', 'mouth'); }],
+      ['我:wǒ / 有:yǒu / 两只:liǎng zhī / 小:xiǎo / *手:shǒu=hand / 。', 'I have two little hands.', function () { return find('body', 'hand'); }],
+      ['*拍拍:pāi pāi=clap / 手:shǒu / 。', 'Clap your hands.', function () { return find('body', 'hand'); }],
+      ['跺跺:duò duò / *脚:jiǎo=foot / 。', 'Stamp your feet.', function () { return find('body', 'foot'); }]
     ]},
     { hz: '天空', en: 'The sky', s: [
-      ['太阳:tài yáng / 出来:chū lái / 了:le / 。', 'The sun has come out.', function () { return W('', 'ri'); }],
-      ['下雨:xià yǔ / 了:le / 。', "It's raining.", function () { return W('', 'yu'); }],
-      ['月亮:yuè liang / 弯弯的:wān wān de / 。', 'The moon is curved.', function () { return W('', 'yue'); }],
-      ['星星:xīng xing / 亮晶晶:liàng jīng jīng / 。', 'The stars are twinkling.', function () { return STAR; }],
-      ['天:tiān / 黑:hēi / 了:le / ， / 我:wǒ / 要:yào / 睡觉:shuì jiào / 了:le / 。', "It's dark. Time for bed.", function () { return W('', 'yue'); }]
+      ['*太阳:tài yáng=sun / 出来:chū lái / 了:le / 。', 'The sun has come out.', function () { return W('', 'ri'); }],
+      ['下:xià / *雨:yǔ=rain / 了:le / 。', "It's raining.", function () { return W('', 'yu'); }],
+      ['*月亮:yuè liang=moon / 弯弯的:wān wān de / 。', 'The moon is curved.', function () { return W('', 'yue'); }],
+      ['*星星:xīng xing=stars / 亮晶晶:liàng jīng jīng / 。', 'The stars are twinkling.', function () { return STAR; }],
+      ['天:tiān / 黑:hēi / 了:le / ， / 我:wǒ / 要:yào / *睡觉:shuì jiào=sleep / 了:le / 。', "It's dark. Time for bed.", function () { return W('', 'yue'); }]
     ]}
   ];
   var PUNCT = /^[。！？，!?,]$/;
   function parse(line) {
     return line.split(' / ').map(function (w) {
       if (PUNCT.test(w)) return { hz: w === '!' ? '！' : w, py: [], punct: true };
+      var key = w.charAt(0) === '*'; if (key) w = w.slice(1);
+      var en = ''; if (w.indexOf('=') > 0) { en = w.split('=')[1]; w = w.split('=')[0]; }
       var p = w.split(':'), chars = Array.from(p[0]), py = p[1].split(' ');
       if (py.length !== chars.length) throw new Error('pinyin count ' + w);
-      return { hz: p[0], py: py, punct: false };
+      return { hz: p[0], py: py, punct: false, key: key, en: en };
     });
   }
 
@@ -220,21 +267,46 @@
     if (pic && pic.two) { el.className = 'pic two'; el.innerHTML = pic.html; } else { el.className = 'pic'; el.innerHTML = pic; }
     $('sentence').innerHTML = words.map(function (w, i) {
       var chars = Array.from(w.hz);
-      return '<div class="word' + (w.punct ? ' punct' : '') + '" data-w="' + i + '">' + chars.map(function (c, k) {
+      return '<div class="word' + (w.punct ? ' punct' : '') + (w.key ? ' key' : '') + '" data-w="' + i + '">' + chars.map(function (c, k) {
         return '<div class="ch"><span class="py">' + (w.py[k] || '') + '</span><span class="hz">' + c + '</span></div>';
       }).join('') + '</div>';
     }).join('');
     $('en').textContent = S[1];
+    var k = keyWord(); $('khz').textContent = k.hz; $('kpy').textContent = k.py.join(' '); $('ken').textContent = k.en;
     $('progress').innerHTML = LESSONS[lesson].s.map(function (_, j) { return '<i class="' + (done[key(lesson, j)] ? 'on' : '') + (j === idx ? ' cur' : '') + '"></i>'; }).join('');
     $('me').classList.remove('pulse'); $('next').classList.remove('pulse');
     setPhase('', '点一点', 'Tap a word to hear it');
     var my = run;
-    if (autoplay) setTimeout(function () { if (my === run) listen(); }, 300);
+    if (autoplay) setTimeout(function () { if (my === run) learnWord(true); }, 300);
   }
   var spoken = function () { return words.map(function (w, i) { return i; }).filter(function (i) { return !words[i].punct; }); };
   function wordEl(i) { return $('sentence').querySelector('[data-w="' + i + '"]'); }
   function clearMarks() { [].forEach.call($('sentence').querySelectorAll('.word'), function (e) { e.classList.remove('now', 'heard', 'you', 'read'); }); }
   function stop() { run++; try { speechSynthesis.cancel(); } catch (e) {} }
+
+  function keyWord() { return words.filter(function (w) { return w.key; })[0]; }
+  // say a list of things one after another (with a backup timer in case the phone never says "done")
+  function sayChain(list, my, each, done) {
+    var n = 0;
+    (function next() {
+      if (my !== run) return;
+      if (n >= list.length) { done && done(); return; }
+      var t = list[n], fired = false;
+      each && each(n);
+      var go = function () { if (fired || my !== run) return; fired = true; n++; setTimeout(next, t.gap || 300); };
+      say(t.text, { rate: t.rate || 0.7, onend: go });
+      setTimeout(go, 900 + 600 * Array.from(t.text).length);
+    })();
+  }
+  // New word first: big red word, said slowly twice.
+  function learnWord(thenRead) {
+    stop(); var my = run, k = keyWord(), box = $('keybox');
+    clearMarks(); setPhase('word', '学新词', 'New word: ' + k.en);
+    sayChain([{ text: k.hz, rate: 0.55, gap: 700 }, { text: k.hz, rate: 0.55, gap: 500 }], my,
+      function () { box.classList.remove('say'); void box.offsetWidth; box.classList.add('say'); },
+      function () { box.classList.remove('say'); if (thenRead) setTimeout(function () { if (my === run) listen(); }, 300); });
+  }
+  $('keybox').addEventListener('click', function () { learnWord(false); });
 
   // Teacher reads: one word at a time, each word lights up while it is spoken.
   function listen() {
@@ -276,7 +348,12 @@
   function finish() {
     var praise = ['读得真好！', '你真棒！', '好极了！'][Math.floor(Math.random() * 3)];
     setPhase('done', praise, 'Great reading!');
-    say(praise); play('tada');
+    play('tada');
+    // say the praise, then the new word once more to remember it
+    var my = run, k = keyWord(), box = $('keybox');
+    sayChain([{ text: praise, rate: 0.85, gap: 500 }, { text: k.hz, rate: 0.55 }], my, function (n) {
+      if (n === 1) { box.classList.add('say'); setPhase('done', '记住：' + k.hz, k.py.join(' ') + ' · ' + k.en); }
+    }, function () { box.classList.remove('say'); });
     done[key(lesson, idx)] = 1; save(); renderLessons();
     [].forEach.call($('progress').children, function (e, j) { if (j === idx) e.classList.add('on'); });
     $('next').classList.add('pulse');
@@ -296,9 +373,47 @@
   $('me').addEventListener('click', function () { yourTurn(false); });
   $('next').addEventListener('click', function () {
     idx++;
-    if (idx >= LESSONS[lesson].s.length) { idx = 0; lesson = (lesson + 1) % LESSONS.length; renderLessons(); }
+    if (idx >= LESSONS[lesson].s.length) { idx = LESSONS[lesson].s.length - 1; review(); return; }
     show(true);
   });
+  // ---- Review: all the new words of this lesson, said one by one, with time to say each back ----
+  function lessonWords(l) {
+    return LESSONS[l].s.map(function (S) { var k = parse(S[0]).filter(function (w) { return w.key; })[0]; var p = S[2](); return { hz: k.hz, py: k.py.join(' '), en: k.en, pic: p && p.two ? p.html : p }; });
+  }
+  function review() {
+    stop(); var my = run, list = lessonWords(lesson);
+    $('reviewGrid').innerHTML = list.map(function (k, i) {
+      return '<button class="rcard" type="button" data-r="' + i + '"><span class="rp">' + k.pic + '</span><span class="rhz">' + k.hz + '</span><span class="rpy">' + k.py + '</span></button>';
+    }).join('');
+    $('reviewSub').textContent = LESSONS[lesson].hz + ' · ' + LESSONS[lesson].en + ': say each word after me.';
+    $('review').hidden = false;
+    var cards = $('reviewGrid').children, n = 0;
+    setTimeout(function step() {
+      if (my !== run) return;
+      [].forEach.call(cards, function (c) { c.classList.remove('say', 'you'); });
+      if (n >= list.length) { $('reviewNote').textContent = '真棒！ Well done!'; say('真棒！'); play('tada'); return; }
+      var c = cards[n], k = list[n], fired = false;
+      c.classList.add('say'); $('reviewNote').textContent = k.hz + ' · ' + k.en;
+      var then = function () {
+        if (fired || my !== run) return; fired = true;
+        c.classList.remove('say'); c.classList.add('you'); $('reviewNote').textContent = '你说 Your turn';
+        n++; setTimeout(step, 1600 + 500 * Array.from(k.hz).length);   // time for the child to say it back
+      };
+      say(k.hz, { rate: 0.55, onend: then }); setTimeout(then, 900 + 600 * Array.from(k.hz).length);
+    }, 500);
+  }
+  $('reviewGrid').addEventListener('click', function (ev) {
+    var c = ev.target.closest('.rcard'); if (!c) return;
+    stop(); var k = lessonWords(lesson)[+c.dataset.r];
+    [].forEach.call($('reviewGrid').children, function (x) { x.classList.remove('say', 'you'); });
+    c.classList.add('say'); $('reviewNote').textContent = k.hz + ' · ' + k.en; say(k.hz, { rate: 0.55 });
+  });
+  $('reviewAgain').addEventListener('click', review);
+  $('reviewNext').addEventListener('click', function () {
+    stop(); $('review').hidden = true; $('reviewNote').textContent = '';
+    lesson = (lesson + 1) % LESSONS.length; idx = 0; renderLessons(); show(true);
+  });
+
   $('pyBtn').addEventListener('click', function () {
     showPy = !showPy; applyPy();
     try { localStorage.setItem('pc-zhread-py', showPy ? '1' : '0'); } catch (e) {}
@@ -318,7 +433,7 @@
   window.__zr = {
     LESSONS: LESSONS, parse: parse,
     get lesson() { return lesson; }, get idx() { return idx; }, get words() { return words; }, get durs() { return durs; },
-    go: function (l, i) { lesson = l; idx = i; renderLessons(); show(false); }
+    go: function (l, i) { lesson = l; idx = i; renderLessons(); show(false); }, keyWord: function () { return keyWord(); }, lessonWords: lessonWords
   };
 })();
 </script>

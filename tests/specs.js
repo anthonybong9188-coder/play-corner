@@ -174,21 +174,6 @@ module.exports = [
     await page.waitForFunction(() => document.getElementById('round').textContent === 'Round 2', null, { timeout: 4000 });
     h.assert((await pips()) === 0, 'new round starts at 0');
   }},
-  { game: 'balloon-zh', name: 'Mandarin prompt and colour spoken on pop', fn: async (page, h) => {
-    await page.goto(h.base + 'balloon/?lang=zh'); await page.waitForSelector('.balloon', { timeout: 4000 });
-    const g = await page.textContent('#goalText');
-    const CN = { '红色': 'red', '蓝色': 'blue', '黄色': 'yellow', '绿色': 'green', '紫色': 'purple' };
-    const hz = Object.keys(CN).find((k) => g.includes(k));
-    h.assert(g.includes('请你点') && hz, 'prompt reads 请你点…的气球');
-    for (let t = 0; t < 60; t++) {
-      const labs = await page.$$eval('.balloon', (bs) => bs.map((b) => b.getAttribute('aria-label')));
-      const ri = labs.findIndex((l) => l.startsWith(CN[hz]));
-      if (ri >= 0) { await tap(page, '.balloon', ri); break; }
-      await h.sleep(200);
-    }
-    await h.sleep(200);
-    h.assert((await h.said()).some((s) => s.includes(hz)), 'the colour is spoken in Mandarin');
-  }},
 
   // ===== Feed the Animals
   { game: 'feed', name: 'right food counts, wrong food is refused, rounds advance', timeout: 150000, fn: async (page, h) => {
@@ -279,6 +264,8 @@ module.exports = [
             ws.forEach((w) => w.py.forEach((p) => { if (!syl.test(p)) out.push('bad pinyin ' + p); }));
             const pic = S[2](); if (!pic || (pic.html || pic).length < 50) out.push('no picture ' + S[0]);
             if (!S[1]) out.push('no English ' + S[0]);
+            const keys = ws.filter((w) => w.key);
+            if (keys.length !== 1 || !keys[0].en) out.push('needs exactly one key word with its meaning: ' + S[0]);
           } catch (e) { out.push(e.message); }
         });
       });
@@ -315,6 +302,11 @@ module.exports = [
     h.assert(JSON.stringify(lit) === JSON.stringify(real.map((w) => w.i)), 'teacher lights each word in order: ' + lit);
     const spoken = log.filter((x) => x.startsWith('say:')).map((x) => x.slice(4));
     h.assert(JSON.stringify(spoken.slice(0, real.length)) === JSON.stringify(real.map((w) => w.hz)), 'teacher says each word in order, no punctuation: ' + spoken);
+    const k = await page.evaluate(() => __zr.keyWord().hz);
+    h.assert(await page.locator('.word.key').count() === 1 && (await page.textContent('.word.key')).includes(k), 'the new word is marked in the sentence');
+    await page.waitForFunction((k) => __log[__log.length - 1] === 'say:' + k, k, { timeout: 5000 }).catch(() => {});
+    const spoken2 = await page.evaluate(() => __log.filter((x) => x.startsWith('say:')).map((x) => x.slice(4)));
+    h.assert(spoken2[spoken2.length - 1] === k, 'after the child reads, the new word is said once more: ' + spoken2.slice(-2));
     const turnAt = log.findIndex((x) => x.startsWith('phase:turn'));
     h.assert(turnAt > 0 && /heard=0$/.test(log[turnAt]), 'the light is reset before the child reads: ' + log[turnAt]);
     const after = log.slice(turnAt);
@@ -336,50 +328,52 @@ module.exports = [
     // pinyin can be hidden
     await page.click('#pyBtn');
     h.assert(await page.locator('#sentence.nopy').count() === 1, 'pinyin hides');
+    await page.evaluate(() => __zr.go(1, 1));
     await page.click('#next', { force: true });
-    h.assert((await page.evaluate(() => __zr.idx)) === 4, 'Next goes to the next sentence');
+    h.assert((await page.evaluate(() => __zr.idx)) === 2, 'Next goes to the next sentence');
     await page.reload();
     h.assert(/1\/5/.test(await page.textContent('.chip[data-l="1"]')), 'progress is remembered');
+  }},
+  { game: 'zh-read', name: 'new word first: big, said slowly twice, then the sentence; lesson ends with a review of all new words', timeout: 90000, fn: async (page, h) => {
+    await page.addInitScript(() => { speechSynthesis.speak = (u) => { window.__said.push({ text: u.text, rate: u.rate }); setTimeout(() => u.onend && u.onend(), 200); }; });
+    await page.goto(h.base + 'zh-read/');
+    await page.click('#go');
+    await page.evaluate(() => { __zr.go(1, 0); __said.length = 0; });
+    await page.click('#keybox');
+    h.assert((await page.textContent('#khz')) === '妈妈' && (await page.textContent('#kpy')) === 'mā ma', 'big new word with pinyin');
+    await page.waitForFunction(() => __said.length >= 2, null, { timeout: 5000 });
+    const s = await page.evaluate(() => __said.slice(0, 2));
+    h.assert(s[0].text === '妈妈' && s[1].text === '妈妈' && s[0].rate <= 0.6, 'said slowly, twice: ' + JSON.stringify(s));
+    // the review after the last sentence of the lesson
+    await page.evaluate(() => { __zr.go(1, 4); __said.length = 0; });
+    await page.click('#next', { force: true });
+    await page.waitForSelector('#review:not([hidden])', { timeout: 3000 });
+    const want = await page.evaluate(() => __zr.lessonWords(1).map((k) => k.hz));
+    h.assert((await page.locator('.rcard').count()) === want.length, 'one card per new word');
+    await page.waitForFunction((n) => __said.filter((x) => x.text !== '真棒！').length >= n, want.length, { timeout: 40000 });
+    const said = await page.evaluate(() => __said.map((x) => x.text).filter((t) => t !== '真棒！'));
+    h.assert(JSON.stringify(said.slice(0, want.length)) === JSON.stringify(want), 'review says every new word in turn: ' + said);
+    await page.click('#reviewNext');
+    h.assert((await page.evaluate(() => [__zr.lesson, __zr.idx]).then((x) => x.join())) === '2,0', 'Next goes to the next lesson');
+    h.assert(await page.locator('#review').isHidden(), 'review closes');
   }},
   { game: 'zh-read', name: 'still works on a phone that never says when speech ends', timeout: 60000, fn: async (page, h) => {
     await page.goto(h.base + 'zh-read/');
     await page.click('#go');
     await page.evaluate(() => __zr.go(0, 0));
     await page.click('#listen');
-    await page.waitForSelector('#phase.turn', { timeout: 10000 });
+    await page.waitForSelector('#phase.turn', { timeout: 20000 });
     await page.waitForSelector('#phase.done', { timeout: 15000 });
   }},
 
-  // ===== 找一找
-  { game: 'zh-find', name: 'right picture earns a star, wrong one is named; 8 stars move to next topic', timeout: 90000, fn: async (page, h) => {
-    await page.goto(h.base + 'zh-find/'); await page.click('#go');
-    const topic0 = await page.textContent('.chip.on');
-    for (let q = 1; q <= 8; q++) {
-      const hz = (await page.textContent('#askHz')).replace('在哪里?', '');
-      const labs = await page.$$eval('.pick .lab .zh', (es) => es.map((e) => e.textContent));
-      h.assert(labs.length === 4 && labs.includes(hz), 'four choices including the answer');
-      if (q === 1) {
-        const wi = labs.findIndex((l) => l !== hz);
-        await page.locator('.pick').nth(wi).click(); await h.sleep(150);
-        h.assert(await page.locator('.pick').nth(wi).evaluate((e) => e.classList.contains('show')), 'a wrong pick shows its name');
-        h.assert((await page.locator('#stars svg.on').count()) === 0, 'a wrong pick earns no star');
-        h.assert((await h.said()).some((s) => s.startsWith('这是' + labs[wi])), 'a wrong pick is named aloud');
-      }
-      await page.locator('.pick').nth(labs.indexOf(hz)).click(); await h.sleep(150);
-      h.assert((await page.locator('#stars svg.on').count()) === q, `star count should be ${q}`);
-      h.assert((await h.said()).some((s) => s.startsWith('对了')), 'a right pick says 对了');
-      if (q < 8) await h.sleep(1750);
-    }
-    await page.waitForSelector('#cheer.show', { timeout: 2500 });
-    await page.waitForFunction((t) => document.querySelector('.chip.on').textContent !== t, topic0, { timeout: 4000 });
-  }},
-  { game: 'zh-find', name: 'picks a Mandarin (zh-CN) voice, never Cantonese', voices: [{ lang: 'zh-HK', name: 'HK' }, { lang: 'zh-TW', name: 'TW' }, { lang: 'zh-CN', name: 'CN' }, { lang: 'en-US', name: 'EN' }], fn: async (page, h) => {
-    await page.goto(h.base + 'zh-find/'); await page.click('#go'); await h.sleep(200);
+  // ===== Mandarin voice
+  { game: 'zh-read', name: 'picks a Mandarin (zh-CN) voice, never Cantonese', voices: [{ lang: 'zh-HK', name: 'HK' }, { lang: 'zh-TW', name: 'TW' }, { lang: 'zh-CN', name: 'CN' }, { lang: 'en-US', name: 'EN' }], fn: async (page, h) => {
+    await page.goto(h.base + 'zh-read/'); await page.click('#go'); await h.sleep(1200);
     const v = await page.evaluate(() => window.__said.map((s) => s.voice));
     h.assert(v.length && v.every((x) => x === 'zh-CN'), 'voice used: ' + v.join());
   }},
-  { game: 'zh-find', name: 'with only a Cantonese voice it still asks for Mandarin', voices: [{ lang: 'zh-HK', name: 'HK' }, { lang: 'en-US', name: 'EN' }], fn: async (page, h) => {
-    await page.goto(h.base + 'zh-find/'); await page.click('#go'); await h.sleep(200);
+  { game: 'zh-read', name: 'with only a Cantonese voice it still asks for Mandarin', voices: [{ lang: 'zh-HK', name: 'HK' }, { lang: 'en-US', name: 'EN' }], fn: async (page, h) => {
+    await page.goto(h.base + 'zh-read/'); await page.click('#go'); await h.sleep(1200);
     const s = await page.evaluate(() => window.__said);
     h.assert(s.length && s.every((x) => x.voice !== 'zh-HK' && x.lang === 'zh-CN'), 'speech: ' + JSON.stringify(s[0]));
   }},

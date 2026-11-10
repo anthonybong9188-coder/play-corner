@@ -24,7 +24,6 @@ module.exports = [
   { id: 'B1', games: ['balloon'], file: 'balloon/index.html', what: 'wrong colour counts instead of right', find: '    if (b.color === target) {', repl: '    if (b.color !== target) {' },
   { id: 'B2', games: ['balloon'], file: 'balloon/index.html', what: 'round never finishes', find: 'if (popped >= PER_ROUND) roundDone(now);', repl: 'if (popped > PER_ROUND) roundDone(now);' },
   { id: 'B3', games: ['balloon'], file: 'balloon/index.html', what: 'balloons sink instead of rise', find: 'b.y -= b.speed * dt;', repl: 'b.y += b.speed * dt;' },
-  { id: 'B4', games: ['balloon-zh'], file: 'balloon/index.html', what: 'colour not spoken in Mandarin', find: "      if (ZH) PC.zh.say(COLORS[b.color].hz + '!');", repl: '' },
 
   // ---- Feed the Animals
   { id: 'F1', games: ['feed'], file: 'feed/index.html', what: 'right/wrong food swapped', find: 'var right = food === MENU[who].food;', repl: 'var right = food !== MENU[who].food;' },
@@ -38,11 +37,8 @@ module.exports = [
   { id: 'F8', games: ['feed-zh'], file: 'feed/index.html', what: 'bites not counted aloud', find: "          PC.zh.say(n.count + '!');", repl: '' },
 
 
-  // ---- 找一找 / 跟我说 / voice
-  { id: 'Z1', games: ['zh-find'], file: 'zh-find/index.html', what: 'wrong picture accepted', find: '    if (it === target) {', repl: '    if (it !== target) {' },
-  { id: 'Z2', games: ['zh-find'], file: 'zh-find/index.html', what: 'round never ends', find: '      if (done >= PER_ROUND) return setTimeout(roundDone, 1300);', repl: '' },
-  { id: 'Z3', games: ['zh-find'], file: 'assets/zh.js', what: 'prefers any Chinese voice over Mandarin zh-CN', find: "voice = ok.filter(function (v) { return /zh[-_]CN|cmn/i.test(v.lang); })[0] || ok[0] || null;", repl: 'voice = ok[0] || null;' },
-  { id: 'Z4', games: ['zh-find'], file: 'assets/zh.js', what: 'Cantonese voice allowed', find: "var ok = vs.filter(function (v) { return isMandarin(v) && !/HK|yue/i.test(v.lang); });", repl: "var ok = vs.filter(function (v) { return /^zh/i.test(v.lang); });" },
+  { id: 'Z3', games: ['zh-read'], file: 'assets/zh.js', what: 'prefers any Chinese voice over Mandarin zh-CN', find: "voice = ok.filter(function (v) { return /zh[-_]CN|cmn/i.test(v.lang); })[0] || ok[0] || null;", repl: 'voice = ok[0] || null;' },
+  { id: 'Z4', games: ['zh-read'], file: 'assets/zh.js', what: 'Cantonese voice allowed', find: "var ok = vs.filter(function (v) { return isMandarin(v) && !/HK|yue/i.test(v.lang); });", repl: "var ok = vs.filter(function (v) { return /^zh/i.test(v.lang); });" },
   { id: 'Z5', games: ['zh-say'], file: 'zh-say/index.html', what: 'recording never offered for playback', find: "        $('playback').disabled = false;", repl: '' },
   { id: 'Z6', games: ['zh-say'], file: 'zh-say/index.html', what: 'next word keeps the old recording', find: "    $('playback').disabled = true;\n", repl: '' },
 
@@ -76,6 +72,11 @@ module.exports = [
   { id: 'R9', games: ['zh-read'], file: 'zh-read/index.html', what: "Next skips a sentence", find: "    idx++;\n    if (idx >= LESSONS", repl: "    idx += 2;\n    if (idx >= LESSONS" },
   { id: 'R10', games: ['zh-read'], file: 'zh-read/index.html', what: "a pinyin is missing", find: "\u5c0f\u732b:xi\u01ceo m\u0101o", repl: "\u5c0f\u732b:xi\u01ceo" },
   { id: 'R11', games: ['zh-read'], file: 'zh-read/index.html', what: "pinyin cannot be hidden", find: "$('sentence').classList.toggle('nopy', !showPy);", repl: "$('sentence').classList.toggle('nopy', false);" },
+  { id: 'R13', games: ['zh-read'], file: 'zh-read/index.html', what: "new word said only once", find: "sayChain([{ text: k.hz, rate: 0.55, gap: 700 }, { text: k.hz, rate: 0.55, gap: 500 }], my,", repl: "sayChain([{ text: k.hz, rate: 0.55, gap: 700 }], my," },
+  { id: 'R14', games: ['zh-read'], file: 'zh-read/index.html', what: "new word not marked in the sentence", find: "(w.key ? ' key' : '')", repl: "''" },
+  { id: 'R15', games: ['zh-read'], file: 'zh-read/index.html', what: "review leaves out the last word", find: "if (n >= list.length) { $('reviewNote')", repl: "if (n >= list.length - 1) { $('reviewNote')" },
+  { id: 'R16', games: ['zh-read'], file: 'zh-read/index.html', what: "new word not repeated at the end", find: "sayChain([{ text: praise, rate: 0.85, gap: 500 }, { text: k.hz, rate: 0.55 }], my,", repl: "sayChain([{ text: praise, rate: 0.85, gap: 500 }], my," },
+  { id: 'R17', games: ['zh-read'], file: 'zh-read/index.html', what: "no review at the end of a lesson", find: "idx = LESSONS[lesson].s.length - 1; review(); return;", repl: "idx = 0; lesson = (lesson + 1) % LESSONS.length; renderLessons();" },
   { id: 'R12', games: ['portal'], file: 'sw.js', what: 'Read With Me not saved for offline', find: "  './zh-read/',\n", repl: '' },
   // ---- Rocket Maths
   { id: 'MA1', games: ['maths'], file: 'maths/index.html', what: "plus can go over the limit", find: "b = rand(1, P.max - a);", repl: "b = rand(1, P.max);" },

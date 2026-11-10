@@ -53,6 +53,13 @@
   .zh-grid .tile-name { font-family: 'Noto Sans SC', 'PingFang SC', sans-serif; font-weight: 900; font-size: 22px; }
   .zh-grid .tile-sub { font-size: 14px; }
   .zh-grid .tile.wide { grid-column: 1 / -1; }
+  .games-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .games-grid .tile { padding: 12px; gap: 10px; border-radius: 24px; }
+  .games-grid .tile-art { height: 104px; border-radius: 16px; gap: 10px; }
+  .games-grid .tile-art > * { zoom: .64; }
+  .games-grid .tile-name { font-size: 20px; }
+  .games-grid .tile-sub { font-size: 13px; }
+  .games-grid .play { display: none; }
   .art-hz { font-family: 'Noto Sans SC', 'PingFang SC', sans-serif; font-weight: 900; font-size: 40px; color: #B8323A; }
   .foot { margin-top: auto; text-align: center; font-size: 14px; font-weight: 700; color: var(--ink-3); }
 </style>
@@ -68,9 +75,35 @@
 
   <div class="intro">
     <h1>Pick a game</h1>
-    <p>Tap a picture to start playing.</p>
+    <p>Tap a picture to start.</p>
   </div>
 
+  <div class="section"><h2>学中文</h2><span>Learn Chinese</span></div>
+  <div class="zh-grid">
+    <a class="tile wide" href="zh-read/" aria-label="Play Read With Me, in Mandarin">
+      <div class="tile-art" style="background:#FFF1C2" id="zart-read"></div>
+      <div><div class="tile-name">跟我读</div><div class="tile-sub">Read With Me · listen, then read the sentence</div></div>
+    </a>
+    <a class="tile" href="feed/?lang=zh" aria-label="Play Count With Me, in Mandarin">
+      <div class="tile-art" style="background:#FFE9C7" id="zart-count"></div>
+      <div><div class="tile-name">数一数</div><div class="tile-sub">Count With Me</div></div>
+    </a>
+    <a class="tile" href="match/?set=zh" aria-label="Play Character Match, in Mandarin">
+      <div class="tile-art" style="background:#FDECEC" id="zart-match"></div>
+      <div><div class="tile-name">汉字翻翻乐</div><div class="tile-sub">Character Match</div></div>
+    </a>
+    <a class="tile" href="zh-write/" aria-label="Play Character Builder, in Mandarin">
+      <div class="tile-art" style="background:#FFF8E6" id="zart-write"></div>
+      <div><div class="tile-name">汉字 Builder</div><div class="tile-sub">Watch &amp; trace strokes</div></div>
+    </a>
+    <a class="tile" href="zh-say/" aria-label="Play Say It Back, in Mandarin">
+      <div class="tile-art" style="background:#E6F6EC" id="zart-say"></div>
+      <div><div class="tile-name">跟我说</div><div class="tile-sub">Say It Back</div></div>
+    </a>
+  </div>
+
+  <div class="section"><h2>Games</h2><span>玩游戏</span></div>
+  <div class="games-grid">
   <a class="tile" href="match/" aria-label="Play Match the Cards">
     <div class="tile-art" style="background: var(--sky-soft)">
       <div class="mini-card mini-back">
@@ -188,37 +221,6 @@
       <div class="play"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="#fff"/></svg></div>
     </div>
   </a>
-
-  <div class="section"><h2>学中文</h2><span>Learn Chinese</span></div>
-  <div class="zh-grid">
-    <a class="tile wide" href="zh-read/" aria-label="Play Read With Me, in Mandarin">
-      <div class="tile-art" style="background:#FFF1C2" id="zart-read"></div>
-      <div><div class="tile-name">跟我读</div><div class="tile-sub">Read With Me · listen, then read the sentence</div></div>
-    </a>
-    <a class="tile" href="zh-find/" aria-label="Play Find It, in Mandarin">
-      <div class="tile-art" style="background:#DDF0FC" id="zart-find"></div>
-      <div><div class="tile-name">找一找</div><div class="tile-sub">Find It · listen &amp; tap</div></div>
-    </a>
-    <a class="tile" href="feed/?lang=zh" aria-label="Play Count With Me, in Mandarin">
-      <div class="tile-art" style="background:#FFE9C7" id="zart-count"></div>
-      <div><div class="tile-name">数一数</div><div class="tile-sub">Count With Me</div></div>
-    </a>
-    <a class="tile" href="balloon/?lang=zh" aria-label="Play Colour Balloons, in Mandarin">
-      <div class="tile-art" style="background:#CDEBFB" id="zart-balloon"></div>
-      <div><div class="tile-name">颜色气球</div><div class="tile-sub">Colour Balloons</div></div>
-    </a>
-    <a class="tile" href="match/?set=zh" aria-label="Play Character Match, in Mandarin">
-      <div class="tile-art" style="background:#FDECEC" id="zart-match"></div>
-      <div><div class="tile-name">汉字翻翻乐</div><div class="tile-sub">Character Match</div></div>
-    </a>
-    <a class="tile" href="zh-write/" aria-label="Play Character Builder, in Mandarin">
-      <div class="tile-art" style="background:#FFF8E6" id="zart-write"></div>
-      <div><div class="tile-name">汉字 Builder</div><div class="tile-sub">Watch &amp; trace strokes</div></div>
-    </a>
-    <a class="tile" href="zh-say/" aria-label="Play Say It Back, in Mandarin">
-      <div class="tile-art" style="background:#E6F6EC" id="zart-say"></div>
-      <div><div class="tile-name">跟我说</div><div class="tile-sub">Say It Back</div></div>
-    </a>
   </div>
 
   <div class="soon">
@@ -235,11 +237,8 @@
     if (!window.PC) return;
     if (PC.zhVocab) {
       var V = PC.zhVocab, g = function (id) { return document.getElementById(id); };
-      var balloon = function (c) { return '<svg viewBox="0 0 84 120" aria-hidden="true"><path d="M42 92C38 104 48 110 42 120" fill="none" stroke="#7A8AA6" stroke-width="2"/><ellipse cx="42" cy="46" rx="36" ry="42" fill="' + c + '"/><ellipse cx="28" cy="28" rx="7" ry="12" fill="#fff" opacity=".45" transform="rotate(-25 28 28)"/></svg>'; };
       g('zart-read').innerHTML = PC.animal('cat', 'happy') + '<span class="art-hz" style="font-size:34px;color:#1D2B4F"><span style="background:#FFD23F;border-radius:10px;padding:0 4px">我</span>爱<span style="background:#DDF5E7;border-radius:10px;padding:0 4px">妈妈</span></span>';
-      g('zart-find').innerHTML = PC.animal('cat', 'open') + '<span class="art-hz" style="color:#2F6FED">?</span>';
       g('zart-count').innerHTML = PC.animal('bunny', 'happy') + '<span class="art-hz" style="font-size:30px;color:#F28C28">一二三</span>';
-      g('zart-balloon').innerHTML = balloon('#E5484D') + balloon('#F5B800') + balloon('#2F6FED');
       g('zart-match').innerHTML = V.characters.items[0].pic() + '<span class="art-hz">日</span>';
       g('zart-write').innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true" style="height:88px;background:#fff;border-radius:10px"><rect x="3" y="3" width="94" height="94" rx="6" fill="none" stroke="#F2B8B8" stroke-width="2"/><path d="M50 3V97M3 50H97" stroke="#F2B8B8" stroke-width="1.2" stroke-dasharray="3 3"/><text x="50" y="74" text-anchor="middle" font-family="Noto Sans SC, PingFang SC, sans-serif" font-weight="900" font-size="68" fill="#1D2B4F">日</text></svg><svg viewBox="0 0 40 40" aria-hidden="true" style="height:58px"><path d="M8 32L28 12L33 17L13 37L6 39Z" fill="#F5B800" stroke="#C48F00" stroke-width="2" stroke-linejoin="round"/><path d="M28 12L31 9L36 14L33 17Z" fill="#E8579B"/><path d="M6 39L8 32L13 37Z" fill="#1D2B4F"/></svg>';
       g('zart-say').innerHTML = PC.animal('chick', 'open') + '<svg viewBox="0 0 24 24" aria-hidden="true" style="height:56px"><rect x="9" y="3" width="6" height="11" rx="3" fill="#FF7A59"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" fill="none" stroke="#FF7A59" stroke-width="2.4" stroke-linecap="round"/></svg>';

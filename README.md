@@ -7,9 +7,7 @@ Simple, no-login games for little ones, made for big phones.
 - **Rocket Maths** – plus and minus as little stories ("5 carrots, Bunny eats 2"); each right answer flies the rocket on, from the Moon to the Stars.
 - **Sky Hero** – slide one finger to fly; your plane shoots by itself. Pop the slow planes coming down and don't let them bump you.
 - **学中文 Learn Chinese** (simplified characters + Hanyu Pinyin, Mandarin voice from the phone):
-  - 找一找 Find It – hear "小猫在哪里?" and tap the right picture (animals, fruits, colours, body)
   - 数一数 Count With Me – count out snacks for the animals, in Mandarin (`feed/?lang=zh`)
-  - 颜色气球 Colour Balloons – Balloon Pop in Mandarin (`balloon/?lang=zh`)
   - 汉字翻翻乐 Character Match – match pictures with 日 月 山 水 火 木 人 口 田 雨 (`match/?set=zh`)
   - 汉字 Builder – watch each character's stroke order, then trace it (stroke data: Make Me a Hanzi / hanzi-writer, see zh-write/LICENSE-*)
   - 跟我说 Say It Back – listen, record yourself, hear your own voice
@@ -20,4 +18,4 @@ Plain HTML/CSS/JS, no build step. Hosted on GitHub Pages; installable to the hom
 
 To add a game: create a new folder with an `index.html`, add a tile on the landing page, and add the files to `CORE` in `sw.js` (bump the `CACHE` version).
 
-- **跟我读 Read With Me** – six short lessons of K1-level sentences with pinyin; each word lights up as it is read, then the light runs again for the child to read along.
+- **跟我读 Read With Me** – six short lessons of K1-level sentences with pinyin. Each sentence teaches one new word first (big, red, said slowly twice); then each word lights up as it is read, the light runs again for the child to read along, and the new word is said once more. Each lesson ends with a review of all its new words.
