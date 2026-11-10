@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>动一动 Action Words · Play Corner</title>
+<meta name="theme-color" content="#F4F8FC">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/app.css">
+<style>
+  .screen { height: 100dvh; min-height: 0; gap: 10px; }
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex-shrink: 0; }
+  .mode { appearance: none; border: 0; cursor: pointer; border-radius: 18px; min-height: 50px; background: var(--card); box-shadow: 0 3px 0 var(--card-shadow);
+    display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 800; font-size: 15px; color: var(--ink); }
+  .mode .zh { font-size: 20px; }
+  .mode.on { background: var(--ink); color: #fff; box-shadow: 0 3px 0 #0F1A33; }
+
+  .stage { position: relative; flex-shrink: 1; min-height: 0; border-radius: 24px; overflow: hidden; background: #fff; box-shadow: 0 4px 0 var(--card-shadow); }
+  .stage svg { display: block; width: 100%; height: auto; max-height: 38dvh; }
+  .count { position: absolute; top: 8px; right: 10px; background: rgba(255,255,255,.88); border-radius: 14px; padding: 2px 10px; font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 4px; }
+  .count svg { width: 18px; height: 18px; }
+
+  .talk { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; }
+  .ask { font-size: 26px; font-weight: 800; color: var(--ink); line-height: 1.2; }
+  .ask .py { display: block; font-size: 14px; }
+  .keybox { appearance: none; border: 0; cursor: pointer; background: #FFF4F4; border-radius: 22px; padding: 4px 18px 6px; box-shadow: 0 0 0 3px #F6C9C9 inset;
+    display: flex; flex-direction: column; align-items: center; transition: transform .25s, box-shadow .25s; }
+  .keybox .kpy { font-family: var(--body); font-weight: 800; font-size: 22px; color: #B8323A; line-height: 1.2; }
+  .keybox .khz { font-size: 60px; font-weight: 900; color: #E5484D; line-height: 1.1; letter-spacing: .04em; }
+  .keybox .ken { font-family: var(--body); font-weight: 800; font-size: 13px; color: var(--ink-2); }
+  .keybox.say { transform: scale(1.1); box-shadow: 0 0 0 4px #E5484D inset, 0 6px 0 #F0B3B3; background: #FFE3E3; }
+  .sentence { font-size: 22px; font-weight: 700; color: var(--ink); }
+  .sentence b { color: #E5484D; font-weight: 900; }
+
+  .choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; flex-shrink: 0; }
+  .choice { appearance: none; border: 0; cursor: pointer; border-radius: 20px; min-height: 92px; padding: 6px 2px; background: #fff; box-shadow: 0 5px 0 var(--card-shadow);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; color: var(--ink); transition: transform .15s, opacity .2s; }
+  .choice .py { font-size: 14px; }
+  .choice .zh { font-size: 32px; font-weight: 900; line-height: 1.2; white-space: nowrap; }
+  .choice:active { transform: translateY(3px); }
+  .choice.right { background: var(--ok); color: #fff; box-shadow: 0 5px 0 #22804F; animation: pop .35s; }
+  .choice.right .py { color: #E4FFF0; }
+  .choice.wrong { animation: shake .4s; opacity: .35; }
+  @keyframes shake { 25% { transform: translateX(-8px); } 50% { transform: translateX(8px); } 75% { transform: translateX(-4px); } }
+  .nav { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 10px; flex-shrink: 0; }
+  .navb { appearance: none; border: 0; cursor: pointer; border-radius: 20px; min-height: 64px; color: #fff; font-weight: 800; font-size: 13px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; }
+  .navb .zh { font-size: 19px; }
+  .navb svg { width: 24px; height: 24px; }
+  .nav[hidden], .choices[hidden] { display: none; }
+  .navb.prev { background: #8A9BB8; box-shadow: 0 5px 0 #66789A; }
+  .navb.hear { background: #F5A623; box-shadow: 0 5px 0 #C47F0E; }
+  .navb.next { background: #2F6FED; box-shadow: 0 5px 0 #1F4FB8; }
+  .navb:active { transform: translateY(3px); box-shadow: none; }
+  .start h2 { margin: 0; font-size: 34px; line-height: 1.2; }
+  .start p { margin: 0; font-size: 17px; font-weight: 700; color: var(--ink-2); max-width: 310px; }
+  .done-stars { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; max-width: 300px; }
+  .done-stars svg { width: 34px; height: 34px; }
+
+  /* ---- the animations (all pivots are at each limb's joint) ---- */
+  .a-spin { animation: spin 1.2s linear infinite; }
+  .half { animation-delay: -.6s; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .rev { animation-direction: alternate-reverse !important; }
+  .a-kick { animation: kick .35s ease-in-out infinite alternate; }
+  @keyframes kick { from { transform: rotate(-15deg); } to { transform: rotate(15deg); } }
+  .a-run { animation: run .5s ease-in-out infinite alternate; }
+  @keyframes run { from { transform: rotate(-35deg); } to { transform: rotate(35deg); } }
+  .a-bob { animation: bob .25s ease-in-out infinite alternate; }
+  @keyframes bob { to { transform: translateY(-5px); } }
+  .a-scroll { animation: scroll .6s linear infinite; }
+  @keyframes scroll { to { transform: translateX(-60px); } }
+  .a-cloud { animation: cloud 7s linear infinite; }
+  @keyframes cloud { from { transform: translateX(320px); } to { transform: translateX(-140px); } }
+  .a-jump { animation: jump 1s ease-in-out infinite; }
+  @keyframes jump { 0%, 100% { transform: translateY(0); } 45%, 55% { transform: translateY(-48px); } }
+  .a-shadow { animation: shadow 1s ease-in-out infinite; }
+  @keyframes shadow { 0%, 100% { transform: scale(1); } 45%, 55% { transform: scale(.5); } }
+  .a-tuck { animation: tuck 1s ease-in-out infinite; }
+  .a-tuck2 { animation: tuck2 1s ease-in-out infinite; }
+  @keyframes tuck { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(28deg); } }
+  @keyframes tuck2 { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-28deg); } }
+  .a-stir { animation: stir .4s ease-in-out infinite alternate; }
+  @keyframes stir { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
+  .a-flip { animation: flip 1.4s ease-in-out infinite; }
+  @keyframes flip { 0%, 20% { transform: translateY(0) rotate(0); } 55% { transform: translateY(-38px) rotate(180deg); } 90%, 100% { transform: translateY(0) rotate(360deg); } }
+  .a-steam { animation: steam 2s ease-out infinite; }
+  @keyframes steam { from { transform: translateY(0); opacity: .8; } to { transform: translateY(-30px); opacity: 0; } }
+  .a-eat { animation: eat .8s ease-in-out infinite alternate; }
+  @keyframes eat { from { transform: rotate(-35deg); } to { transform: rotate(0); } }
+  .a-talk { animation: talk .3s ease-in-out infinite alternate; }
+  @keyframes talk { from { transform: scaleY(.3); } to { transform: scaleY(1); } }
+  .a-drink { animation: drink 1.6s ease-in-out infinite alternate; }
+  @keyframes drink { from { transform: rotate(-45deg); } to { transform: rotate(0); } }
+  .a-breathe { animation: breathe 2.4s ease-in-out infinite alternate; }
+  @keyframes breathe { to { transform: scaleY(1.1); } }
+  .a-z { animation: zz 3s linear infinite; }
+  @keyframes zz { 0% { transform: translate(0, 0) scale(.6); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(30px, -60px) scale(1.3); opacity: 0; } }
+  .a-dress { animation: dress 2.6s ease-in-out infinite; }
+  @keyframes dress { 0% { transform: translateY(-120px); opacity: 0; } 10% { opacity: 1; } 50%, 85% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(0); opacity: 0; } }
+  .a-toy { animation: toy 3s ease-in-out infinite; }
+  @keyframes toy { 0%, 15% { transform: translate(0, 0); opacity: 1; } 45% { transform: translate(var(--hx), -70px); opacity: 1; } 70% { transform: translate(var(--dx), var(--dy)); opacity: 1; } 75%, 100% { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
+  .a-flow { stroke-dasharray: 6 6; animation: flow .4s linear infinite; }
+  @keyframes flow { to { stroke-dashoffset: -12; } }
+  .a-rub { animation: rub .25s ease-in-out infinite alternate; }
+  @keyframes rub { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
+  .a-bub { animation: bub 1.6s ease-out infinite; }
+  @keyframes bub { from { transform: translateY(0) scale(.5); opacity: .9; } to { transform: translateY(-36px) scale(1.2); opacity: 0; } }
+  .a-brush { animation: brushk .15s linear infinite alternate; }
+  @keyframes brushk { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
+  .a-draw { stroke-dasharray: 300; animation: draw 3.4s ease-in-out infinite; }
+  @keyframes draw { 0% { stroke-dashoffset: 300; } 65%, 100% { stroke-dashoffset: 0; } }
+  .a-scribble { animation: stir .22s ease-in-out infinite alternate; }
+  .a-note { animation: note 2.4s ease-out infinite; }
+  @keyframes note { from { transform: translate(0, 0); opacity: 0; } 15% { opacity: 1; } to { transform: translate(40px, -70px); opacity: 0; } }
+  .a-sway { animation: sway 1s ease-in-out infinite alternate; }
+  @keyframes sway { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+  .a-dance { animation: dance .5s ease-in-out infinite alternate; }
+  @keyframes dance { from { transform: rotate(-12deg); } to { transform: rotate(12deg); } }
+  .a-wave { animation: wave .5s ease-in-out infinite alternate; }
+  @keyframes wave { from { transform: rotate(-22deg); } to { transform: rotate(22deg); } }
+  .a-kickball { animation: kickb 1.6s ease-in-out infinite; }
+  @keyframes kickb { 0%, 35% { transform: rotate(0); } 50% { transform: rotate(-70deg); } 70%, 100% { transform: rotate(0); } }
+  .a-ball { animation: ball 1.6s linear infinite; }
+  @keyframes ball { 0%, 48% { transform: translate(0, 0) rotate(0); opacity: 1; } 88% { transform: translate(120px, -4px) rotate(540deg); opacity: 1; } 100% { transform: translate(130px, 0) rotate(600deg); opacity: 0; } }
+  .a-page { animation: page 2.2s ease-in-out infinite; }
+  @keyframes page { 0%, 30% { transform: scaleX(1); } 70%, 100% { transform: scaleX(-1); } }
+  .a-nod { animation: nod 2.2s ease-in-out infinite alternate; }
+  @keyframes nod { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+  .a-wavewater { animation: scroll 1.6s linear infinite; }
+  .a-blink { animation: blinkl 1s steps(2) infinite; }
+  @keyframes blinkl { 50% { opacity: .25; } }
+</style>
+</head>
+<body>
+<main class="screen">
+  <div class="topbar">
+    <a class="round-btn" href="../" aria-label="Back to games">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D2B4F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <h1><span class="zh">动一动</span></h1>
+    <span style="width:52px"></span>
+  </div>
+  <p class="voice-note" id="voiceNote"></p>
+  <div class="modes">
+    <button class="mode on" type="button" id="mLearn" data-m="learn"><span class="zh">学一学</span>Learn</button>
+    <button class="mode" type="button" id="mGuess" data-m="guess"><span class="zh">猜一猜</span>Guess</button>
+  </div>
+
+  <div class="stage" id="stage"><div class="count" id="count" hidden></div></div>
+
+  <div class="talk" id="talk"></div>
+
+  <div class="choices" id="choices" hidden></div>
+  <div class="nav" id="nav">
+    <button class="navb prev" type="button" id="prev"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" stroke="#fff" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="zh">上一个</span></button>
+    <button class="navb hear" type="button" id="hear"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="#fff"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg><span class="zh">再听</span>Hear again</button>
+    <button class="navb next" type="button" id="next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" stroke="#fff" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="zh">下一个</span></button>
+  </div>
+</main>
+
+<div class="start" id="startScreen">
+  <h2 class="zh">动一动</h2>
+  <p>Action Words: watch what the child is doing and learn the Chinese word for it.</p>
+  <p style="font-size:15px">学一学 Learn the words first, then play 猜一猜 Guess.</p>
+  <button class="big-btn" type="button" id="go">开始 Start</button>
+</div>
+
+<div class="start" id="roundDone" hidden>
+  <h2 class="zh">真棒！</h2>
+  <p id="roundText">You got all 8 actions!</p>
+  <div class="done-stars" id="roundStars"></div>
+  <button class="big-btn" type="button" id="again">再玩 Play again</button>
+</div>
+
+<script src="../assets/sfx.js"></script>
+<script src="../assets/zh.js"></script>
+<script>
+(function () {
+  // ---------- the cartoon child ----------
+  // Hips at (0,0). Each limb is drawn hanging straight down from its joint, so
+  // "base" angles pose it and the animation class swings it around the joint.
+  var SKIN = '#F6C8A0';
+  function limb(x, y, base, cls, color, len, w, end, item, sleeve) {
+    return '<g transform="translate(' + x + ' ' + y + ') rotate(' + (base || 0) + ')"><g class="' + (cls || '') + '">' +
+      '<line x1="0" y1="0" x2="0" y2="' + len + '" stroke="' + color + '" stroke-width="' + w + '" stroke-linecap="round"/>' +
+      (sleeve ? '<line x1="0" y1="0" x2="0" y2="9" stroke="' + sleeve + '" stroke-width="12" stroke-linecap="round"/>' : '') +
+      end + (item || '') + '</g></g>';
+  }
+  function kid(o) {
+    o = o || {};
+    var shirt = o.shirt || '#FF7A59', pants = o.pants || '#3B5BDB';
+    var eyes = o.eyes === 'closed'
+      ? '<path d="M-12 -24q4 4 8 0M4 -24q4 4 8 0" stroke="#2A2F45" stroke-width="2.4" fill="none" stroke-linecap="round"/>'
+      : o.eyes === 'down'
+        ? '<circle cx="-8" cy="-21" r="3" fill="#2A2F45"/><circle cx="8" cy="-21" r="3" fill="#2A2F45"/>'
+        : '<circle cx="-8" cy="-24" r="3.2" fill="#2A2F45"/><circle cx="8" cy="-24" r="3.2" fill="#2A2F45"/><circle cx="-7" cy="-25.2" r="1" fill="#fff"/><circle cx="9" cy="-25.2" r="1" fill="#fff"/>';
+    var mouth = {
+      smile: '<path d="M-6 -13q6 6 12 0" stroke="#B8323A" stroke-width="2.6" fill="none" stroke-linecap="round"/>',
+      open: '<ellipse cx="0" cy="-12" rx="5" ry="4.5" fill="#B8323A"/>',
+      talk: '<g transform="translate(0 -12)"><g class="a-talk"><ellipse cx="0" cy="0" rx="5" ry="5" fill="#B8323A"/></g></g>',
+      teeth: '<rect x="-7" y="-15" width="14" height="7" rx="3.5" fill="#fff" stroke="#B8323A" stroke-width="2"/>',
+      o: '<circle cx="0" cy="-12" r="3" fill="#B8323A"/>'
+    }[o.mouth || 'smile'];
+    var head = '<g transform="translate(0 -46)"><g class="' + (o.cHead || '') + '">' +
+      '<circle cx="0" cy="-22" r="23" fill="' + SKIN + '"/>' +
+      '<path d="M-23 -24c0-16 10-23 23-23s23 7 23 23c-6-6-14-9-22-9-6 0-10 3-12 6-3-2-8-1-12 3z" fill="' + (o.hair || '#3A2A20') + '"/>' +
+      eyes + '<circle cx="-14" cy="-15" r="3.5" fill="#F7A1A1" opacity=".7"/><circle cx="14" cy="-15" r="3.5" fill="#F7A1A1" opacity=".7"/>' + mouth +
+      (o.hat || '') + '</g></g>';
+    var hand = '<circle cx="0" cy="33" r="6" fill="' + SKIN + '"/>';
+    return '<g class="' + (o.cls || '') + '">' +
+      limb(-8, 0, o.gL, o.cGL, pants, 36, 11, '<ellipse cx="0" cy="40" rx="7" ry="5" fill="#2A2F45"/>') +
+      limb(8, 0, o.gR, o.cGR, pants, 36, 11, '<ellipse cx="0" cy="40" rx="7" ry="5" fill="#2A2F45"/>') +
+      '<rect x="-17" y="-48" width="34" height="52" rx="13" fill="' + shirt + '"/>' +
+      (o.overBody || '') + head +
+      limb(-15, -40, o.aL, o.cAL, SKIN, 30, 9, hand, o.iL, shirt) +
+      limb(15, -40, o.aR, o.cAR, SKIN, 30, 9, hand, o.iR, shirt) +
+      (o.front || '') + '</g>';
+  }
+  var at = function (x, y, inner, rot) { return '<g transform="translate(' + x + ' ' + y + ')' + (rot ? ' rotate(' + rot + ')' : '') + '">' + inner + '</g>'; };
+  var sky = function (c) { return '<rect width="300" height="220" fill="' + (c || '#DDF2FF') + '"/>'; };
+  var grass = '<rect y="186" width="300" height="34" fill="#8FD694"/><rect y="186" width="300" height="5" fill="#6CC17A"/>';
+  var cloudShape = '<g fill="#fff"><ellipse cx="0" cy="0" rx="22" ry="12"/><ellipse cx="18" cy="-6" rx="16" ry="12"/><ellipse cx="34" cy="2" rx="16" ry="10"/></g>';
+  var note = function (x, y, d, t) { return at(x, y, '<g class="a-note" style="animation-delay:' + d + 's"><text font-size="26" font-weight="900" fill="' + (t || '#8B5CF6') + '">♪</text></g>'); };
+  var bubble = function (x, y, d, r) { return at(x, y, '<g class="a-bub" style="animation-delay:' + d + 's"><circle r="' + (r || 5) + '" fill="#fff" stroke="#9FD3F5" stroke-width="1.5" opacity=".9"/></g>'); };
+
+  // ---------- the actions ----------
+  var ACTIONS = [
+    { id: 'swim', hz: '游泳', py: 'yóu yǒng', en: 'swim', scene: function () {
+      return sky('#CFEFFF') + '<circle cx="250" cy="40" r="20" fill="#FFD23F"/>' +
+        '<rect y="118" width="300" height="102" fill="#4FB3F0"/>' +
+        at(138, 134, kid({ cAL: 'a-spin', cAR: 'a-spin half', cGL: 'a-kick', cGR: 'a-kick rev', shirt: '#FF7A59', pants: '#FF7A59' }), 90) +
+        '<rect y="140" width="300" height="80" fill="#4FB3F0" opacity=".65"/>' +
+        '<g class="a-wavewater"><path d="M0 120q15-10 30 0t30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0" stroke="#fff" stroke-width="4" fill="none" opacity=".8"/></g>' +
+        bubble(100, 150, 0) + bubble(90, 160, .6, 4) + bubble(110, 158, 1.1, 3);
+    }},
+    { id: 'run', hz: '跑步', py: 'pǎo bù', en: 'run', scene: function () {
+      return sky() + at(0, 40, '<g class="a-cloud">' + cloudShape + '</g>') + grass +
+        '<g class="a-scroll"><path d="M0 200h30M60 200h30M120 200h30M180 200h30M240 200h30M300 200h30" stroke="#5DB06C" stroke-width="4" stroke-linecap="round"/></g>' +
+        at(150, 146, '<g class="a-bob">' + kid({ cGL: 'a-run', cGR: 'a-run rev', cAL: 'a-run rev', cAR: 'a-run', mouth: 'open' }) + '</g>');
+    }},
+    { id: 'jump', hz: '跳', py: 'tiào', en: 'jump', scene: function () {
+      return sky('#FFF4D6') + grass + at(150, 190, '<g class="a-shadow"><ellipse rx="26" ry="5" fill="#000" opacity=".15"/></g>') +
+        at(150, 146, '<g class="a-jump">' + kid({ aL: 160, aR: -160, cGL: 'a-tuck', cGR: 'a-tuck2', mouth: 'open', shirt: '#2FA86B' }) + '</g>');
+    }},
+    { id: 'cook', hz: '做饭', py: 'zuò fàn', en: 'cook', scene: function () {
+      var hat = '<path d="M-16 -40h32v-6c8-2 9-14 0-16-2-8-14-10-16-3-4-6-16-3-15 5-9 2-8 14-1 14z" fill="#fff" stroke="#E3E8F0" stroke-width="2"/>';
+      var spatula = '<line x1="0" y1="34" x2="0" y2="52" stroke="#8A6A4A" stroke-width="4" stroke-linecap="round"/><rect x="-6" y="50" width="12" height="9" rx="2" fill="#AEB7C6"/>';
+      return sky('#FFF3DC') + '<path d="M0 30h300M0 70h300M0 110h300M50 0v140M150 0v140M250 0v140" stroke="#F3E2BE" stroke-width="2"/>' +
+        '<rect x="170" y="140" width="130" height="80" fill="#C98B56"/><rect x="166" y="134" width="138" height="10" rx="4" fill="#E0B07A"/>' +
+        '<ellipse cx="232" cy="134" rx="30" ry="5" fill="#3A3F55"/>' +
+        '<ellipse cx="232" cy="128" rx="30" ry="8" fill="#4A5068"/><line x1="202" y1="128" x2="180" y2="124" stroke="#3A3F55" stroke-width="6" stroke-linecap="round"/>' +
+        at(232, 122, '<g class="a-flip"><ellipse rx="14" ry="5" fill="#fff"/><circle r="5" fill="#FFB020"/></g>') +
+        [222, 234, 246].map(function (x, i) { return at(x, 108, '<g class="a-steam" style="animation-delay:' + (i * .6) + 's"><path d="M0 0q-5-6 0-12t0-12" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></g>'); }).join('') +
+        at(120, 146, kid({ aR: -95, cAR: 'a-stir', iR: spatula, aL: 15, hat: hat, shirt: '#fff', pants: '#3A3F55' }));
+    }},
+    { id: 'eat', hz: '吃饭', py: 'chī fàn', en: 'eat', scene: function () {
+      var spoon = '<line x1="0" y1="32" x2="-15" y2="30" stroke="#AEB7C6" stroke-width="3.5" stroke-linecap="round"/><ellipse cx="-19" cy="30" rx="5" ry="3.5" fill="#AEB7C6"/>';
+      return sky('#FFF7E8') + at(140, 166, kid({ aR: 125, cAR: 'a-eat', iR: spoon, aL: -40, mouth: 'talk', shirt: '#8B5CF6' })) +
+        '<rect x="20" y="158" width="260" height="62" fill="#E0A96D"/><rect x="14" y="152" width="272" height="10" rx="5" fill="#C98B56"/>' +
+        '<path d="M170 132a26 20 0 0 0 52 0z" fill="#fff" stroke="#2F6FED" stroke-width="3"/><path d="M174 132q22-16 44 0z" fill="#FFFDF5"/>' +
+        '<g fill="#E8E2D0"><circle cx="186" cy="128" r="2"/><circle cx="196" cy="125" r="2"/><circle cx="206" cy="128" r="2"/></g>';
+    }},
+    { id: 'drink', hz: '喝水', py: 'hē shuǐ', en: 'drink', scene: function () {
+      var cup = '<g transform="translate(0 30) rotate(-125)"><rect x="-9" y="-26" width="18" height="26" rx="4" fill="#fff" stroke="#7CC6F2" stroke-width="2.5"/><rect x="-7" y="-14" width="14" height="12" rx="2" fill="#7CC6F2"/></g>';
+      return sky('#E6F6FF') + grass + at(150, 146, kid({ aR: 125, cAR: 'a-drink', iR: cup, aL: 10, shirt: '#2F9BEA' }));
+    }},
+    { id: 'sleep', hz: '睡觉', py: 'shuì jiào', en: 'sleep', scene: function () {
+      return sky('#2E3A6B') + '<rect x="200" y="20" width="70" height="60" rx="6" fill="#1B2350" stroke="#C98B56" stroke-width="5"/><path d="M246 36a14 14 0 1 0 8 22 11 11 0 1 1-8-22z" fill="#FFD23F"/>' +
+        '<circle cx="40" cy="30" r="2" fill="#fff"/><circle cx="120" cy="18" r="1.6" fill="#fff"/><circle cx="160" cy="50" r="2" fill="#fff"/>' +
+        '<rect x="30" y="150" width="240" height="30" rx="6" fill="#C98B56"/><rect x="30" y="178" width="10" height="26" fill="#A06A3A"/><rect x="260" y="178" width="10" height="26" fill="#A06A3A"/>' +
+        '<rect x="26" y="112" width="14" height="70" rx="5" fill="#A06A3A"/>' +
+        '<ellipse cx="78" cy="140" rx="34" ry="13" fill="#fff"/>' +
+        at(176, 138, kid({ eyes: 'closed', mouth: 'o', shirt: '#FFD23F' }), -90) +
+        at(240, 152, '<g class="a-breathe"><path d="M-138 0v-24q0-16 16-16h120q14 0 14 16v24z" fill="#7C9CFF"/><path d="M-138 -30h150" stroke="#9FB5FF" stroke-width="5"/></g>') +
+        [0, 1, 2].map(function (i) { return at(84 + i * 6, 104, '<g class="a-z" style="animation-delay:' + i + 's"><text font-size="22" font-weight="900" fill="#fff">Z</text></g>'); }).join('');
+    }},
+    { id: 'dress', hz: '穿衣服', py: 'chuān yī fu', en: 'get dressed', scene: function () {
+      var top = '<g class="a-dress"><rect x="-19" y="-50" width="38" height="46" rx="13" fill="#E5484D"/><rect x="-27" y="-48" width="12" height="18" rx="6" fill="#E5484D"/><rect x="15" y="-48" width="12" height="18" rx="6" fill="#E5484D"/><circle cx="0" cy="-30" r="4" fill="#FFD23F"/><circle cx="0" cy="-18" r="4" fill="#FFD23F"/></g>';
+      return sky('#F3ECFF') + '<rect x="214" y="40" width="70" height="146" rx="6" fill="#C98B56"/><line x1="249" y1="44" x2="249" y2="182" stroke="#A06A3A" stroke-width="3"/><circle cx="242" cy="112" r="3" fill="#FFD23F"/><circle cx="256" cy="112" r="3" fill="#FFD23F"/>' +
+        '<rect y="186" width="300" height="34" fill="#E2D3F5"/>' +
+        at(130, 146, kid({ shirt: '#FFFFFF', overBody: top, aL: 25, aR: -25, cAL: 'a-sway', cAR: 'a-sway rev' }));
+    }},
+    { id: 'tidy', hz: '收拾', py: 'shōu shi', en: 'tidy up', scene: function () {
+      var toy = function (x, y, svg, d) { return at(x, y, '<g class="a-toy" style="--hx:' + ((236 - x) / 2) + 'px;--dx:' + (236 - x) + 'px;--dy:' + (140 - y) + 'px;animation-delay:' + d + 's">' + svg + '</g>'); };
+      return sky('#E9F6FF') + '<rect y="186" width="300" height="34" fill="#F2D7A6"/>' +
+        toy(40, 178, '<circle r="10" fill="#E5484D"/><path d="M-10 0h20" stroke="#fff" stroke-width="2"/>', 0) +
+        toy(70, 176, '<rect x="-10" y="-10" width="20" height="20" rx="3" fill="#2F6FED"/><text x="-4" y="5" font-size="13" font-weight="900" fill="#fff">A</text>', 1) +
+        toy(100, 176, '<circle r="11" fill="#C98B56"/><circle cx="-8" cy="-9" r="5" fill="#C98B56"/><circle cx="8" cy="-9" r="5" fill="#C98B56"/><circle cx="-4" cy="-2" r="1.6" fill="#2A2F45"/><circle cx="4" cy="-2" r="1.6" fill="#2A2F45"/>', 2) +
+        at(150, 146, kid({ aR: -70, cAR: 'a-stir', aL: -40, cAL: 'a-stir rev', shirt: '#2FA86B', cHead: 'a-nod' })) +
+        '<rect x="204" y="140" width="66" height="48" rx="5" fill="#F28C28"/><rect x="204" y="152" width="66" height="8" fill="#FFD23F"/><rect x="200" y="134" width="74" height="10" rx="4" fill="#C46A12"/>';
+    }},
+    { id: 'wash', hz: '洗手', py: 'xǐ shǒu', en: 'wash hands', scene: function () {
+      return sky('#E6F6FF') + '<path d="M0 40h300M0 80h300M0 120h300M60 0v150M140 0v150M220 0v150" stroke="#CDE6F7" stroke-width="2"/>' +
+        at(150, 160, kid({ aL: -32, aR: 32, cAL: 'a-rub', cAR: 'a-rub rev', shirt: '#E8579B' })) +
+        '<path d="M200 158v-38h-34" stroke="#AEB7C6" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="200" cy="112" r="6" fill="#8A9BB8"/>' +
+        '<line x1="166" y1="126" x2="160" y2="156" stroke="#7CC6F2" stroke-width="6" class="a-flow"/>' +
+        '<rect x="40" y="162" width="220" height="58" fill="#DDE7F2"/><rect x="34" y="156" width="232" height="10" rx="5" fill="#C9D7E4"/><ellipse cx="150" cy="162" rx="52" ry="6" fill="#B8C9DB"/>' +
+        bubble(140, 140, 0, 4) + bubble(160, 138, .5, 5) + bubble(150, 142, 1, 3);
+    }},
+    { id: 'brush', hz: '刷牙', py: 'shuā yá', en: 'brush teeth', scene: function () {
+      var brush = '<g transform="translate(0 32) rotate(-30)"><rect x="-3" y="-20" width="6" height="20" rx="3" fill="#2FA86B"/><rect x="-5" y="-27" width="10" height="9" rx="2" fill="#fff" stroke="#9FD3F5" stroke-width="1.5"/></g>';
+      return sky('#E6F6FF') + '<rect x="40" y="20" width="90" height="110" rx="45" fill="#BFE3F7" stroke="#fff" stroke-width="6"/>' + grass +
+        at(160, 146, kid({ aR: 120, cAR: 'a-brush', iR: brush, aL: 8, mouth: 'teeth', shirt: '#7CC6F2' })) +
+        bubble(166, 86, 0, 3) + bubble(172, 90, .4, 4) + bubble(160, 92, .8, 3);
+    }},
+    { id: 'draw', hz: '画画', py: 'huà huà', en: 'draw', scene: function () {
+      var crayon = '<g transform="translate(0 30)"><rect x="-3" y="0" width="6" height="18" fill="#E5484D"/><path d="M-3 18l3 7 3-7z" fill="#B8323A"/></g>';
+      return sky('#FFF8E6') + '<rect y="186" width="300" height="34" fill="#F2D7A6"/>' +
+        '<path d="M200 186l18-130M276 186l-18-130M238 186v-130" stroke="#A06A3A" stroke-width="6" stroke-linecap="round"/>' +
+        '<rect x="186" y="46" width="104" height="96" rx="4" fill="#fff" stroke="#E3D5B8" stroke-width="3"/>' +
+        '<path d="M200 128a38 38 0 0 1 76 0" stroke="#E5484D" stroke-width="7" fill="none" class="a-draw"/>' +
+        '<path d="M210 128a28 28 0 0 1 56 0" stroke="#FFD23F" stroke-width="7" fill="none" class="a-draw" style="animation-delay:.3s"/>' +
+        '<path d="M220 128a18 18 0 0 1 36 0" stroke="#2F6FED" stroke-width="7" fill="none" class="a-draw" style="animation-delay:.6s"/>' +
+        at(120, 146, kid({ aR: -112, cAR: 'a-scribble', iR: crayon, aL: 10, shirt: '#FFD23F', pants: '#2FA86B' }));
+    }},
+    { id: 'sing', hz: '唱歌', py: 'chàng gē', en: 'sing', scene: function () {
+      var mic = '<g transform="translate(0 32) rotate(-30)"><rect x="-3" y="-12" width="6" height="14" rx="3" fill="#3A3F55"/><circle cx="0" cy="-15" r="7" fill="#8A9BB8"/></g>';
+      return sky('#3A2C78') + '<path d="M150 0l-70 200h140z" fill="#FFF4C2" opacity=".25"/><rect y="186" width="300" height="34" fill="#5B3E9E"/>' +
+        at(150, 146, '<g class="a-sway">' + kid({ aR: 122, iR: mic, aL: -20, mouth: 'talk', eyes: 'closed', shirt: '#E8579B' }) + '</g>') +
+        note(180, 80, 0) + note(196, 96, .8, '#FFD23F') + note(170, 100, 1.6, '#5FD394');
+    }},
+    { id: 'dance', hz: '跳舞', py: 'tiào wǔ', en: 'dance', scene: function () {
+      return sky('#FFE3F1') + [['#FF7A59', 40, 30], ['#FFD23F', 110, 20], ['#5FD394', 190, 26], ['#2F9BEA', 260, 34]].map(function (c, i) { return '<circle cx="' + c[1] + '" cy="' + c[2] + '" r="10" fill="' + c[0] + '" class="a-blink" style="animation-delay:' + (i * .25) + 's"/>'; }).join('') +
+        '<rect y="186" width="300" height="34" fill="#F7B6D2"/>' +
+        at(150, 186, '<g class="a-dance">' + at(0, -40, kid({ aL: 150, aR: -150, cAL: 'a-wave', cAR: 'a-wave rev', cGL: 'a-kick', cGR: 'a-kick rev', mouth: 'open', shirt: '#8B5CF6', pants: '#E8579B' })) + '</g>') +
+        note(200, 90, 0) + note(84, 100, 1.2, '#E5484D');
+    }},
+    { id: 'kick', hz: '踢球', py: 'tī qiú', en: 'kick a ball', scene: function () {
+      return sky() + grass + '<path d="M250 186v-70h44v70" stroke="#fff" stroke-width="5" fill="none"/><path d="M254 120l36 60M290 120l-36 60M250 140h44M250 160h44" stroke="#fff" stroke-width="1.5" opacity=".7"/>' +
+        at(110, 146, kid({ cGR: 'a-kickball', aL: 30, aR: -30, mouth: 'open', shirt: '#2F6FED', pants: '#fff' })) +
+        at(132, 178, '<g class="a-ball"><circle r="11" fill="#fff" stroke="#2A2F45" stroke-width="2"/><path d="M0-5l5 3-2 6h-6l-2-6z" fill="#2A2F45"/></g>');
+    }},
+    { id: 'read', hz: '看书', py: 'kàn shū', en: 'read a book', scene: function () {
+      var book = '<g transform="translate(0 -14)"><rect x="-32" y="-26" width="64" height="30" rx="3" fill="#E5484D"/>' +
+        '<rect x="-29" y="-24" width="28" height="26" fill="#fff"/><rect x="1" y="-24" width="28" height="26" fill="#fff"/>' +
+        '<path d="M-25 -16h20M-25 -10h20M-25 -4h16M5 -16h20M5 -10h20" stroke="#C9D7E4" stroke-width="2"/>' +
+        '<g transform="translate(0 -24)"><g class="a-page"><rect x="1" y="0" width="27" height="26" fill="#FFF8E6" stroke="#E3D5B8"/></g></g></g>';
+      return sky('#EAF6EC') + '<rect x="16" y="40" width="70" height="146" fill="#C98B56"/><rect x="20" y="70" width="62" height="6" fill="#A06A3A"/><rect x="20" y="110" width="62" height="6" fill="#A06A3A"/>' +
+        '<rect x="24" y="48" width="10" height="22" fill="#E5484D"/><rect x="36" y="52" width="8" height="18" fill="#2F6FED"/><rect x="46" y="50" width="10" height="20" fill="#FFD23F"/>' +
+        grass + at(170, 146, kid({ aL: -32, aR: 32, eyes: 'down', front: book, shirt: '#2FA86B', cHead: 'a-nod' }));
+    }}
+  ];
+  var byId = {}; ACTIONS.forEach(function (a) { byId[a.id] = a; });
+
+  // ---------- page ----------
+  var $ = function (id) { return document.getElementById(id); };
+  var say = function (t, o) { PC.zh.say(t, o); };
+  var play = function (n) { try { PC.sfx && PC.sfx[n] && PC.sfx[n](); } catch (e) {} };
+  var mode = 'learn', li = 0, run = 0, round = [], ri = 0, stars = 0, cur = null, tries = 0;
+  var STAR = '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 62,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 38,37" fill="#FFD23F" stroke="#F5A623" stroke-width="4" stroke-linejoin="round"/></svg>';
+  var ROUND = 8;
+
+  function stop() { run++; try { speechSynthesis.cancel(); } catch (e) {} }
+  function sayChain(list, my, each, done) {
+    var n = 0;
+    (function next() {
+      if (my !== run) return;
+      if (n >= list.length) { done && done(); return; }
+      var t = list[n], fired = false;
+      each && each(n);
+      var go = function () { if (fired || my !== run) return; fired = true; n++; setTimeout(next, t.gap || 300); };
+      say(t.text, { rate: t.rate || 0.75, onend: go });
+      setTimeout(go, 1000 + 600 * Array.from(t.text).length);
+    })();
+  }
+  function showScene(a) {
+    $('stage').innerHTML = '<svg viewBox="0 0 300 220" role="img" aria-label="' + a.en + '">' + a.scene() + '</svg>' + '<div class="count" id="count"' + (mode === 'guess' ? '' : ' hidden') + '></div>';
+    if (mode === 'guess') $('count').innerHTML = STAR + stars + ' / ' + ROUND;
+  }
+  function keyBox(a) {
+    return '<button class="keybox zh" type="button" id="keybox" aria-label="Hear ' + a.en + '"><span class="kpy">' + a.py + '</span><span class="khz">' + a.hz + '</span><span class="ken">' + a.en + '</span></button>';
+  }
+  var sentence = function (a) { return '小朋友在' + a.hz + '。'; };
+  // The new word, slowly, twice; then in a sentence.
+  function teach(a, my, done) {
+    var box = function () { return $('keybox'); };
+    sayChain([{ text: a.hz, rate: 0.55, gap: 700 }, { text: a.hz, rate: 0.55, gap: 500 }, { text: sentence(a), rate: 0.75 }], my, function (n) {
+      var b = box(); if (!b) return;
+      b.classList.remove('say'); void b.offsetWidth; if (n < 2) b.classList.add('say');
+    }, function () { var b = box(); if (b) b.classList.remove('say'); done && done(); });
+  }
+
+  // ---- 学一学 Learn ----
+  function learn(i) {
+    stop(); var my = run; mode = 'learn'; li = (i + ACTIONS.length) % ACTIONS.length; cur = ACTIONS[li];
+    setMode();
+    showScene(cur);
+    $('talk').innerHTML = keyBox(cur) + '<div class="sentence">小朋友在<b>' + cur.hz + '</b>。</div>';
+    $('keybox').addEventListener('click', function () { stop(); teach(cur, run); });
+    setTimeout(function () { if (my === run) teach(cur, my); }, 400);
+  }
+  $('prev').addEventListener('click', function () { learn(li - 1); });
+  $('next').addEventListener('click', function () { learn(li + 1); });
+  $('hear').addEventListener('click', function () { stop(); teach(cur, run); });
+
+  // ---- 猜一猜 Guess ----
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  var shares = function (a, b) { return Array.from(a.hz).some(function (c) { return b.hz.indexOf(c) >= 0; }); };
+  function pickChoices(a) {
+    // two other actions that don't share a character with the answer or each other (跳 vs 跳舞, 做饭 vs 吃饭)
+    var out = [a];
+    shuffle(ACTIONS).forEach(function (x) { if (out.length < 3 && out.every(function (y) { return !shares(x, y); })) out.push(x); });
+    return shuffle(out);
+  }
+  function startRound() {
+    stop(); mode = 'guess'; stars = 0; ri = 0;
+    round = shuffle(ACTIONS).slice(0, ROUND);
+    $('roundDone').hidden = true;
+    ask();
+  }
+  function ask() {
+    stop(); var my = run; tries = 0;
+    cur = round[ri]; setMode(); showScene(cur);
+    $('talk').innerHTML = '<div class="ask zh"><span class="py">xiǎo péng you zài zuò shén me?</span>小朋友在做什么？</div>';
+    var ch = pickChoices(cur);
+    $('choices').innerHTML = ch.map(function (x) { return '<button class="choice" type="button" data-id="' + x.id + '"><span class="py">' + x.py + '</span><span class="zh">' + x.hz + '</span></button>'; }).join('');
+    setTimeout(function () { if (my === run) say('小朋友在做什么？', { rate: 0.8 }); }, 400);
+  }
+  $('choices').addEventListener('click', function (ev) {
+    var b = ev.target.closest('.choice'); if (!b || b.disabled || mode !== 'guess') return;
+    var x = byId[b.dataset.id];
+    if (x === cur) {
+      stop(); var my = run;
+      [].forEach.call($('choices').children, function (c) { c.disabled = true; });
+      b.classList.add('right'); play('tada');
+      if (tries === 0) stars++;
+      $('count').innerHTML = STAR + stars + ' / ' + ROUND;
+      $('talk').innerHTML = keyBox(cur) + '<div class="sentence">小朋友在<b>' + cur.hz + '</b>。</div>';
+      teach(cur, my, function () {
+        setTimeout(function () { if (my !== run) return; ri++; if (ri >= ROUND) roundDone(); else ask(); }, 900);
+      });
+    } else {
+      tries++; b.classList.add('wrong'); b.disabled = true; play('boing');
+      say('不对，再试试！', { rate: 0.85 });
+    }
+  });
+  function roundDone() {
+    stop();
+    $('roundText').textContent = stars + ' of ' + ROUND + ' right first time!';
+    var s = ''; for (var i = 0; i < ROUND; i++) s += '<span style="opacity:' + (i < stars ? 1 : .2) + '">' + STAR + '</span>';
+    $('roundStars').innerHTML = s;
+    $('roundDone').hidden = false; play('tada'); say('真棒！');
+  }
+  $('again').addEventListener('click', startRound);
+  $('talk').addEventListener('click', function (ev) { if (mode === 'guess' && ev.target.closest('.ask')) say('小朋友在做什么？', { rate: 0.8 }); });
+
+  function setMode() {
+    $('mLearn').classList.toggle('on', mode === 'learn'); $('mGuess').classList.toggle('on', mode === 'guess');
+    $('nav').hidden = mode !== 'learn'; $('choices').hidden = mode !== 'guess';
+  }
+  $('mLearn').addEventListener('click', function () { learn(li); });
+  $('mGuess').addEventListener('click', startRound);
+  $('go').addEventListener('click', function () {
+    try { PC.sfx && PC.sfx.unlock(); } catch (e) {}
+    $('startScreen').hidden = true; learn(0);
+  });
+  cur = ACTIONS[0]; showScene(cur); setMode();
+  PC.zh.voiceNotice($('voiceNote'));
+
+  // for the automatic tests
+  window.__act = {
+    ACTIONS: ACTIONS, pickChoices: pickChoices,
+    get mode() { return mode; }, get cur() { return cur; }, get stars() { return stars; }, get ri() { return ri; }, get round() { return round; },
+    learn: learn, startRound: startRound
+  };
+})();
+</script>
+<script src="../assets/sw-register.js"></script>
+</body>
+</html>

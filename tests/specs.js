@@ -250,6 +250,90 @@ module.exports = [
   }},
 
 
+  // ===== 动一动 Action Words
+  { game: 'zh-act', name: 'every action: animated scene, pinyin per character; quiz choices never share a character', fn: async (page, h) => {
+    await page.goto(h.base + 'zh-act/');
+    const bad = await page.evaluate(() => {
+      const out = [], A = __act.ACTIONS;
+      if (A.length < 12) out.push('only ' + A.length + ' actions');
+      A.forEach((a) => {
+        if (a.py.split(' ').length !== Array.from(a.hz).length) out.push('pinyin ' + a.hz);
+        const svg = a.scene(); if (!/class="a-/.test(svg) || !/<circle cx="0" cy="-22" r="23"/.test(svg)) out.push('no animated child in ' + a.hz);
+        if (!a.en) out.push('no English ' + a.hz);
+        for (let k = 0; k < 150; k++) {
+          const c = __act.pickChoices(a);
+          if (c.length !== 3 || !c.includes(a) || new Set(c).size !== 3) { out.push('choices for ' + a.hz + ': ' + c.map((x) => x.hz)); break; }
+          const share = c.some((x, i) => c.some((y, j) => i < j && Array.from(x.hz).some((ch) => y.hz.includes(ch))));
+          if (share) { out.push('choices share a character: ' + c.map((x) => x.hz)); break; }
+        }
+      });
+      return out;
+    });
+    h.assert(!bad.length, bad.slice(0, 4).join('; '));
+    // the scene is really moving
+    await page.click('#go');
+    const moving = await page.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running').length);
+    h.assert(moving >= 3, 'scene animations running: ' + moving);
+    const still = await page.evaluate(() => {
+      const out = [];
+      __act.ACTIONS.forEach((a, i) => {
+        __act.learn(i);
+        document.querySelectorAll('#stage [class*="a-"]').forEach((el) => {
+          if (getComputedStyle(el).animationName === 'none') out.push(a.hz + ' .' + el.getAttribute('class'));
+        });
+      });
+      return out;
+    });
+    h.assert(!still.length, 'parts that should move but do not: ' + still.slice(0, 3).join(', '));
+  }},
+  { game: 'zh-act', name: 'learn: word big, said slowly twice, then in a sentence; arrows go round', fn: async (page, h) => {
+    await page.addInitScript(() => { speechSynthesis.speak = (u) => { window.__said.push({ text: u.text, rate: u.rate }); setTimeout(() => u.onend && u.onend(), 100); }; });
+    await page.goto(h.base + 'zh-act/');
+    await page.click('#go');
+    await page.waitForFunction(() => __said.length >= 3, null, { timeout: 8000 });
+    const s = await page.evaluate(() => __said.slice(0, 3));
+    h.assert(s[0].text === '游泳' && s[1].text === '游泳' && s[0].rate <= 0.6 && s[1].rate <= 0.6, 'new word said slowly twice: ' + JSON.stringify(s));
+    h.assert(s[2].text === '小朋友在游泳。', 'then in a sentence: ' + s[2].text);
+    h.assert((await page.textContent('.khz')) === '游泳' && (await page.textContent('.kpy')) === 'yóu yǒng', 'big word with pinyin');
+    h.assert((await page.textContent('.sentence b')) === '游泳', 'word marked in the sentence');
+    await page.click('#next');
+    h.assert((await page.evaluate(() => __act.cur.id)) === 'run', 'next action');
+    await page.click('#prev'); await page.click('#prev');
+    const last = await page.evaluate(() => __act.ACTIONS[__act.ACTIONS.length - 1].id);
+    h.assert((await page.evaluate(() => __act.cur.id)) === last, 'back from the first goes to the last');
+    h.assert(await page.locator('#choices').isHidden(), 'no answer buttons in Learn');
+  }},
+  { game: 'zh-act', name: 'guess: pick the word for the animation; wrong is greyed; star only first time; 8 per round', timeout: 120000, fn: async (page, h) => {
+    await page.addInitScript(() => { speechSynthesis.speak = (u) => { window.__said.push({ text: u.text, rate: u.rate }); setTimeout(() => u.onend && u.onend(), 60); }; });
+    await page.goto(h.base + 'zh-act/');
+    await page.click('#go'); await page.click('#mGuess');
+    h.assert(await page.locator('#nav').isHidden(), 'Learn arrows hidden in Guess');
+    for (let q = 0; q < 8; q++) {
+      await page.waitForFunction((q) => __act.ri === q && document.querySelectorAll('.choice:not([disabled])').length === 3, q, { timeout: 15000 });
+      const cur = await page.evaluate(() => __act.cur.id);
+      h.assert((await page.locator('#stage > svg').getAttribute('aria-label')) === (await page.evaluate(() => __act.cur.en)), 'scene shows the action being asked');
+      if (q === 0) {
+        const wrong = await page.evaluate(() => [...document.querySelectorAll('.choice')].find((b) => b.dataset.id !== __act.cur.id).dataset.id);
+        await page.click(`.choice[data-id="${wrong}"]`);
+        h.assert(await page.locator(`.choice[data-id="${wrong}"]`).isDisabled(), 'wrong answer greyed out');
+        h.assert((await h.said()).includes('不对，再试试！'), 'says try again');
+        h.assert((await page.evaluate(() => __act.ri)) === 0, 'wrong answer does not move on');
+      }
+      await page.evaluate(() => { __said.length = 0; });
+      await page.click(`.choice[data-id="${cur}"]`);
+      await page.waitForFunction(() => __said.length >= 2, null, { timeout: 6000 });
+      const hz = await page.evaluate(() => __act.cur.hz);
+      const s = await h.said();
+      h.assert(s[0] === hz && s[1] === hz, 'right answer: word said twice: ' + s);
+      if (q === 0) h.assert((await page.evaluate(() => __act.stars)) === 0, 'no star after a wrong try');
+    }
+    await page.waitForSelector('#roundDone:not([hidden])', { timeout: 15000 });
+    h.assert((await page.evaluate(() => __act.stars)) === 7, '7 stars: ' + (await page.evaluate(() => __act.stars)));
+    h.assert(/7 of 8/.test(await page.textContent('#roundText')), 'end screen shows 7 of 8');
+    const ids = await page.evaluate(() => __act.round.map((a) => a.id));
+    h.assert(new Set(ids).size === 8, 'no action twice in a round');
+  }},
+
   // ===== 跟我读 Read With Me
   { game: 'zh-read', name: 'every sentence: pinyin for each character, a picture, short enough for a 4-year-old', fn: async (page, h) => {
     await page.goto(h.base + 'zh-read/');
@@ -432,6 +516,7 @@ module.exports = [
     await page.goto(h.base + 'sky/'); await page.waitForSelector('#go', { timeout: 5000 });
     await page.goto(h.base + 'maths/'); await page.waitForSelector('.pl', { timeout: 5000 });
     await page.goto(h.base + 'zh-read/'); await page.waitForSelector('.word', { timeout: 5000 });
+    await page.goto(h.base + 'zh-act/'); await page.waitForSelector('#stage svg', { timeout: 5000 });
     await page.goto(h.base + 'zh-write/'); await page.click('#go');
     await zwReady(page);
     h.assert((await h.said()).includes('日'), 'the character is spoken');
@@ -455,6 +540,7 @@ module.exports = [
     await page.goto(h.base + 'sky/'); await page.waitForSelector('#go', { timeout: 5000 });
     await page.goto(h.base + 'maths/'); await page.waitForSelector('.pl', { timeout: 5000 });
     await page.goto(h.base + 'zh-read/'); await page.waitForSelector('.word', { timeout: 5000 });
+    await page.goto(h.base + 'zh-act/'); await page.waitForSelector('#stage svg', { timeout: 5000 });
     await page.goto(h.base + 'zh-write/'); await page.click('#go'); await zwReady(page);
     // fingerprint from the original stroke data: "<strokes>:<x>,<y> of where the first stroke starts>"
     const EXPECT = { 日: '4:284,684', 月: '4:339,773', 山: '3:472,748', 水: '4:473,814', 火: '4:216,534', 木: '4:228,534', 人: '2:483,736', 口: '3:229,584', 田: '5:168,630', 雨: '8:312,695', 一: '1:121,393', 二: '2:293,587', 三: '3:316,655', 四: '5:132,606', 五: '4:304,694', 六: '4:441,756', 七: '2:101,340', 八: '2:331,470', 九: '2:402,808', 十: '2:109,442', 目: '5:281,723', 耳: '6:224,757', 手: '4:696,777', 足: '7:322,757', 牛: '4:314,694', 羊: '6:345,813', 马: '3:289,716', 鸟: '5:425,861', 鱼: '8:442,848', 虫: '6:233,528', 大: '3:210,458', 小: '3:484,773', 上: '3:446,781', 下: '3:113,682', 中: '4:194,598', 天: '4:326,698', 云: '4:342,641', 土: '3:283,438', 石: '5:265,665', 门: '3:304,770' };
@@ -641,6 +727,7 @@ module.exports = [
     await page.goto(h.base + 'sky/'); await page.waitForSelector('#go', { timeout: 5000 });
     await page.goto(h.base + 'maths/'); await page.waitForSelector('.pl', { timeout: 5000 });
     await page.goto(h.base + 'zh-read/'); await page.waitForSelector('.word', { timeout: 5000 });
+    await page.goto(h.base + 'zh-act/'); await page.waitForSelector('#stage svg', { timeout: 5000 });
     await page.goto(h.base + 'zh-write/'); await page.click('#go');
     await page.waitForFunction(() => /strokes/.test(document.getElementById('strokes').textContent), null, { timeout: 8000 });
   }}

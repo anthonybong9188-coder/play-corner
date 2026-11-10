@@ -60,6 +60,19 @@ module.exports = [
   { id: 'ZW8', games: ['zh-write'], file: 'assets/zh.js', what: 'two characters swapped onto each other\'s stroke data', find: "{ id: 'da', hz: '大'", repl: "{ id: 'xiao', hz: '大'" },
   { id: 'ZW5', games: ['portal'], file: 'sw.js', what: 'stroke data not saved for offline', find: "  './zh-write/data/ri.json',\n", repl: '' },
 
+  // ---- 动一动 Action Words
+  { id: 'A1', games: ['zh-act'], file: 'zh-act/index.html', what: "new word said only once", find: "sayChain([{ text: a.hz, rate: 0.55, gap: 700 }, { text: a.hz, rate: 0.55, gap: 500 }, { text: sentence(a), rate: 0.75 }]", repl: "sayChain([{ text: a.hz, rate: 0.55, gap: 700 }, { text: sentence(a), rate: 0.75 }]" },
+  { id: 'A2', games: ['zh-act'], file: 'zh-act/index.html', what: "choices can share a character", find: "if (out.length < 3 && out.every(function (y) { return !shares(x, y); })) out.push(x);", repl: "if (out.length < 3 && out.indexOf(x) < 0) out.push(x);" },
+  { id: 'A3', games: ['zh-act'], file: 'zh-act/index.html', what: "right answer missing from the choices", find: "var out = [a];", repl: "var out = [ACTIONS[0] === a ? ACTIONS[1] : ACTIONS[0]];" },
+  { id: 'A4', games: ['zh-act'], file: 'zh-act/index.html', what: "any answer accepted", find: "if (x === cur) {", repl: "if (true) {" },
+  { id: 'A5', games: ['zh-act'], file: 'zh-act/index.html', what: "star even after a wrong try", find: "if (tries === 0) stars++;", repl: "stars++;" },
+  { id: 'A6', games: ['zh-act'], file: 'zh-act/index.html', what: "round never ends", find: "if (ri >= ROUND) roundDone(); else ask();", repl: "if (ri >= ROUND + 1) roundDone(); else ask();" },
+  { id: 'A7', games: ['zh-act'], file: 'zh-act/index.html', what: "back from the first action is stuck", find: "li = (i + ACTIONS.length) % ACTIONS.length;", repl: "li = Math.max(0, Math.min(ACTIONS.length - 1, i));" },
+  { id: 'A8', games: ['zh-act'], file: 'zh-act/index.html', what: "Learn arrows still showing in Guess", find: "$('nav').hidden = mode !== 'learn';", repl: "$('nav').hidden = false;" },
+  { id: 'A9', games: ['zh-act'], file: 'zh-act/index.html', what: "a pinyin is missing", find: "hz: '\u6e38\u6cf3', py: 'y\u00f3u y\u01d2ng'", repl: "hz: '\u6e38\u6cf3', py: 'y\u00f3u'" },
+  { id: 'A10', games: ['zh-act'], file: 'zh-act/index.html', what: "scene frozen", find: "  .a-spin { animation: spin 1.2s linear infinite; }", repl: "  .a-spin { }" },
+  { id: 'A11', games: ['zh-act'], file: 'zh-act/index.html', what: "sentence does not use the word", find: "var sentence = function (a) { return '\u5c0f\u670b\u53cb\u5728' + a.hz + '\u3002'; };", repl: "var sentence = function (a) { return '\u5c0f\u670b\u53cb\u5728\u73a9\u3002'; };" },
+  { id: 'A12', games: ['portal'], file: 'sw.js', what: 'Action Words not saved for offline', find: "  './zh-act/',\n", repl: '' },
   // ---- 跟我读 Read With Me
   { id: 'R1', games: ['zh-read'], file: 'zh-read/index.html', what: "light not reset before the child reads", edits: [{ find: "clearMarks(); yourTurn(true);", repl: "yourTurn(true);" }, { find: "clearMarks(); setPhase('turn'", repl: "setPhase('turn'" }] },
   { id: 'R2', games: ['zh-read'], file: 'zh-read/index.html', what: "teacher skips a word", find: "n++; setTimeout(nextWord, 160);", repl: "n += 2; setTimeout(nextWord, 160);" },
